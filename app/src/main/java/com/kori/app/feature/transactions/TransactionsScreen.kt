@@ -39,6 +39,7 @@ import com.kori.app.core.designsystem.component.TransactionRowCard
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.transaction.TransactionStatus
 import com.kori.app.core.model.transaction.TransactionType
+import com.kori.app.core.ui.displayLabel
 import com.kori.app.core.ui.epochMillisToLocalDateUtc
 import com.kori.app.core.ui.formatIsoDateForInput
 import com.kori.app.core.ui.isoToEpochMillisUtcStartOfDay
@@ -301,8 +302,14 @@ private fun FiltersSection(
             style = MaterialTheme.typography.labelLarge,
         )
 
+        val typeOptions = listOf(
+            FilterOption(value = "Tous", label = "Tous"),
+        ) + TransactionType.entries.map { type ->
+            FilterOption(value = type.name, label = type.displayLabel())
+        }
+
         FilterChipRow(
-            items = listOf("Tous") + TransactionType.entries.map { it.name },
+            items = typeOptions,
             selectedItem = selectedType ?: "Tous",
             onSelected = { selected ->
                 selectedType = selected.takeUnless { it == "Tous" }
@@ -314,8 +321,14 @@ private fun FiltersSection(
             style = MaterialTheme.typography.labelLarge,
         )
 
+        val statusOptions = listOf(
+            FilterOption(value = "Tous", label = "Tous"),
+        ) + TransactionStatus.entries.map { status ->
+            FilterOption(value = status.name, label = status.displayLabel())
+        }
+
         FilterChipRow(
-            items = listOf("Tous") + TransactionStatus.entries.map { it.name },
+            items = statusOptions,
             selectedItem = selectedStatus ?: "Tous",
             onSelected = { selected ->
                 selectedStatus = selected.takeUnless { it == "Tous" }
@@ -524,7 +537,7 @@ private fun TextButtonLike(
 
 @Composable
 private fun FilterChipRow(
-    items: List<String>,
+    items: List<FilterOption>,
     selectedItem: String,
     onSelected: (String) -> Unit,
 ) {
@@ -534,11 +547,16 @@ private fun FilterChipRow(
     ) {
         items(items) { item ->
             FilterChip(
-                selected = item == selectedItem,
-                onClick = { onSelected(item) },
-                label = { Text(item) },
+                selected = item.value == selectedItem,
+                onClick = { onSelected(item.value) },
+                label = { Text(item.label) },
                 colors = FilterChipDefaults.filterChipColors(),
             )
         }
     }
 }
+
+private data class FilterOption(
+    val value: String,
+    val label: String,
+)

@@ -8,6 +8,7 @@ import com.kori.app.core.model.transaction.TransactionItemResponse
 import com.kori.app.core.model.transaction.TransactionStatus
 import com.kori.app.data.repository.TransactionQuery
 import com.kori.app.data.repository.TransactionRepository
+import com.kori.app.core.ui.timelineLabel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,16 +75,16 @@ class TransactionDetailViewModel(
         val finalPending = transaction.status == TransactionStatus.PENDING
 
         val lastTitle = when {
-            finalCompleted -> "Completed"
-            finalFailed -> "Failed"
-            finalReversed -> "Reversed"
-            finalPending -> "Pending"
-            else -> transaction.status.name
+            finalCompleted -> transaction.status.timelineLabel()
+            finalFailed -> transaction.status.timelineLabel()
+            finalReversed -> transaction.status.timelineLabel()
+            finalPending -> transaction.status.timelineLabel()
+            else -> transaction.status.timelineLabel()
         }
 
         return listOf(
             TransactionTimelineStep(
-                title = "Requested",
+                title = "Demande initiée",
                 isCompleted = true,
             ),
             TransactionTimelineStep(

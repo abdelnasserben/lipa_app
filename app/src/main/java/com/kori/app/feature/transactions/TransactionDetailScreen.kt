@@ -29,6 +29,7 @@ import com.kori.app.core.designsystem.component.StatusBadge
 import com.kori.app.core.designsystem.component.TimelineStepRow
 import com.kori.app.core.designsystem.component.TypeChip
 import com.kori.app.core.model.transaction.TransactionItemResponse
+import com.kori.app.core.ui.displayLabel
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
 
@@ -240,8 +241,8 @@ private fun DetailsCard(
             DetailLine("Montant", formatKmf(transaction.amount))
             DetailLine("Frais", formatKmf(transaction.fee ?: 0L))
             DetailLine("Total débité", formatKmf(transaction.totalDebited ?: transaction.amount))
-            DetailLine("Statut", transaction.status.name)
-            DetailLine("Type", transaction.type.name)
+            DetailLine("Statut", transaction.status.displayLabel())
+            DetailLine("Type", transaction.type.displayLabel())
             DetailLine("Contrepartie", transaction.counterparty.displayName)
             DetailLine("Téléphone", transaction.counterparty.phone ?: "—")
             DetailLine("Code", transaction.counterparty.code ?: "—")
