@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.Wallet
 import androidx.compose.material3.Icon
@@ -30,8 +31,8 @@ fun KoriBottomBar(
     onNavigate: (String) -> Unit,
 ) {
     val items = listOf(
-        Triple(KoriDestination.Dashboard.route, "Dashboard", Icons.Outlined.Dashboard),
-        Triple(KoriDestination.Transactions.route, "Transactions", Icons.Outlined.Wallet),
+        Triple(KoriDestination.Dashboard.route, "Accueil", Icons.Outlined.Dashboard),
+        Triple(KoriDestination.Transactions.route, "Transac.", Icons.Outlined.Wallet),
         Triple(KoriDestination.Action.route, actionLabel, Icons.Outlined.SwapHoriz),
         Triple(KoriDestination.Activity.route, activityLabel, Icons.Outlined.History),
         Triple(KoriDestination.Profile.route, "Profil", Icons.Outlined.AccountCircle),

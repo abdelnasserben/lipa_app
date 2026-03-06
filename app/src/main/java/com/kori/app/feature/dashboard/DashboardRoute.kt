@@ -3,6 +3,7 @@ package com.kori.app.feature.dashboard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.core.model.UserRole
 import com.kori.app.domain.GetDashboardUseCase
@@ -14,6 +15,7 @@ fun DashboardRoute(
     onOpenProfile: () -> Unit,
     onOpenTransactions: () -> Unit,
     onOpenAction: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val viewModel: DashboardViewModel = viewModel(
         factory = DashboardViewModel.factory(
@@ -31,5 +33,6 @@ fun DashboardRoute(
         onOpenProfile = onOpenProfile,
         onOpenTransactions = onOpenTransactions,
         onOpenAction = onOpenAction,
+        modifier = modifier
     )
 }

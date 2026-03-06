@@ -3,6 +3,7 @@ package com.kori.app.feature.transactions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.core.model.UserRole
 import com.kori.app.data.repository.TransactionRepository
@@ -12,6 +13,7 @@ fun TransactionsRoute(
     role: UserRole,
     repository: TransactionRepository,
     onTransactionClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val viewModel: TransactionsViewModel = viewModel(
         factory = TransactionsViewModel.factory(
@@ -30,5 +32,6 @@ fun TransactionsRoute(
         onClearFilters = viewModel::clearFilters,
         onLoadMore = viewModel::loadMore,
         onTransactionClick = onTransactionClick,
+        modifier = modifier
     )
 }

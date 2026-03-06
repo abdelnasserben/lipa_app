@@ -199,7 +199,7 @@ fun KoriNavHost(
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
-            ) { _ ->
+            ) { contentModifier ->
                 DashboardRoute(
                     role = role,
                     getDashboardUseCase = getDashboardUseCase,
@@ -212,6 +212,7 @@ fun KoriNavHost(
                     onOpenAction = {
                         navController.navigateToTopLevel(KoriDestination.Action.route)
                     },
+                    modifier = contentModifier,
                 )
             }
         }
@@ -229,7 +230,7 @@ fun KoriNavHost(
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
-            ) { _ ->
+            ) { contentModifier ->
                 TransactionsRoute(
                     role = role,
                     repository = transactionRepository,
@@ -238,6 +239,7 @@ fun KoriNavHost(
                             KoriDestination.TransactionDetail.createRoute(transactionRef),
                         )
                     },
+                    modifier = contentModifier,
                 )
             }
         }
@@ -396,7 +398,7 @@ fun KoriNavHost(
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
-            ) { _ ->
+            ) { contentModifier ->
                 ProfileRoute(
                     role = role,
                     repository = profileRepository,
@@ -412,6 +414,7 @@ fun KoriNavHost(
                             launchSingleTop = true
                         }
                     },
+                    modifier = contentModifier,
                 )
             }
         }

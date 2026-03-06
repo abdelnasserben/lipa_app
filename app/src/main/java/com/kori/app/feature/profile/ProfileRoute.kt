@@ -3,6 +3,7 @@ package com.kori.app.feature.profile
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.core.model.UserRole
 import com.kori.app.data.repository.ProfileRepository
@@ -13,6 +14,7 @@ fun ProfileRoute(
     repository: ProfileRepository,
     onOpenSession: () -> Unit,
     onSelectRole: (UserRole) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val viewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModel.factory(
@@ -30,5 +32,6 @@ fun ProfileRoute(
         onLanguageSelected = viewModel::onLanguageSelected,
         onNotificationsChanged = viewModel::onNotificationsChanged,
         onSelectRole = onSelectRole,
+        modifier = modifier
     )
 }
