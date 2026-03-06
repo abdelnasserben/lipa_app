@@ -3,18 +3,21 @@ package com.kori.app.feature.action
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.core.model.action.ActionIntent
+import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.ClientTransferDraft
 import com.kori.app.core.model.action.ClientTransferResult
 import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.data.repository.ClientTransferRepository
+import com.kori.app.domain.idempotency.IdempotencyManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class ClientTransferViewModel(
     private val repository: ClientTransferRepository,
+    private val idempotencyManager: IdempotencyManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ClientTransferUiState>(ClientTransferUiState.Form())
@@ -47,7 +50,11 @@ class ClientTransferViewModel(
         }
 
         val amount = current.draft.amountInput.toLong()
-        val idempotencyKey = UUID.randomUUID().toString()
+        val intent = createActionIntent(
+            recipientPhoneNumber = current.draft.recipientPhoneNumber,
+            amount = amount,
+        )
+        val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
             _uiState.value = current.copy(isLoading = true)
@@ -97,6 +104,13 @@ class ClientTransferViewModel(
         val current = _uiState.value as? ClientTransferUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
+        val intent = createActionIntent(
+            recipientPhoneNumber = current.quote.recipientPhoneNumber,
+            amount = current.quote.amount,
+        )
+        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
+        if (!canStart) return
+
         viewModelScope.launch {
             _uiState.value = current.copy(
                 isSubmitting = true,
@@ -108,6 +122,7 @@ class ClientTransferViewModel(
             }.onSuccess { result ->
                 _uiState.value = when (result) {
                     is ClientTransferResult.Success -> {
+                        idempotencyManager.onSuccess(current.quote.idempotencyKey)
                         ClientTransferUiState.Success(
                             receipt = result.receipt,
                             idempotencyKey = current.quote.idempotencyKey,
@@ -115,6 +130,7 @@ class ClientTransferViewModel(
                     }
 
                     is ClientTransferResult.Failure -> {
+                        idempotencyManager.onFailure(result.idempotencyKey)
                         ClientTransferUiState.Failure(
                             code = result.code,
                             message = result.message,
@@ -123,6 +139,7 @@ class ClientTransferViewModel(
                     }
                 }
             }.onFailure {
+                idempotencyManager.onFailure(current.quote.idempotencyKey)
                 _uiState.value = ClientTransferUiState.Failure(
                     code = FinancialErrorCode.INVALID_STATUS,
                     message = "Une erreur inattendue est survenue pendant le transfert.",
@@ -134,6 +151,15 @@ class ClientTransferViewModel(
 
     fun editForm() {
         val state = _uiState.value
+        if (state is ClientTransferUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    recipientPhoneNumber = state.quote.recipientPhoneNumber,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
+
         val draft = when (state) {
             is ClientTransferUiState.Form -> state.draft
             is ClientTransferUiState.Confirmation -> ClientTransferDraft(
@@ -149,7 +175,27 @@ class ClientTransferViewModel(
     }
 
     fun restart() {
+        val state = _uiState.value
+        if (state is ClientTransferUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    recipientPhoneNumber = state.quote.recipientPhoneNumber,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
         _uiState.value = ClientTransferUiState.Form()
+    }
+
+    private fun createActionIntent(
+        recipientPhoneNumber: String,
+        amount: Long,
+    ): ActionIntent {
+        return ActionIntent(
+            type = ActionIntentType.CLIENT_TRANSFER,
+            actor = recipientPhoneNumber.trim(),
+            amount = amount,
+        )
     }
 
     private fun validate(
@@ -180,12 +226,14 @@ class ClientTransferViewModel(
     companion object {
         fun factory(
             repository: ClientTransferRepository,
+            idempotencyManager: IdempotencyManager,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     return ClientTransferViewModel(
                         repository = repository,
+                        idempotencyManager = idempotencyManager,
                     ) as T
                 }
             }

@@ -12,7 +12,9 @@ import com.kori.app.data.mock.MockMerchantTransferRepository
 import com.kori.app.data.mock.MockProfileRepository
 import com.kori.app.data.mock.MockSessionRepository
 import com.kori.app.data.mock.MockTransactionRepository
+import com.kori.app.data.idempotency.InMemoryPendingActionStore
 import com.kori.app.domain.GetDashboardUseCase
+import com.kori.app.domain.idempotency.IdempotencyManager
 import com.kori.app.navigation.KoriNavHost
 
 @Composable
@@ -25,6 +27,8 @@ fun KoriApp() {
     val merchantTransferRepository = remember { MockMerchantTransferRepository() }
     val agentActionRepository = remember { MockAgentActionRepository() }
     val profileRepository = remember { MockProfileRepository() }
+    val pendingActionStore = remember { InMemoryPendingActionStore() }
+    val idempotencyManager = remember(pendingActionStore) { IdempotencyManager(pendingActionStore) }
 
     val appState = remember(sessionRepository) { KoriAppState(sessionRepository) }
     val getDashboardUseCase = remember(dashboardRepository) {
@@ -43,6 +47,7 @@ fun KoriApp() {
             merchantTransferRepository = merchantTransferRepository,
             agentActionRepository = agentActionRepository,
             profileRepository = profileRepository,
+            idempotencyManager = idempotencyManager,
         )
     }
 }

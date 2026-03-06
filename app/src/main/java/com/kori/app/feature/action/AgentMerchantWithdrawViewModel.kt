@@ -3,18 +3,21 @@ package com.kori.app.feature.action
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.core.model.action.ActionIntent
+import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.AgentMerchantWithdrawDraft
 import com.kori.app.core.model.action.AgentMerchantWithdrawResult
 import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.data.repository.AgentActionRepository
+import com.kori.app.domain.idempotency.IdempotencyManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class AgentMerchantWithdrawViewModel(
     private val repository: AgentActionRepository,
+    private val idempotencyManager: IdempotencyManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AgentMerchantWithdrawUiState>(AgentMerchantWithdrawUiState.Form())
@@ -45,7 +48,11 @@ class AgentMerchantWithdrawViewModel(
         }
 
         val amount = current.draft.amountInput.toLong()
-        val idempotencyKey = UUID.randomUUID().toString()
+        val intent = createActionIntent(
+            merchantCode = current.draft.merchantCode,
+            amount = amount,
+        )
+        val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
             _uiState.value = current.copy(isLoading = true)
@@ -87,6 +94,13 @@ class AgentMerchantWithdrawViewModel(
         val current = _uiState.value as? AgentMerchantWithdrawUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
+        val intent = createActionIntent(
+            merchantCode = current.quote.merchantCode,
+            amount = current.quote.amount,
+        )
+        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
+        if (!canStart) return
+
         viewModelScope.launch {
             _uiState.value = current.copy(
                 isSubmitting = true,
@@ -97,18 +111,25 @@ class AgentMerchantWithdrawViewModel(
                 repository.submitMerchantWithdraw(current.quote)
             }.onSuccess { result ->
                 _uiState.value = when (result) {
-                    is AgentMerchantWithdrawResult.Success -> AgentMerchantWithdrawUiState.Success(
-                        receipt = result.receipt,
-                        idempotencyKey = current.quote.idempotencyKey,
-                    )
+                    is AgentMerchantWithdrawResult.Success -> {
+                        idempotencyManager.onSuccess(current.quote.idempotencyKey)
+                        AgentMerchantWithdrawUiState.Success(
+                            receipt = result.receipt,
+                            idempotencyKey = current.quote.idempotencyKey,
+                        )
+                    }
 
-                    is AgentMerchantWithdrawResult.Failure -> AgentMerchantWithdrawUiState.Failure(
-                        code = result.code,
-                        message = result.message,
-                        idempotencyKey = result.idempotencyKey,
-                    )
+                    is AgentMerchantWithdrawResult.Failure -> {
+                        idempotencyManager.onFailure(result.idempotencyKey)
+                        AgentMerchantWithdrawUiState.Failure(
+                            code = result.code,
+                            message = result.message,
+                            idempotencyKey = result.idempotencyKey,
+                        )
+                    }
                 }
             }.onFailure {
+                idempotencyManager.onFailure(current.quote.idempotencyKey)
                 _uiState.value = AgentMerchantWithdrawUiState.Failure(
                     code = FinancialErrorCode.INVALID_STATUS,
                     message = "Une erreur inattendue est survenue pendant le retrait marchand.",
@@ -120,6 +141,15 @@ class AgentMerchantWithdrawViewModel(
 
     fun edit() {
         val state = _uiState.value
+        if (state is AgentMerchantWithdrawUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    merchantCode = state.quote.merchantCode,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
+
         val draft = when (state) {
             is AgentMerchantWithdrawUiState.Form -> state.draft
             is AgentMerchantWithdrawUiState.Confirmation -> AgentMerchantWithdrawDraft(
@@ -134,7 +164,27 @@ class AgentMerchantWithdrawViewModel(
     }
 
     fun restart() {
+        val state = _uiState.value
+        if (state is AgentMerchantWithdrawUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    merchantCode = state.quote.merchantCode,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
         _uiState.value = AgentMerchantWithdrawUiState.Form()
+    }
+
+    private fun createActionIntent(
+        merchantCode: String,
+        amount: Long,
+    ): ActionIntent {
+        return ActionIntent(
+            type = ActionIntentType.MERCHANT_WITHDRAW,
+            actor = merchantCode.trim().uppercase(),
+            amount = amount,
+        )
     }
 
     private fun validate(draft: AgentMerchantWithdrawDraft): AgentMerchantWithdrawFormErrors {
@@ -157,11 +207,17 @@ class AgentMerchantWithdrawViewModel(
     }
 
     companion object {
-        fun factory(repository: AgentActionRepository): ViewModelProvider.Factory {
+        fun factory(
+            repository: AgentActionRepository,
+            idempotencyManager: IdempotencyManager,
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return AgentMerchantWithdrawViewModel(repository) as T
+                    return AgentMerchantWithdrawViewModel(
+                        repository = repository,
+                        idempotencyManager = idempotencyManager,
+                    ) as T
                 }
             }
         }

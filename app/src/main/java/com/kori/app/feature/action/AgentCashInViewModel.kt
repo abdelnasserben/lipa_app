@@ -3,18 +3,21 @@ package com.kori.app.feature.action
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.core.model.action.ActionIntent
+import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.AgentCashInDraft
 import com.kori.app.core.model.action.AgentCashInResult
 import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.data.repository.AgentActionRepository
+import com.kori.app.domain.idempotency.IdempotencyManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class AgentCashInViewModel(
     private val repository: AgentActionRepository,
+    private val idempotencyManager: IdempotencyManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AgentCashInUiState>(AgentCashInUiState.Form())
@@ -45,7 +48,11 @@ class AgentCashInViewModel(
         }
 
         val amount = current.draft.amountInput.toLong()
-        val idempotencyKey = UUID.randomUUID().toString()
+        val intent = createActionIntent(
+            phoneNumber = current.draft.phoneNumber,
+            amount = amount,
+        )
+        val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
             _uiState.value = current.copy(isLoading = true)
@@ -87,6 +94,13 @@ class AgentCashInViewModel(
         val current = _uiState.value as? AgentCashInUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
+        val intent = createActionIntent(
+            phoneNumber = current.quote.phoneNumber,
+            amount = current.quote.amount,
+        )
+        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
+        if (!canStart) return
+
         viewModelScope.launch {
             _uiState.value = current.copy(
                 isSubmitting = true,
@@ -97,18 +111,25 @@ class AgentCashInViewModel(
                 repository.submitCashIn(current.quote)
             }.onSuccess { result ->
                 _uiState.value = when (result) {
-                    is AgentCashInResult.Success -> AgentCashInUiState.Success(
-                        receipt = result.receipt,
-                        idempotencyKey = current.quote.idempotencyKey,
-                    )
+                    is AgentCashInResult.Success -> {
+                        idempotencyManager.onSuccess(current.quote.idempotencyKey)
+                        AgentCashInUiState.Success(
+                            receipt = result.receipt,
+                            idempotencyKey = current.quote.idempotencyKey,
+                        )
+                    }
 
-                    is AgentCashInResult.Failure -> AgentCashInUiState.Failure(
-                        code = result.code,
-                        message = result.message,
-                        idempotencyKey = result.idempotencyKey,
-                    )
+                    is AgentCashInResult.Failure -> {
+                        idempotencyManager.onFailure(result.idempotencyKey)
+                        AgentCashInUiState.Failure(
+                            code = result.code,
+                            message = result.message,
+                            idempotencyKey = result.idempotencyKey,
+                        )
+                    }
                 }
             }.onFailure {
+                idempotencyManager.onFailure(current.quote.idempotencyKey)
                 _uiState.value = AgentCashInUiState.Failure(
                     code = FinancialErrorCode.INVALID_STATUS,
                     message = "Une erreur inattendue est survenue pendant le cash-in.",
@@ -120,6 +141,15 @@ class AgentCashInViewModel(
 
     fun edit() {
         val state = _uiState.value
+        if (state is AgentCashInUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    phoneNumber = state.quote.phoneNumber,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
+
         val draft = when (state) {
             is AgentCashInUiState.Form -> state.draft
             is AgentCashInUiState.Confirmation -> AgentCashInDraft(
@@ -134,7 +164,27 @@ class AgentCashInViewModel(
     }
 
     fun restart() {
+        val state = _uiState.value
+        if (state is AgentCashInUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    phoneNumber = state.quote.phoneNumber,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
         _uiState.value = AgentCashInUiState.Form()
+    }
+
+    private fun createActionIntent(
+        phoneNumber: String,
+        amount: Long,
+    ): ActionIntent {
+        return ActionIntent(
+            type = ActionIntentType.CASH_IN,
+            actor = phoneNumber.trim(),
+            amount = amount,
+        )
     }
 
     private fun validate(draft: AgentCashInDraft): AgentCashInFormErrors {
@@ -157,11 +207,17 @@ class AgentCashInViewModel(
     }
 
     companion object {
-        fun factory(repository: AgentActionRepository): ViewModelProvider.Factory {
+        fun factory(
+            repository: AgentActionRepository,
+            idempotencyManager: IdempotencyManager,
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return AgentCashInViewModel(repository) as T
+                    return AgentCashInViewModel(
+                        repository = repository,
+                        idempotencyManager = idempotencyManager,
+                    ) as T
                 }
             }
         }

@@ -5,13 +5,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.data.repository.AgentActionRepository
+import com.kori.app.domain.idempotency.IdempotencyManager
 
 @Composable
 fun AgentCashInRoute(
     repository: AgentActionRepository,
+    idempotencyManager: IdempotencyManager,
 ) {
     val viewModel: AgentCashInViewModel = viewModel(
-        factory = AgentCashInViewModel.factory(repository),
+        factory = AgentCashInViewModel.factory(repository, idempotencyManager),
     )
     val uiState by viewModel.uiState.collectAsState()
 

@@ -3,18 +3,21 @@ package com.kori.app.feature.action
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.core.model.action.ActionIntent
+import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.core.model.action.MerchantTransferDraft
 import com.kori.app.core.model.action.MerchantTransferResult
 import com.kori.app.data.repository.MerchantTransferRepository
+import com.kori.app.domain.idempotency.IdempotencyManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
 
 class MerchantTransferViewModel(
     private val repository: MerchantTransferRepository,
+    private val idempotencyManager: IdempotencyManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MerchantTransferUiState>(MerchantTransferUiState.Form())
@@ -47,7 +50,11 @@ class MerchantTransferViewModel(
         }
 
         val amount = current.draft.amountInput.toLong()
-        val idempotencyKey = UUID.randomUUID().toString()
+        val intent = createActionIntent(
+            recipientMerchantCode = current.draft.recipientMerchantCode,
+            amount = amount,
+        )
+        val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
             _uiState.value = current.copy(isLoading = true)
@@ -97,6 +104,13 @@ class MerchantTransferViewModel(
         val current = _uiState.value as? MerchantTransferUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
+        val intent = createActionIntent(
+            recipientMerchantCode = current.quote.recipientMerchantCode,
+            amount = current.quote.amount,
+        )
+        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
+        if (!canStart) return
+
         viewModelScope.launch {
             _uiState.value = current.copy(
                 isSubmitting = true,
@@ -108,6 +122,7 @@ class MerchantTransferViewModel(
             }.onSuccess { result ->
                 _uiState.value = when (result) {
                     is MerchantTransferResult.Success -> {
+                        idempotencyManager.onSuccess(current.quote.idempotencyKey)
                         MerchantTransferUiState.Success(
                             receipt = result.receipt,
                             idempotencyKey = current.quote.idempotencyKey,
@@ -115,6 +130,7 @@ class MerchantTransferViewModel(
                     }
 
                     is MerchantTransferResult.Failure -> {
+                        idempotencyManager.onFailure(result.idempotencyKey)
                         MerchantTransferUiState.Failure(
                             code = result.code,
                             message = result.message,
@@ -123,6 +139,7 @@ class MerchantTransferViewModel(
                     }
                 }
             }.onFailure {
+                idempotencyManager.onFailure(current.quote.idempotencyKey)
                 _uiState.value = MerchantTransferUiState.Failure(
                     code = FinancialErrorCode.INVALID_STATUS,
                     message = "Une erreur inattendue est survenue pendant le transfert marchand.",
@@ -134,6 +151,15 @@ class MerchantTransferViewModel(
 
     fun editForm() {
         val state = _uiState.value
+        if (state is MerchantTransferUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    recipientMerchantCode = state.quote.recipientMerchantCode,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
+
         val draft = when (state) {
             is MerchantTransferUiState.Form -> state.draft
             is MerchantTransferUiState.Confirmation -> MerchantTransferDraft(
@@ -149,7 +175,27 @@ class MerchantTransferViewModel(
     }
 
     fun restart() {
+        val state = _uiState.value
+        if (state is MerchantTransferUiState.Confirmation) {
+            idempotencyManager.clear(
+                createActionIntent(
+                    recipientMerchantCode = state.quote.recipientMerchantCode,
+                    amount = state.quote.amount,
+                ),
+            )
+        }
         _uiState.value = MerchantTransferUiState.Form()
+    }
+
+    private fun createActionIntent(
+        recipientMerchantCode: String,
+        amount: Long,
+    ): ActionIntent {
+        return ActionIntent(
+            type = ActionIntentType.MERCHANT_TRANSFER,
+            actor = recipientMerchantCode.trim().uppercase(),
+            amount = amount,
+        )
     }
 
     private fun validate(
@@ -180,12 +226,14 @@ class MerchantTransferViewModel(
     companion object {
         fun factory(
             repository: MerchantTransferRepository,
+            idempotencyManager: IdempotencyManager,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     return MerchantTransferViewModel(
                         repository = repository,
+                        idempotencyManager = idempotencyManager,
                     ) as T
                 }
             }

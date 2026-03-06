@@ -38,6 +38,7 @@ import com.kori.app.data.repository.MerchantTransferRepository
 import com.kori.app.data.repository.ProfileRepository
 import com.kori.app.data.repository.TransactionRepository
 import com.kori.app.domain.GetDashboardUseCase
+import com.kori.app.domain.idempotency.IdempotencyManager
 import com.kori.app.feature.action.ActionScreen
 import com.kori.app.feature.action.AgentCashInRoute
 import com.kori.app.feature.action.AgentMerchantWithdrawRoute
@@ -67,6 +68,7 @@ fun KoriNavHost(
     merchantTransferRepository: MerchantTransferRepository,
     agentActionRepository: AgentActionRepository,
     profileRepository: ProfileRepository,
+    idempotencyManager: IdempotencyManager,
     modifier: Modifier = Modifier,
 ) {
     val session by appState.session.collectAsState()
@@ -272,7 +274,10 @@ fun KoriNavHost(
                 title = "Transfert client",
                 onBack = { navController.popBackStack() },
             ) { _ ->
-                ClientTransferRoute(repository = clientTransferRepository)
+                ClientTransferRoute(
+                    repository = clientTransferRepository,
+                    idempotencyManager = idempotencyManager,
+                )
             }
         }
 
@@ -284,7 +289,10 @@ fun KoriNavHost(
                 title = "Transfert marchand",
                 onBack = { navController.popBackStack() },
             ) { _ ->
-                MerchantTransferRoute(repository = merchantTransferRepository)
+                MerchantTransferRoute(
+                    repository = merchantTransferRepository,
+                    idempotencyManager = idempotencyManager,
+                )
             }
         }
 
@@ -296,7 +304,10 @@ fun KoriNavHost(
                 title = "Cash-in client",
                 onBack = { navController.popBackStack() },
             ) { _ ->
-                AgentCashInRoute(repository = agentActionRepository)
+                AgentCashInRoute(
+                    repository = agentActionRepository,
+                    idempotencyManager = idempotencyManager,
+                )
             }
         }
 
@@ -308,7 +319,10 @@ fun KoriNavHost(
                 title = "Retrait marchand",
                 onBack = { navController.popBackStack() },
             ) { _ ->
-                AgentMerchantWithdrawRoute(repository = agentActionRepository)
+                AgentMerchantWithdrawRoute(
+                    repository = agentActionRepository,
+                    idempotencyManager = idempotencyManager,
+                )
             }
         }
 
