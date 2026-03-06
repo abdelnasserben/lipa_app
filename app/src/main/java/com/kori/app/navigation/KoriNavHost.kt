@@ -32,6 +32,7 @@ import com.kori.app.core.designsystem.component.KoriScaffold
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.auth.AuthState
 import com.kori.app.data.repository.AgentActionRepository
+import com.kori.app.data.repository.ActivityRepository
 import com.kori.app.data.repository.AuthService
 import com.kori.app.data.repository.ClientTransferRepository
 import com.kori.app.data.repository.MerchantTransferRepository
@@ -44,7 +45,7 @@ import com.kori.app.feature.action.AgentCashInRoute
 import com.kori.app.feature.action.AgentMerchantWithdrawRoute
 import com.kori.app.feature.action.ClientTransferRoute
 import com.kori.app.feature.action.MerchantTransferRoute
-import com.kori.app.feature.activity.ActivityScreen
+import com.kori.app.feature.activity.ActivityRoute
 import com.kori.app.feature.auth.AuthBrowserMockScreen
 import com.kori.app.feature.auth.AuthCallbackScreen
 import com.kori.app.feature.auth.AuthSuccessScreen
@@ -67,6 +68,7 @@ fun KoriNavHost(
     clientTransferRepository: ClientTransferRepository,
     merchantTransferRepository: MerchantTransferRepository,
     agentActionRepository: AgentActionRepository,
+    activityRepository: ActivityRepository,
     profileRepository: ProfileRepository,
     idempotencyManager: IdempotencyManager,
     modifier: Modifier = Modifier,
@@ -373,8 +375,9 @@ fun KoriNavHost(
                     )
                 },
             ) { contentModifier ->
-                ActivityScreen(
+                ActivityRoute(
                     role = role,
+                    repository = activityRepository,
                     modifier = contentModifier,
                 )
             }

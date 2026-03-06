@@ -2,6 +2,10 @@ package com.kori.app.data.mock
 
 import com.kori.app.core.model.balance.ActorBalanceResponse
 import com.kori.app.core.model.balance.BalanceItemResponse
+import com.kori.app.core.model.activity.ActivityCategory
+import com.kori.app.core.model.activity.ActivityFeedItem
+import com.kori.app.core.model.activity.ActivityStatus
+import com.kori.app.core.model.activity.ActivityType
 import com.kori.app.core.model.common.ActorStatus
 import com.kori.app.core.model.common.BalanceKind
 import com.kori.app.core.model.common.CurrencyCode
@@ -30,6 +34,108 @@ object MockDataFactory {
     private const val CLIENT_CODE = "CLI-0001"
     private const val MERCHANT_CODE = "MER-0042"
     private const val AGENT_CODE = "AGT-0010"
+
+    fun clientActivities(): List<ActivityFeedItem> {
+        return listOf(
+            ActivityFeedItem(
+                eventRef = "ACT-CL-5001",
+                occurredAt = isoHoursAgo(4),
+                title = "Paiement carte validé",
+                description = "Achat confirmé chez Boutique Rahma",
+                type = ActivityType.PAYMENT,
+                status = ActivityStatus.COMPLETED,
+                category = ActivityCategory.PAYMENT,
+                amount = 8_500L,
+            ),
+            ActivityFeedItem(
+                eventRef = "ACT-CL-5002",
+                occurredAt = isoHoursAgo(9),
+                title = "Transfert envoyé",
+                description = "Transfert client vers Ibrahim Ali",
+                type = ActivityType.TRANSFER,
+                status = ActivityStatus.COMPLETED,
+                category = ActivityCategory.TRANSFER,
+                amount = 35_000L,
+            ),
+            ActivityFeedItem(
+                eventRef = "ACT-CL-5003",
+                occurredAt = isoDaysAgo(1),
+                title = "Carte suspendue",
+                description = "Carte CARD-002 temporairement bloquée",
+                type = ActivityType.CARD,
+                status = ActivityStatus.PENDING,
+                category = ActivityCategory.CARD,
+            ),
+        )
+    }
+
+    fun merchantActivities(): List<ActivityFeedItem> {
+        return listOf(
+            ActivityFeedItem(
+                eventRef = "ACT-MR-6001",
+                occurredAt = isoHoursAgo(1),
+                title = "Encaissement terminal",
+                description = "Paiement client reçu sur TERM-001",
+                type = ActivityType.COLLECTION,
+                status = ActivityStatus.COMPLETED,
+                category = ActivityCategory.PAYMENT,
+                amount = 75_000L,
+            ),
+            ActivityFeedItem(
+                eventRef = "ACT-MR-6002",
+                occurredAt = isoHoursAgo(6),
+                title = "Transfert marchand",
+                description = "Versement vers MER-0088 finalisé",
+                type = ActivityType.TRANSFER,
+                status = ActivityStatus.COMPLETED,
+                category = ActivityCategory.TRANSFER,
+                amount = 250_000L,
+            ),
+            ActivityFeedItem(
+                eventRef = "ACT-MR-6003",
+                occurredAt = isoDaysAgo(2),
+                title = "Alerte terminal",
+                description = "TERM-004 hors ligne depuis 45 min",
+                type = ActivityType.TERMINAL,
+                status = ActivityStatus.FAILED,
+                category = ActivityCategory.TERMINAL,
+            ),
+        )
+    }
+
+    fun agentActivities(): List<ActivityFeedItem> {
+        return listOf(
+            ActivityFeedItem(
+                eventRef = "ACT-AG-7001",
+                occurredAt = isoHoursAgo(2),
+                title = "Cash-in confirmé",
+                description = "Dépôt client CLI-0301 validé",
+                type = ActivityType.CASH_IN,
+                status = ActivityStatus.COMPLETED,
+                category = ActivityCategory.PAYMENT,
+                amount = 120_000L,
+            ),
+            ActivityFeedItem(
+                eventRef = "ACT-AG-7002",
+                occurredAt = isoHoursAgo(7),
+                title = "Retrait marchand servi",
+                description = "Retrait pour MER-0061 traité",
+                type = ActivityType.MERCHANT_WITHDRAW,
+                status = ActivityStatus.COMPLETED,
+                category = ActivityCategory.TRANSFER,
+                amount = 210_000L,
+            ),
+            ActivityFeedItem(
+                eventRef = "ACT-AG-7003",
+                occurredAt = isoDaysAgo(1),
+                title = "Ronde terrain",
+                description = "Contrôle de caisse et stock TPE effectué",
+                type = ActivityType.FIELD_OPERATION,
+                status = ActivityStatus.PENDING,
+                category = ActivityCategory.TERRAIN,
+            ),
+        )
+    }
 
     fun clientDashboard(): ClientDashboardResponse {
         return ClientDashboardResponse(

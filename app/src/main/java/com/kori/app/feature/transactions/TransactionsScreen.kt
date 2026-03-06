@@ -1,38 +1,51 @@
 package com.kori.app.feature.transactions
 
-import androidx.compose.foundation.clickable
+import android.app.DatePickerDialog
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.SwapHoriz
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.rememberDatePickerState
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
+import com.kori.app.core.designsystem.component.CollapsibleFiltersCard
+import com.kori.app.core.designsystem.component.CountPill
 import com.kori.app.core.designsystem.component.EmptyState
 import com.kori.app.core.designsystem.component.ErrorState
 import com.kori.app.core.designsystem.component.TransactionRowCard
@@ -45,6 +58,8 @@ import com.kori.app.core.ui.formatIsoDateForInput
 import com.kori.app.core.ui.isoToEpochMillisUtcStartOfDay
 import com.kori.app.core.ui.localDateToUtcEndOfDayIso
 import com.kori.app.core.ui.localDateToUtcStartOfDayIso
+import java.util.Calendar
+import java.util.TimeZone
 
 @Composable
 fun TransactionsScreen(
@@ -89,15 +104,11 @@ fun TransactionsScreen(
 private fun TransactionsLoading(
     modifier: Modifier = Modifier,
 ) {
-    androidx.compose.foundation.layout.Column(
+    Column(
         modifier = modifier.padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            text = "Transactions",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-        )
+        TransactionsTopHeader(role = null, count = null)
         CircularProgressIndicator()
         Text(
             text = "Chargement de vos opérations…",
@@ -114,11 +125,11 @@ private fun TransactionsEmpty(
     onClearFilters: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    androidx.compose.foundation.layout.Column(
+    Column(
         modifier = modifier.padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Header(role = role)
+        TransactionsTopHeader(role = role, count = 0)
 
         EmptyState(
             title = if (filters.hasActiveFilters) {
@@ -143,15 +154,11 @@ private fun TransactionsError(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    androidx.compose.foundation.layout.Column(
+    Column(
         modifier = modifier.padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = "Transactions",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-        )
+        TransactionsTopHeader(role = null, count = null)
         ErrorState(
             title = "Chargement indisponible",
             message = message,
@@ -172,11 +179,14 @@ private fun TransactionsContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            Header(role = role)
+            TransactionsTopHeader(
+                role = role,
+                count = state.items.size,
+            )
         }
 
         item {
@@ -224,26 +234,51 @@ private fun TransactionsContent(
 }
 
 @Composable
-private fun Header(
-    role: UserRole,
+private fun TransactionsTopHeader(
+    role: UserRole?,
+    count: Int?,
 ) {
-    androidx.compose.foundation.layout.Column(
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
     ) {
-        Text(
-            text = "Transactions",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            text = when (role) {
-                UserRole.CLIENT -> "Suivez simplement vos paiements, transferts et mouvements récents."
-                UserRole.MERCHANT -> "Retrouvez les encaissements et opérations marchandes les plus récentes."
-                UserRole.AGENT -> "Consultez rapidement les opérations terrain et dépôts récents."
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = "Transactions",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+            )
+
+            Text(
+                text = when (role) {
+                    UserRole.CLIENT -> "Suivez simplement vos paiements, transferts et mouvements récents."
+                    UserRole.MERCHANT -> "Retrouvez les encaissements et opérations marchandes les plus récentes."
+                    UserRole.AGENT -> "Consultez rapidement les opérations terrain et dépôts récents."
+                    null -> "Consultez vos opérations récentes en un seul endroit."
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            if (count != null) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CountPill(
+                        text = if (count <= 1) "$count élément" else "$count éléments",
+                    )
+                    Text(
+                        text = "triés selon vos filtres actifs",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -274,9 +309,7 @@ private fun FiltersSection(
     var selectedSort by rememberSaveable(filters.sort.name) {
         mutableStateOf(filters.sort)
     }
-
-    var showFromDatePicker by remember { mutableStateOf(false) }
-    var showToDatePicker by remember { mutableStateOf(false) }
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(filters) {
         selectedType = filters.selectedType
@@ -288,14 +321,119 @@ private fun FiltersSection(
         selectedSort = filters.sort
     }
 
-    androidx.compose.foundation.layout.Column(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+    val localFilters = TransactionsFilterState(
+        selectedType = selectedType,
+        selectedStatus = selectedStatus,
+        from = fromIso,
+        to = toIso,
+        minAmount = minAmount,
+        maxAmount = maxAmount,
+        sort = selectedSort,
+    )
+
+    val activeFiltersCount = remember(
+        selectedType,
+        selectedStatus,
+        fromIso,
+        toIso,
+        minAmount,
+        maxAmount,
+        selectedSort,
+    ) {
+        countActiveFilters(
+            selectedType = selectedType,
+            selectedStatus = selectedStatus,
+            fromIso = fromIso,
+            toIso = toIso,
+            minAmount = minAmount,
+            maxAmount = maxAmount,
+            sort = selectedSort,
+        )
+    }
+
+    CollapsibleFiltersCard(
+        title = "Filtres",
+        activeCount = activeFiltersCount,
+        expanded = isExpanded,
+        onToggleExpanded = { isExpanded = !isExpanded },
+        onClearFilters = if (activeFiltersCount > 0) {
+            {
+                selectedType = null
+                selectedStatus = null
+                fromIso = ""
+                toIso = ""
+                minAmount = ""
+                maxAmount = ""
+                selectedSort = TransactionSortOption.DATE_DESC
+                onClearFilters()
+            }
+        } else {
+            null
+        },
     ) {
         Text(
-            text = "Filtres",
+            text = "Filtres rapides",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            item {
+                val hasPeriod = fromIso.isNotBlank() || toIso.isNotBlank()
+                AssistChip(
+                    onClick = {
+                        if (hasPeriod) {
+                            fromIso = ""
+                            toIso = ""
+                        }
+                    },
+                    label = {
+                        Text(
+                            if (hasPeriod) {
+                                "Période active"
+                            } else {
+                                "Toutes périodes"
+                            },
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.CalendarMonth,
+                            contentDescription = null,
+                        )
+                    },
+                )
+            }
+
+            item {
+                val hasAmount = minAmount.isNotBlank() || maxAmount.isNotBlank()
+                AssistChip(
+                    onClick = {
+                        if (hasAmount) {
+                            minAmount = ""
+                            maxAmount = ""
+                        }
+                    },
+                    label = {
+                        Text(
+                            if (hasAmount) {
+                                "Montant actif"
+                            } else {
+                                "Tous montants"
+                            },
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.SwapHoriz,
+                            contentDescription = null,
+                        )
+                    },
+                )
+            }
+        }
 
         Text(
             text = "Type",
@@ -313,6 +451,17 @@ private fun FiltersSection(
             selectedItem = selectedType ?: "Tous",
             onSelected = { selected ->
                 selectedType = selected.takeUnless { it == "Tous" }
+                onApplyFilters(
+                    TransactionsFilterState(
+                        selectedType = selectedType,
+                        selectedStatus = selectedStatus,
+                        from = fromIso,
+                        to = toIso,
+                        minAmount = minAmount,
+                        maxAmount = maxAmount,
+                        sort = selectedSort,
+                    ),
+                )
             },
         )
 
@@ -332,6 +481,17 @@ private fun FiltersSection(
             selectedItem = selectedStatus ?: "Tous",
             onSelected = { selected ->
                 selectedStatus = selected.takeUnless { it == "Tous" }
+                onApplyFilters(
+                    TransactionsFilterState(
+                        selectedType = selectedType,
+                        selectedStatus = selectedStatus,
+                        from = fromIso,
+                        to = toIso,
+                        minAmount = minAmount,
+                        maxAmount = maxAmount,
+                        sort = selectedSort,
+                    ),
+                )
             },
         )
 
@@ -340,18 +500,44 @@ private fun FiltersSection(
             style = MaterialTheme.typography.labelLarge,
         )
 
-        ReadOnlyDateField(
+        NativeDateField(
             label = "Du",
             value = formatIsoDateForInput(fromIso),
             placeholder = "Sélectionner une date",
-            onClick = { showFromDatePicker = true },
+            initialIso = fromIso,
+            onDateSelected = { localDateIsoUtcStart ->
+                fromIso = localDateIsoUtcStart
+            },
+            onClear = if (fromIso.isNotBlank()) {
+                { fromIso = "" }
+            } else {
+                null
+            },
+            toUtcIso = { millis ->
+                localDateToUtcStartOfDayIso(
+                    epochMillisToLocalDateUtc(millis),
+                )
+            },
         )
 
-        ReadOnlyDateField(
+        NativeDateField(
             label = "Au",
             value = formatIsoDateForInput(toIso),
             placeholder = "Sélectionner une date",
-            onClick = { showToDatePicker = true },
+            initialIso = toIso,
+            onDateSelected = { localDateIsoUtcEnd ->
+                toIso = localDateIsoUtcEnd
+            },
+            onClear = if (toIso.isNotBlank()) {
+                { toIso = "" }
+            } else {
+                null
+            },
+            toUtcIso = { millis ->
+                localDateToUtcEndOfDayIso(
+                    epochMillisToLocalDateUtc(millis),
+                )
+            },
         )
 
         Text(
@@ -388,10 +574,60 @@ private fun FiltersSection(
             items(TransactionSortOption.entries) { sort ->
                 FilterChip(
                     selected = sort == selectedSort,
-                    onClick = { selectedSort = sort },
+                    onClick = {
+                        selectedSort = sort
+                        onApplyFilters(
+                            TransactionsFilterState(
+                                selectedType = selectedType,
+                                selectedStatus = selectedStatus,
+                                from = fromIso,
+                                to = toIso,
+                                minAmount = minAmount,
+                                maxAmount = maxAmount,
+                                sort = selectedSort,
+                            ),
+                        )
+                    },
                     label = { Text(sort.label) },
-                    colors = FilterChipDefaults.filterChipColors(),
+                    colors = FilterChipDefaults.filterChipColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                    ),
                 )
+            }
+        }
+
+        if (localFilters.hasActiveFilters) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = activeFiltersSummary(localFilters),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f),
+                )
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                TextButton(
+                    onClick = {
+                        selectedType = null
+                        selectedStatus = null
+                        fromIso = ""
+                        toIso = ""
+                        minAmount = ""
+                        maxAmount = ""
+                        selectedSort = TransactionSortOption.DATE_DESC
+                        onClearFilters()
+                    },
+                ) {
+                    Text("Réinitialiser")
+                }
             }
         }
 
@@ -408,6 +644,7 @@ private fun FiltersSection(
                         sort = selectedSort,
                     ),
                 )
+                isExpanded = false
             },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
@@ -417,121 +654,80 @@ private fun FiltersSection(
         ) {
             Text("Appliquer les filtres")
         }
-
-        if (filters.hasActiveFilters) {
-            TextButtonLike(
-                text = "Effacer les filtres",
-                onClick = {
-                    selectedType = null
-                    selectedStatus = null
-                    fromIso = ""
-                    toIso = ""
-                    minAmount = ""
-                    maxAmount = ""
-                    selectedSort = TransactionSortOption.DATE_DESC
-                    onClearFilters()
-                },
-            )
-        }
-    }
-
-    if (showFromDatePicker) {
-        FilterDatePickerDialog(
-            initialSelectedDateMillis = isoToEpochMillisUtcStartOfDay(fromIso),
-            onDismiss = { showFromDatePicker = false },
-            onConfirm = { millis ->
-                showFromDatePicker = false
-                if (millis != null) {
-                    fromIso = localDateToUtcStartOfDayIso(
-                        epochMillisToLocalDateUtc(millis),
-                    )
-                }
-            },
-        )
-    }
-
-    if (showToDatePicker) {
-        FilterDatePickerDialog(
-            initialSelectedDateMillis = isoToEpochMillisUtcStartOfDay(toIso),
-            onDismiss = { showToDatePicker = false },
-            onConfirm = { millis ->
-                showToDatePicker = false
-                if (millis != null) {
-                    toIso = localDateToUtcEndOfDayIso(
-                        epochMillisToLocalDateUtc(millis),
-                    )
-                }
-            },
-        )
     }
 }
 
 @Composable
-private fun ReadOnlyDateField(
+private fun NativeDateField(
     label: String,
     value: String,
     placeholder: String,
-    onClick: () -> Unit,
+    initialIso: String,
+    onDateSelected: (String) -> Unit,
+    onClear: (() -> Unit)?,
+    toUtcIso: (Long) -> String,
 ) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = {},
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        singleLine = true,
-        readOnly = true,
-        label = { Text(label) },
-        placeholder = { Text(placeholder) },
-    )
-}
+    val context = LocalContext.current
+    val interactionSource = remember { MutableInteractionSource() }
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
-@Composable
-private fun FilterDatePickerDialog(
-    initialSelectedDateMillis: Long?,
-    onDismiss: () -> Unit,
-    onConfirm: (Long?) -> Unit,
-) {
-    var selectedMillis by remember(initialSelectedDateMillis) {
-        mutableLongStateOf(initialSelectedDateMillis ?: 0L)
-    }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            readOnly = true,
+            label = { Text(label) },
+            placeholder = { Text(placeholder) },
+        )
 
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = initialSelectedDateMillis,
-    )
-
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButtonLike(
-                text = "Valider",
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AssistChip(
                 onClick = {
-                    selectedMillis = datePickerState.selectedDateMillis ?: 0L
-                    onConfirm(datePickerState.selectedDateMillis)
+                    val initialMillis = isoToEpochMillisUtcStartOfDay(initialIso)
+                    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                        timeInMillis = initialMillis ?: System.currentTimeMillis()
+                    }
+
+                    DatePickerDialog(
+                        context,
+                        { _, year, month, dayOfMonth ->
+                            val selectedCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                                set(Calendar.YEAR, year)
+                                set(Calendar.MONTH, month)
+                                set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                                set(Calendar.HOUR_OF_DAY, 0)
+                                set(Calendar.MINUTE, 0)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
+                            onDateSelected(toUtcIso(selectedCalendar.timeInMillis))
+                        },
+                        calendar.get(Calendar.YEAR),
+                        calendar.get(Calendar.MONTH),
+                        calendar.get(Calendar.DAY_OF_MONTH),
+                    ).show()
+                },
+                label = { Text("Choisir une date") },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.CalendarMonth,
+                        contentDescription = null,
+                    )
                 },
             )
-        },
-        dismissButton = {
-            TextButtonLike(
-                text = "Annuler",
-                onClick = onDismiss,
-            )
-        },
-    ) {
-        DatePicker(
-            state = datePickerState,
-        )
-    }
-}
 
-@Composable
-private fun TextButtonLike(
-    text: String,
-    onClick: () -> Unit,
-) {
-    androidx.compose.material3.TextButton(onClick = onClick) {
-        Text(text)
+            if (onClear != null) {
+                TextButton(onClick = onClear) {
+                    Text("Effacer")
+                }
+            }
+        }
     }
 }
 
@@ -550,10 +746,56 @@ private fun FilterChipRow(
                 selected = item.value == selectedItem,
                 onClick = { onSelected(item.value) },
                 label = { Text(item.label) },
-                colors = FilterChipDefaults.filterChipColors(),
+                colors = FilterChipDefaults.filterChipColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
+                ),
             )
         }
     }
+}
+
+private fun countActiveFilters(
+    selectedType: String?,
+    selectedStatus: String?,
+    fromIso: String,
+    toIso: String,
+    minAmount: String,
+    maxAmount: String,
+    sort: TransactionSortOption,
+): Int {
+    var count = 0
+
+    if (selectedType != null) count++
+    if (selectedStatus != null) count++
+    if (fromIso.isNotBlank()) count++
+    if (toIso.isNotBlank()) count++
+    if (minAmount.isNotBlank()) count++
+    if (maxAmount.isNotBlank()) count++
+    if (sort != TransactionSortOption.DATE_DESC) count++
+
+    return count
+}
+
+private fun activeFiltersSummary(filters: TransactionsFilterState): String {
+    val parts = buildList {
+        filters.selectedType?.let { add(TransactionType.valueOf(it).displayLabel()) }
+        filters.selectedStatus?.let { add(TransactionStatus.valueOf(it).displayLabel()) }
+
+        if (filters.from.isNotBlank() || filters.to.isNotBlank()) {
+            add("Période")
+        }
+
+        if (filters.minAmount.isNotBlank() || filters.maxAmount.isNotBlank()) {
+            add("Montant")
+        }
+
+        if (filters.sort != TransactionSortOption.DATE_DESC) {
+            add(filters.sort.label)
+        }
+    }
+
+    return parts.joinToString(" • ")
 }
 
 private data class FilterOption(

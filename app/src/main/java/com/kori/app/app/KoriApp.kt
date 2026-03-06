@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import androidx.navigation.compose.rememberNavController
 import com.kori.app.core.designsystem.KoriTheme
 import com.kori.app.data.mock.MockAgentActionRepository
+import com.kori.app.data.mock.MockActivityRepository
 import com.kori.app.data.mock.MockAuthService
 import com.kori.app.data.mock.MockClientTransferRepository
 import com.kori.app.data.mock.MockDashboardRepository
@@ -23,6 +24,7 @@ fun KoriApp() {
     val dashboardRepository = remember { MockDashboardRepository() }
     val transactionRepository = remember { MockTransactionRepository() }
     val authService = remember { MockAuthService() }
+    val activityRepository = remember { MockActivityRepository() }
     val clientTransferRepository = remember { MockClientTransferRepository() }
     val merchantTransferRepository = remember { MockMerchantTransferRepository() }
     val agentActionRepository = remember { MockAgentActionRepository() }
@@ -46,6 +48,7 @@ fun KoriApp() {
             clientTransferRepository = clientTransferRepository,
             merchantTransferRepository = merchantTransferRepository,
             agentActionRepository = agentActionRepository,
+            activityRepository = activityRepository,
             profileRepository = profileRepository,
             idempotencyManager = idempotencyManager,
         )
