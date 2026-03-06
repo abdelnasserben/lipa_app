@@ -28,42 +28,17 @@ class TransactionsViewModel(
     }
 
     fun refresh() {
-        viewModelScope.launch {
-            _uiState.value = TransactionsUiState.Loading
-
-            runCatching {
-                fetchPage(cursor = null, filters = currentFilters)
-            }.onSuccess { result ->
-                _uiState.value = if (result.items.isEmpty()) {
-                    TransactionsUiState.Empty
-                } else {
-                    TransactionsUiState.Content(
-                        TransactionsContentState(
-                            items = result.items,
-                            filters = currentFilters,
-                            isLoadingInitial = false,
-                            isLoadingMore = false,
-                            hasMore = result.page.hasMore,
-                            nextCursor = result.page.nextCursor,
-                        ),
-                    )
-                }
-            }.onFailure {
-                _uiState.value = TransactionsUiState.Error(
-                    message = "Impossible de charger les transactions pour le moment.",
-                )
-            }
-        }
+        loadWithFilters(currentFilters)
     }
 
-    fun onTypeSelected(type: String?) {
-        currentFilters = currentFilters.copy(selectedType = type)
-        refresh()
+    fun applyFilters(filters: TransactionsFilterState) {
+        currentFilters = filters
+        loadWithFilters(currentFilters)
     }
 
-    fun onStatusSelected(status: String?) {
-        currentFilters = currentFilters.copy(selectedStatus = status)
-        refresh()
+    fun clearFilters() {
+        currentFilters = TransactionsFilterState()
+        loadWithFilters(currentFilters)
     }
 
     fun loadMore() {
@@ -87,11 +62,41 @@ class TransactionsViewModel(
                         isLoadingMore = false,
                         hasMore = result.page.hasMore,
                         nextCursor = result.page.nextCursor,
+                        filters = currentFilters,
                     ),
                 )
             }.onFailure {
                 _uiState.value = content.copy(
                     state = content.state.copy(isLoadingMore = false),
+                )
+            }
+        }
+    }
+
+    private fun loadWithFilters(filters: TransactionsFilterState) {
+        viewModelScope.launch {
+            _uiState.value = TransactionsUiState.Loading
+
+            runCatching {
+                fetchPage(cursor = null, filters = filters)
+            }.onSuccess { result ->
+                _uiState.value = if (result.items.isEmpty()) {
+                    TransactionsUiState.Empty(filters = filters)
+                } else {
+                    TransactionsUiState.Content(
+                        TransactionsContentState(
+                            items = result.items,
+                            filters = filters,
+                            isLoadingInitial = false,
+                            isLoadingMore = false,
+                            hasMore = result.page.hasMore,
+                            nextCursor = result.page.nextCursor,
+                        ),
+                    )
+                }
+            }.onFailure {
+                _uiState.value = TransactionsUiState.Error(
+                    message = "Impossible de charger les transactions pour le moment.",
                 )
             }
         }
@@ -121,9 +126,13 @@ class TransactionsViewModel(
         return TransactionQuery(
             type = filters.selectedType?.let(TransactionType::valueOf),
             status = filters.selectedStatus?.let(TransactionStatus::valueOf),
+            from = filters.from.takeIf { it.isNotBlank() },
+            to = filters.to.takeIf { it.isNotBlank() },
+            minAmount = filters.minAmount.toLongOrNull(),
+            maxAmount = filters.maxAmount.toLongOrNull(),
             cursor = cursor,
             limit = 10,
-            sort = "-createdAt",
+            sort = filters.sort.backendValue,
         )
     }
 

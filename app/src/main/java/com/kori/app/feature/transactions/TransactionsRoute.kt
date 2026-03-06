@@ -26,8 +26,8 @@ fun TransactionsRoute(
         role = role,
         uiState = uiState,
         onRetry = viewModel::refresh,
-        onTypeSelected = viewModel::onTypeSelected,
-        onStatusSelected = viewModel::onStatusSelected,
+        onApplyFilters = viewModel::applyFilters,
+        onClearFilters = viewModel::clearFilters,
         onLoadMore = viewModel::loadMore,
         onTransactionClick = onTransactionClick,
     )

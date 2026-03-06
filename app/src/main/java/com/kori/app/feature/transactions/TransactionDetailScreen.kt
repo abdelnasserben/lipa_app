@@ -15,6 +15,9 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,6 +41,14 @@ fun TransactionDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val _onBack = onBack
+    val showShareMessage = remember { mutableStateOf(false) }
+
+    LaunchedEffect(showShareMessage.value) {
+        if (showShareMessage.value) {
+            kotlinx.coroutines.delay(1800)
+            showShareMessage.value = false
+        }
+    }
 
     when (uiState) {
         TransactionDetailUiState.Loading -> {
@@ -71,7 +82,11 @@ fun TransactionDetailScreen(
             TransactionDetailContent(
                 transaction = uiState.transaction,
                 timeline = uiState.timeline,
-                onShareReceipt = onShareReceipt,
+                onShareReceipt = {
+                    showShareMessage.value = true
+                    onShareReceipt()
+                },
+                showShareMessage = showShareMessage.value,
                 modifier = modifier,
             )
         }
@@ -83,6 +98,7 @@ private fun TransactionDetailContent(
     transaction: TransactionItemResponse,
     timeline: List<TransactionTimelineStep>,
     onShareReceipt: () -> Unit,
+    showShareMessage: Boolean,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -90,6 +106,22 @@ private fun TransactionDetailContent(
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        if (showShareMessage) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = KoriSurface),
+                ) {
+                    Text(
+                        text = "Partage de reçu mock prêt. Le connecteur natif sera branché plus tard.",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+
         item {
             SummaryCard(transaction = transaction)
         }

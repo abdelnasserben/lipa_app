@@ -5,7 +5,21 @@ import com.kori.app.core.model.transaction.TransactionItemResponse
 data class TransactionsFilterState(
     val selectedType: String? = null,
     val selectedStatus: String? = null,
-)
+    val from: String = "",
+    val to: String = "",
+    val minAmount: String = "",
+    val maxAmount: String = "",
+    val sort: TransactionSortOption = TransactionSortOption.DATE_DESC,
+) {
+    val hasActiveFilters: Boolean
+        get() = selectedType != null ||
+                selectedStatus != null ||
+                from.isNotBlank() ||
+                to.isNotBlank() ||
+                minAmount.isNotBlank() ||
+                maxAmount.isNotBlank() ||
+                sort != TransactionSortOption.DATE_DESC
+}
 
 data class TransactionsContentState(
     val items: List<TransactionItemResponse> = emptyList(),
@@ -18,7 +32,7 @@ data class TransactionsContentState(
 
 sealed interface TransactionsUiState {
     data object Loading : TransactionsUiState
-    data object Empty : TransactionsUiState
+    data class Empty(val filters: TransactionsFilterState) : TransactionsUiState
     data class Error(val message: String) : TransactionsUiState
     data class Content(val state: TransactionsContentState) : TransactionsUiState
 }
