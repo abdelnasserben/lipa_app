@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,6 +29,8 @@ fun ActionScreen(
     onOpenMerchantTransfer: () -> Unit,
     onOpenAgentCashIn: () -> Unit,
     onOpenAgentMerchantWithdraw: () -> Unit,
+    onOpenAgentCardEnroll: () -> Unit,
+    onOpenAgentCardAdd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (role) {
@@ -49,6 +52,8 @@ fun ActionScreen(
             AgentActionHome(
                 onOpenCashIn = onOpenAgentCashIn,
                 onOpenMerchantWithdraw = onOpenAgentMerchantWithdraw,
+                onOpenCardEnroll = onOpenAgentCardEnroll,
+                onOpenCardAdd = onOpenAgentCardAdd,
                 modifier = modifier,
             )
         }
@@ -60,23 +65,28 @@ private fun ClientActionHome(
     onOpenClientTransfer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.padding(20.dp),
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = "Envoyer",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = KoriPrimary,
-        )
+        item {
+            Text(
+                text = "Envoyer",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = KoriPrimary,
+            )
+        }
 
-        ActionEntryCard(
-            title = "Transfert P2P",
-            message = "Envoyez de l’argent à un proche en quelques étapes simples.",
-            cta = "Commencer",
-            onClick = onOpenClientTransfer,
-        )
+        item {
+            ActionEntryCard(
+                title = "Transfert P2P",
+                message = "Envoyez de l’argent à un proche en quelques étapes simples.",
+                cta = "Commencer",
+                onClick = onOpenClientTransfer,
+            )
+        }
     }
 }
 
@@ -85,23 +95,28 @@ private fun MerchantActionHome(
     onOpenMerchantTransfer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.padding(20.dp),
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = "Transférer",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = KoriPrimary,
-        )
+        item {
+            Text(
+                text = "Transférer",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = KoriPrimary,
+            )
+        }
 
-        ActionEntryCard(
-            title = "Transfert marchand",
-            message = "Transférez des fonds vers un autre marchand de manière simple et sécurisée.",
-            cta = "Commencer",
-            onClick = onOpenMerchantTransfer,
-        )
+        item {
+            ActionEntryCard(
+                title = "Transfert marchand",
+                message = "Transférez des fonds vers un autre marchand de manière simple et sécurisée.",
+                cta = "Commencer",
+                onClick = onOpenMerchantTransfer,
+            )
+        }
     }
 }
 
@@ -109,32 +124,59 @@ private fun MerchantActionHome(
 private fun AgentActionHome(
     onOpenCashIn: () -> Unit,
     onOpenMerchantWithdraw: () -> Unit,
+    onOpenCardEnroll: () -> Unit,
+    onOpenCardAdd: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.padding(20.dp),
+    LazyColumn(
+        modifier = modifier,
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = "Opérations",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = KoriPrimary,
-        )
+        item {
+            Text(
+                text = "Opérations",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = KoriPrimary,
+            )
+        }
 
-        ActionEntryCard(
-            title = "Cash-in client",
-            message = "Créditez le portefeuille d’un client à partir de son numéro de téléphone.",
-            cta = "Lancer",
-            onClick = onOpenCashIn,
-        )
+        item {
+            ActionEntryCard(
+                title = "Cash-in client",
+                message = "Créditez le portefeuille d’un client à partir de son numéro de téléphone.",
+                cta = "Lancer",
+                onClick = onOpenCashIn,
+            )
+        }
 
-        ActionEntryCard(
-            title = "Retrait marchand",
-            message = "Effectuez un retrait marchand et visualisez immédiatement la commission agent.",
-            cta = "Lancer",
-            onClick = onOpenMerchantWithdraw,
-        )
+        item {
+            ActionEntryCard(
+                title = "Retrait marchand",
+                message = "Effectuez un retrait marchand et visualisez immédiatement la commission agent.",
+                cta = "Lancer",
+                onClick = onOpenMerchantWithdraw,
+            )
+        }
+
+        item {
+            ActionEntryCard(
+                title = "Enrôlement de carte",
+                message = "Associez une carte à un client en conformité avec le contrat API.",
+                cta = "Lancer",
+                onClick = onOpenCardEnroll,
+            )
+        }
+
+        item {
+            ActionEntryCard(
+                title = "Ajout carte client",
+                message = "Ajoutez une nouvelle carte à un client déjà existant.",
+                cta = "Lancer",
+                onClick = onOpenCardAdd,
+            )
+        }
     }
 }
 

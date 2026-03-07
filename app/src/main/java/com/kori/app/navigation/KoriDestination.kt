@@ -68,6 +68,16 @@ sealed class KoriDestination(
         label = "Retrait marchand",
     )
 
+    data object AgentCardEnroll : KoriDestination(
+        route = "agent_card_enroll",
+        label = "Enrôlement carte",
+    )
+
+    data object AgentCardAdd : KoriDestination(
+        route = "agent_card_add",
+        label = "Ajout carte",
+    )
+
     data object Action : KoriDestination(
         route = "action",
         label = "Action",

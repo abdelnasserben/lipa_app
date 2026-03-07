@@ -3,6 +3,10 @@ package com.kori.app.data.mock
 import com.kori.app.core.model.action.AgentCashInQuote
 import com.kori.app.core.model.action.AgentCashInReceipt
 import com.kori.app.core.model.action.AgentCashInResult
+import com.kori.app.core.model.action.AgentCardAddReceipt
+import com.kori.app.core.model.action.AgentCardAddResult
+import com.kori.app.core.model.action.AgentCardEnrollReceipt
+import com.kori.app.core.model.action.AgentCardEnrollResult
 import com.kori.app.core.model.action.AgentMerchantWithdrawQuote
 import com.kori.app.core.model.action.AgentMerchantWithdrawReceipt
 import com.kori.app.core.model.action.AgentMerchantWithdrawResult
@@ -13,6 +17,82 @@ import java.time.Instant
 import java.util.UUID
 
 class MockAgentActionRepository : AgentActionRepository {
+
+    override suspend fun enrollCard(
+        phoneNumber: String?,
+        displayName: String,
+        cardUid: String,
+        pin: String,
+    ): AgentCardEnrollResult {
+        delay(700)
+
+        return when {
+            cardUid.endsWith("000") -> {
+                AgentCardEnrollResult.Failure(
+                    code = FinancialErrorCode.UNAUTHORIZED,
+                    message = "Votre session n’autorise pas l’enrôlement de cette carte.",
+                )
+            }
+
+            displayName.length < 3 -> {
+                AgentCardEnrollResult.Failure(
+                    code = FinancialErrorCode.INVALID_STATUS,
+                    message = "Le nom du client n’est pas valide.",
+                )
+            }
+
+            else -> {
+                AgentCardEnrollResult.Success(
+                    receipt = AgentCardEnrollReceipt(
+                        transactionId = "TX-ENR-${UUID.randomUUID().toString().take(8).uppercase()}",
+                        clientCode = "C-${(10000..99999).random()}",
+                        clientPhoneNumber = phoneNumber.orEmpty(),
+                        cardUid = cardUid,
+                        cardPrice = 2_000L,
+                        agentCommission = 500L,
+                        clientCreated = !phoneNumber.isNullOrBlank(),
+                        clientAccountProfileCreated = !phoneNumber.isNullOrBlank(),
+                    ),
+                )
+            }
+        }
+    }
+
+    override suspend fun addCardToClient(
+        phoneNumber: String,
+        cardUid: String,
+        pin: String,
+    ): AgentCardAddResult {
+        delay(650)
+
+        return when {
+            phoneNumber.endsWith("000") -> {
+                AgentCardAddResult.Failure(
+                    code = FinancialErrorCode.UNAUTHORIZED,
+                    message = "Ce client ne peut pas recevoir de carte actuellement.",
+                )
+            }
+
+            cardUid.endsWith("999") -> {
+                AgentCardAddResult.Failure(
+                    code = FinancialErrorCode.INVALID_STATUS,
+                    message = "Cette carte est déjà liée à un autre compte.",
+                )
+            }
+
+            else -> {
+                AgentCardAddResult.Success(
+                    receipt = AgentCardAddReceipt(
+                        transactionId = "TX-ADD-${UUID.randomUUID().toString().take(8).uppercase()}",
+                        clientId = "CL-${(10000..99999).random()}",
+                        cardUid = cardUid,
+                        cardPrice = 2_000L,
+                        agentCommission = 350L,
+                    ),
+                )
+            }
+        }
+    }
 
     override suspend fun quoteCashIn(
         phoneNumber: String,

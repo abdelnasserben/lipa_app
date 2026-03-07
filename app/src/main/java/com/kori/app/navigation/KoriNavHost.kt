@@ -45,6 +45,8 @@ import com.kori.app.domain.GetDashboardUseCase
 import com.kori.app.domain.idempotency.IdempotencyManager
 import com.kori.app.feature.action.ActionScreen
 import com.kori.app.feature.action.AgentCashInRoute
+import com.kori.app.feature.action.AgentCardAddRoute
+import com.kori.app.feature.action.AgentCardEnrollRoute
 import com.kori.app.feature.action.AgentMerchantWithdrawRoute
 import com.kori.app.feature.action.ClientTransferRoute
 import com.kori.app.feature.action.MerchantTransferRoute
@@ -362,6 +364,34 @@ fun KoriNavHost(
             }
         }
 
+        composable(KoriDestination.AgentCardEnroll.route) {
+            if (role == null || role != UserRole.AGENT) return@composable
+            if (authState !is AuthState.Authenticated) return@composable
+
+            TopBarPage(
+                title = "Enrôlement de carte",
+                onBack = { navController.popBackStack() },
+            ) { _ ->
+                AgentCardEnrollRoute(
+                    repository = agentActionRepository,
+                )
+            }
+        }
+
+        composable(KoriDestination.AgentCardAdd.route) {
+            if (role == null || role != UserRole.AGENT) return@composable
+            if (authState !is AuthState.Authenticated) return@composable
+
+            TopBarPage(
+                title = "Ajout carte client",
+                onBack = { navController.popBackStack() },
+            ) { _ ->
+                AgentCardAddRoute(
+                    repository = agentActionRepository,
+                )
+            }
+        }
+
         composable(KoriDestination.Action.route) {
             if (role == null) return@composable
             if (authState !is AuthState.Authenticated) return@composable
@@ -389,6 +419,12 @@ fun KoriNavHost(
                     },
                     onOpenAgentMerchantWithdraw = {
                         navController.navigate(KoriDestination.AgentMerchantWithdraw.route)
+                    },
+                    onOpenAgentCardEnroll = {
+                        navController.navigate(KoriDestination.AgentCardEnroll.route)
+                    },
+                    onOpenAgentCardAdd = {
+                        navController.navigate(KoriDestination.AgentCardAdd.route)
                     },
                     modifier = contentModifier,
                 )
@@ -517,6 +553,8 @@ private val protectedRoutes = setOf(
     KoriDestination.MerchantTransfer.route,
     KoriDestination.AgentCashIn.route,
     KoriDestination.AgentMerchantWithdraw.route,
+    KoriDestination.AgentCardEnroll.route,
+    KoriDestination.AgentCardAdd.route,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
