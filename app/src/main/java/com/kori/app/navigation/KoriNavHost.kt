@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -76,11 +77,37 @@ fun KoriNavHost(
     val session by appState.session.collectAsState()
     val role = session.selectedRole
     val authState by authService.authState.collectAsState()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
 
     val startDestination = when {
         !session.isRoleSelected -> KoriDestination.RolePicker.route
         authState is AuthState.Authenticated -> KoriDestination.Dashboard.route
         else -> KoriDestination.AuthWelcome.route
+    }
+
+    LaunchedEffect(role, authState, currentRoute) {
+        when {
+            !session.isRoleSelected && currentRoute != KoriDestination.RolePicker.route -> {
+                navController.navigate(KoriDestination.RolePicker.route) {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+
+            session.isRoleSelected && authState is AuthState.Authenticated &&
+                currentRoute in authRoutes -> {
+                navController.navigateToTopLevel(KoriDestination.Dashboard.route)
+            }
+
+            session.isRoleSelected && authState !is AuthState.Authenticated &&
+                currentRoute in protectedRoutes -> {
+                navController.navigate(KoriDestination.AuthWelcome.route) {
+                    popUpTo(navController.graph.id) { inclusive = true }
+                    launchSingleTop = true
+                }
+            }
+        }
     }
 
     NavHost(
@@ -107,7 +134,7 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.AuthWelcome.route) {
-            if (role == null) return@composable
+            if (role == null || authState is AuthState.Authenticated) return@composable
 
             val authViewModel: AuthViewModel = viewModel(
                 factory = AuthViewModel.factory(authService),
@@ -123,6 +150,8 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.AuthBrowserMock.route) {
+            if (role == null || authState is AuthState.Authenticated) return@composable
+
             val authViewModel: AuthViewModel = viewModel(
                 factory = AuthViewModel.factory(authService),
             )
@@ -139,6 +168,8 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.AuthCallback.route) {
+            if (role == null || authState is AuthState.Authenticated) return@composable
+
             val authViewModel: AuthViewModel = viewModel(
                 factory = AuthViewModel.factory(authService),
             )
@@ -166,6 +197,8 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.AuthSuccess.route) {
+            if (role == null || authState is AuthState.Authenticated) return@composable
+
             AuthSuccessScreen(
                 onContinue = {
                     navController.navigate(KoriDestination.Dashboard.route) {
@@ -179,16 +212,7 @@ fun KoriNavHost(
 
         composable(KoriDestination.Dashboard.route) {
             if (role == null) return@composable
-            if (authState !is AuthState.Authenticated) {
-                LaunchedEffect(authState) {
-                    navController.navigate(KoriDestination.AuthWelcome.route) {
-                        popUpTo(KoriDestination.Dashboard.route) {
-                            inclusive = true
-                        }
-                    }
-                }
-                return@composable
-            }
+            if (authState !is AuthState.Authenticated) return@composable
 
             KoriScaffold(
                 bottomBar = {
@@ -271,7 +295,7 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.ClientTransfer.route) {
-            if (role != UserRole.CLIENT) return@composable
+            if (role == null || role != UserRole.CLIENT) return@composable
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
@@ -286,7 +310,7 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.MerchantTransfer.route) {
-            if (role != UserRole.MERCHANT) return@composable
+            if (role == null || role != UserRole.MERCHANT) return@composable
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
@@ -301,7 +325,7 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.AgentCashIn.route) {
-            if (role != UserRole.AGENT) return@composable
+            if (role == null || role != UserRole.AGENT) return@composable
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
@@ -316,7 +340,7 @@ fun KoriNavHost(
         }
 
         composable(KoriDestination.AgentMerchantWithdraw.route) {
-            if (role != UserRole.AGENT) return@composable
+            if (role == null || role != UserRole.AGENT) return@composable
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
@@ -410,8 +434,10 @@ fun KoriNavHost(
                         navController.navigate(KoriDestination.Dashboard.route) {
                             popUpTo(navController.graph.findStartDestination().id) {
                                 inclusive = false
+                                saveState = false
                             }
                             launchSingleTop = true
+                            restoreState = false
                         }
                     },
                     modifier = contentModifier,
@@ -433,9 +459,8 @@ fun KoriNavHost(
                     onLogout = {
                         authService.logout()
                         navController.navigate(KoriDestination.AuthWelcome.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = false
-                            }
+                            popUpTo(navController.graph.id) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     modifier = contentModifier,
@@ -444,6 +469,27 @@ fun KoriNavHost(
         }
     }
 }
+
+private val authRoutes = setOf(
+    KoriDestination.AuthWelcome.route,
+    KoriDestination.AuthBrowserMock.route,
+    KoriDestination.AuthCallback.route,
+    KoriDestination.AuthSuccess.route,
+)
+
+private val protectedRoutes = setOf(
+    KoriDestination.Dashboard.route,
+    KoriDestination.Transactions.route,
+    KoriDestination.TransactionDetail.route,
+    KoriDestination.Action.route,
+    KoriDestination.Activity.route,
+    KoriDestination.Profile.route,
+    KoriDestination.Session.route,
+    KoriDestination.ClientTransfer.route,
+    KoriDestination.MerchantTransfer.route,
+    KoriDestination.AgentCashIn.route,
+    KoriDestination.AgentMerchantWithdraw.route,
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
