@@ -80,7 +80,12 @@ private fun AgentMerchantWithdrawFormContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -97,7 +102,7 @@ private fun AgentMerchantWithdrawFormContent(
                     onValueChange = onMerchantCodeChanged,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Code marchand") },
-                    placeholder = { Text("Ex. MER-0061") },
+                    placeholder = { Text("M-123456") },
                     singleLine = true,
                     isError = state.errors.merchantCode != null,
                     supportingText = {
@@ -122,7 +127,10 @@ private fun AgentMerchantWithdrawFormContent(
 
         item {
             DebugPanel(
-                lines = listOf("Le quote générera une Idempotency-Key avant confirmation."),
+                lines = listOf(
+                    "Le quote générera une Idempotency-Key avant confirmation.",
+                    if (state.isLoading) "Réseau mock: préparation en cours" else "Réseau mock: prêt",
+                ),
             )
         }
 
@@ -158,7 +166,12 @@ private fun AgentMerchantWithdrawConfirmationContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -180,7 +193,11 @@ private fun AgentMerchantWithdrawConfirmationContent(
 
         item {
             DebugPanel(
-                lines = listOf("Idempotency-Key", state.quote.idempotencyKey),
+                lines = listOf(
+                    "Idempotency-Key",
+                    state.quote.idempotencyKey,
+                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
+                ),
             )
         }
 
@@ -235,7 +252,12 @@ private fun AgentMerchantWithdrawSuccessContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -262,7 +284,10 @@ private fun AgentMerchantWithdrawSuccessContent(
 
         item {
             DebugPanel(
-                lines = listOf("Idempotency-Key", state.idempotencyKey),
+                lines = listOf(
+                    "Idempotency-Key",
+                    state.idempotencyKey,
+                ),
             )
         }
 
@@ -290,7 +315,12 @@ private fun AgentMerchantWithdrawFailureContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -303,13 +333,16 @@ private fun AgentMerchantWithdrawFailureContent(
         item {
             SectionCard(title = "Détails") {
                 DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.message, showDivider = false)
+                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
             }
         }
 
         item {
             DebugPanel(
-                lines = listOf("Idempotency-Key", state.idempotencyKey),
+                lines = listOf(
+                    "Idempotency-Key",
+                    state.idempotencyKey,
+                ),
             )
         }
 

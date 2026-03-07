@@ -7,9 +7,9 @@ import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.AgentCashInDraft
 import com.kori.app.core.model.action.AgentCashInResult
-import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.domain.idempotency.IdempotencyManager
+import com.kori.app.core.ui.FinancialInputRules
 import com.kori.app.core.ui.KmfAmountFormatters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +27,7 @@ class AgentCashInViewModel(
     fun onPhoneChanged(value: String) {
         val current = _uiState.value as? AgentCashInUiState.Form ?: return
         _uiState.value = current.copy(
-            draft = current.draft.copy(phoneNumber = value),
+            draft = current.draft.copy(phoneNumber = FinancialInputRules.normalizeComorosPhoneInput(value)),
             errors = current.errors.copy(phoneNumber = null),
         )
     }
@@ -43,16 +43,14 @@ class AgentCashInViewModel(
     fun requestQuote() {
         val current = _uiState.value as? AgentCashInUiState.Form ?: return
         val errors = validate(current.draft)
-        if (errors.phoneNumber != null || errors.amount != null) {
+        if (errors.phoneNumber != null || errors.amount != null || current.isLoading) {
             _uiState.value = current.copy(errors = errors)
             return
         }
 
         val amount = KmfAmountFormatters.parseToLong(current.draft.amountInput) ?: return
-        val intent = createActionIntent(
-            phoneNumber = current.draft.phoneNumber,
-            amount = amount,
-        )
+        val apiPhoneNumber = FinancialInputRules.comorosPhoneToApi(current.draft.phoneNumber) ?: return
+        val intent = createActionIntent(phoneNumber = apiPhoneNumber, amount = amount)
         val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
@@ -60,15 +58,13 @@ class AgentCashInViewModel(
 
             runCatching {
                 repository.quoteCashIn(
-                    phoneNumber = current.draft.phoneNumber.trim(),
+                    phoneNumber = apiPhoneNumber,
                     amount = amount,
                     idempotencyKey = idempotencyKey,
                 )
             }.onSuccess { quote ->
-                _uiState.value = AgentCashInUiState.Confirmation(
-                    quote = quote,
-                )
-            }.onFailure {
+                _uiState.value = AgentCashInUiState.Confirmation(quote = quote)
+            }.onFailure { throwable ->
                 _uiState.value = current.copy(
                     isLoading = false,
                     errors = current.errors.copy(
@@ -95,22 +91,18 @@ class AgentCashInViewModel(
         val current = _uiState.value as? AgentCashInUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
-        val intent = createActionIntent(
-            phoneNumber = current.quote.phoneNumber,
-            amount = current.quote.amount,
-        )
-        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
-        if (!canStart) return
+        val intent = createActionIntent(phoneNumber = current.quote.phoneNumber, amount = current.quote.amount)
 
-        viewModelScope.launch {
-            _uiState.value = current.copy(
-                isSubmitting = true,
-                isConfirmDialogVisible = false,
-            )
-
-            runCatching {
-                repository.submitCashIn(current.quote)
-            }.onSuccess { result ->
+        submitFinancialPost(
+            idempotencyManager = idempotencyManager,
+            intent = intent,
+            idempotencyKey = current.quote.idempotencyKey,
+            onSetSubmitting = { isSubmitting ->
+                val latest = _uiState.value as? AgentCashInUiState.Confirmation ?: return@submitFinancialPost
+                _uiState.value = latest.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false)
+            },
+            submitCall = { repository.submitCashIn(current.quote) },
+            onBusinessResult = { result ->
                 _uiState.value = when (result) {
                     is AgentCashInResult.Success -> {
                         idempotencyManager.onSuccess(current.quote.idempotencyKey)
@@ -124,40 +116,36 @@ class AgentCashInViewModel(
                         idempotencyManager.onFailure(result.idempotencyKey)
                         AgentCashInUiState.Failure(
                             code = result.code,
-                            message = result.message,
+                            userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                            technicalMessage = result.message,
                             idempotencyKey = result.idempotencyKey,
                         )
                     }
                 }
-            }.onFailure {
-                idempotencyManager.onFailure(current.quote.idempotencyKey)
+            },
+            onTechnicalFailure = { failure ->
                 _uiState.value = AgentCashInUiState.Failure(
-                    code = FinancialErrorCode.INVALID_STATUS,
-                    message = "Une erreur inattendue est survenue pendant le cash-in.",
-                    idempotencyKey = current.quote.idempotencyKey,
+                    code = failure.code,
+                    userMessage = failure.userMessage,
+                    technicalMessage = failure.technicalMessage,
+                    idempotencyKey = failure.idempotencyKey,
                 )
-            }
-        }
+            },
+        )
     }
 
     fun edit() {
         val state = _uiState.value
         if (state is AgentCashInUiState.Confirmation) {
-            idempotencyManager.clear(
-                createActionIntent(
-                    phoneNumber = state.quote.phoneNumber,
-                    amount = state.quote.amount,
-                ),
-            )
+            idempotencyManager.clear(createActionIntent(phoneNumber = state.quote.phoneNumber, amount = state.quote.amount))
         }
 
         val draft = when (state) {
             is AgentCashInUiState.Form -> state.draft
             is AgentCashInUiState.Confirmation -> AgentCashInDraft(
-                phoneNumber = state.quote.phoneNumber,
+                phoneNumber = FinancialInputRules.normalizeComorosPhoneInput(state.quote.phoneNumber),
                 amountInput = state.quote.amount.toString(),
             )
-
             is AgentCashInUiState.Success -> AgentCashInDraft()
             is AgentCashInUiState.Failure -> AgentCashInDraft()
         }
@@ -167,36 +155,23 @@ class AgentCashInViewModel(
     fun restart() {
         val state = _uiState.value
         if (state is AgentCashInUiState.Confirmation) {
-            idempotencyManager.clear(
-                createActionIntent(
-                    phoneNumber = state.quote.phoneNumber,
-                    amount = state.quote.amount,
-                ),
-            )
+            idempotencyManager.clear(createActionIntent(phoneNumber = state.quote.phoneNumber, amount = state.quote.amount))
         }
         _uiState.value = AgentCashInUiState.Form()
     }
 
-    private fun createActionIntent(
-        phoneNumber: String,
-        amount: Long,
-    ): ActionIntent {
-        return ActionIntent(
-            type = ActionIntentType.CASH_IN,
-            actor = phoneNumber.trim(),
-            amount = amount,
-        )
+    private fun createActionIntent(phoneNumber: String, amount: Long): ActionIntent {
+        return ActionIntent(type = ActionIntentType.CASH_IN, actor = phoneNumber.trim(), amount = amount)
     }
 
     private fun validate(draft: AgentCashInDraft): AgentCashInFormErrors {
-        val phone = draft.phoneNumber.trim()
         return AgentCashInFormErrors(
-            phoneNumber = when {
-                phone.isBlank() -> "Saisissez le numéro du client."
-                phone.length < 7 -> "Le numéro paraît incomplet."
-                else -> null
-            },
-            amount = KmfAmountFormatters.validateAmount(draft.amountInput),
+            phoneNumber = FinancialInputRules.validateComorosPhone(draft.phoneNumber, "le numéro du client"),
+            amount = KmfAmountFormatters.validateAmount(
+                rawInput = draft.amountInput,
+                min = FinancialFlowRules.CASH_IN_MIN_AMOUNT,
+                max = FinancialFlowRules.CASH_IN_MAX_AMOUNT,
+            ),
         )
     }
 

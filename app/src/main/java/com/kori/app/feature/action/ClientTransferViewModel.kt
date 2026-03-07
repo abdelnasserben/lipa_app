@@ -7,10 +7,10 @@ import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.ClientTransferDraft
 import com.kori.app.core.model.action.ClientTransferResult
-import com.kori.app.core.model.action.FinancialErrorCode
+import com.kori.app.core.ui.FinancialInputRules
+import com.kori.app.core.ui.KmfAmountFormatters
 import com.kori.app.data.repository.ClientTransferRepository
 import com.kori.app.domain.idempotency.IdempotencyManager
-import com.kori.app.core.ui.KmfAmountFormatters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +27,7 @@ class ClientTransferViewModel(
     fun onRecipientChanged(value: String) {
         val current = _uiState.value as? ClientTransferUiState.Form ?: return
         _uiState.value = current.copy(
-            draft = current.draft.copy(recipientPhoneNumber = value),
+            draft = current.draft.copy(recipientPhoneNumber = FinancialInputRules.normalizeComorosPhoneInput(value)),
             errors = current.errors.copy(recipientPhoneNumber = null),
         )
     }
@@ -45,16 +45,14 @@ class ClientTransferViewModel(
         val current = _uiState.value as? ClientTransferUiState.Form ?: return
         val errors = validate(current.draft)
 
-        if (errors.recipientPhoneNumber != null || errors.amount != null) {
+        if (errors.recipientPhoneNumber != null || errors.amount != null || current.isLoading) {
             _uiState.value = current.copy(errors = errors)
             return
         }
 
         val amount = KmfAmountFormatters.parseToLong(current.draft.amountInput) ?: return
-        val intent = createActionIntent(
-            recipientPhoneNumber = current.draft.recipientPhoneNumber,
-            amount = amount,
-        )
+        val apiPhone = FinancialInputRules.comorosPhoneToApi(current.draft.recipientPhoneNumber) ?: return
+        val intent = createActionIntent(recipientPhoneNumber = apiPhone, amount = amount)
         val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
@@ -62,16 +60,12 @@ class ClientTransferViewModel(
 
             runCatching {
                 repository.quoteTransfer(
-                    recipientPhoneNumber = current.draft.recipientPhoneNumber.trim(),
+                    recipientPhoneNumber = apiPhone,
                     amount = amount,
                     idempotencyKey = idempotencyKey,
                 )
             }.onSuccess { quote ->
-                _uiState.value = ClientTransferUiState.Confirmation(
-                    quote = quote,
-                    isSubmitting = false,
-                    isConfirmDialogVisible = false,
-                )
+                _uiState.value = ClientTransferUiState.Confirmation(quote = quote)
             }.onFailure {
                 _uiState.value = current.copy(
                     isLoading = false,
@@ -87,18 +81,14 @@ class ClientTransferViewModel(
         val current = _uiState.value as? ClientTransferUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
-        _uiState.value = current.copy(
-            isConfirmDialogVisible = true,
-        )
+        _uiState.value = current.copy(isConfirmDialogVisible = true)
     }
 
     fun dismissConfirmDialog() {
         val current = _uiState.value as? ClientTransferUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
-        _uiState.value = current.copy(
-            isConfirmDialogVisible = false,
-        )
+        _uiState.value = current.copy(isConfirmDialogVisible = false)
     }
 
     fun submitTransfer() {
@@ -109,18 +99,17 @@ class ClientTransferViewModel(
             recipientPhoneNumber = current.quote.recipientPhoneNumber,
             amount = current.quote.amount,
         )
-        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
-        if (!canStart) return
 
-        viewModelScope.launch {
-            _uiState.value = current.copy(
-                isSubmitting = true,
-                isConfirmDialogVisible = false,
-            )
-
-            runCatching {
-                repository.submitTransfer(current.quote)
-            }.onSuccess { result ->
+        submitFinancialPost(
+            idempotencyManager = idempotencyManager,
+            intent = intent,
+            idempotencyKey = current.quote.idempotencyKey,
+            onSetSubmitting = { isSubmitting ->
+                val latest = _uiState.value as? ClientTransferUiState.Confirmation ?: return@submitFinancialPost
+                _uiState.value = latest.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false)
+            },
+            submitCall = { repository.submitTransfer(current.quote) },
+            onBusinessResult = { result ->
                 _uiState.value = when (result) {
                     is ClientTransferResult.Success -> {
                         idempotencyManager.onSuccess(current.quote.idempotencyKey)
@@ -134,20 +123,22 @@ class ClientTransferViewModel(
                         idempotencyManager.onFailure(result.idempotencyKey)
                         ClientTransferUiState.Failure(
                             code = result.code,
-                            message = result.message,
+                            userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                            technicalMessage = result.message,
                             idempotencyKey = result.idempotencyKey,
                         )
                     }
                 }
-            }.onFailure {
-                idempotencyManager.onFailure(current.quote.idempotencyKey)
+            },
+            onTechnicalFailure = { failure ->
                 _uiState.value = ClientTransferUiState.Failure(
-                    code = FinancialErrorCode.INVALID_STATUS,
-                    message = "Une erreur inattendue est survenue pendant le transfert.",
-                    idempotencyKey = current.quote.idempotencyKey,
+                    code = failure.code,
+                    userMessage = failure.userMessage,
+                    technicalMessage = failure.technicalMessage,
+                    idempotencyKey = failure.idempotencyKey,
                 )
-            }
-        }
+            },
+        )
     }
 
     fun editForm() {
@@ -164,7 +155,7 @@ class ClientTransferViewModel(
         val draft = when (state) {
             is ClientTransferUiState.Form -> state.draft
             is ClientTransferUiState.Confirmation -> ClientTransferDraft(
-                recipientPhoneNumber = state.quote.recipientPhoneNumber,
+                recipientPhoneNumber = FinancialInputRules.normalizeComorosPhoneInput(state.quote.recipientPhoneNumber),
                 amountInput = state.quote.amount.toString(),
             )
 
@@ -202,18 +193,16 @@ class ClientTransferViewModel(
     private fun validate(
         draft: ClientTransferDraft,
     ): ClientTransferFormErrors {
-        val phone = draft.recipientPhoneNumber.trim()
-        val phoneError = when {
-            phone.isBlank() -> "Saisissez le numéro du bénéficiaire."
-            phone.length < 7 -> "Le numéro paraît incomplet."
-            else -> null
-        }
-
-        val amountError = KmfAmountFormatters.validateAmount(draft.amountInput)
-
         return ClientTransferFormErrors(
-            recipientPhoneNumber = phoneError,
-            amount = amountError,
+            recipientPhoneNumber = FinancialInputRules.validateComorosPhone(
+                draft.recipientPhoneNumber,
+                "le numéro du bénéficiaire",
+            ),
+            amount = KmfAmountFormatters.validateAmount(
+                rawInput = draft.amountInput,
+                min = FinancialFlowRules.CLIENT_TRANSFER_MIN_AMOUNT,
+                max = FinancialFlowRules.CLIENT_TRANSFER_MAX_AMOUNT,
+            ),
         )
     }
 

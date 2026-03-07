@@ -22,6 +22,7 @@ import com.kori.app.core.designsystem.component.DetailRow
 import com.kori.app.core.designsystem.component.ScreenHeader
 import com.kori.app.core.designsystem.component.SectionCard
 import com.kori.app.core.designsystem.component.SuccessReceiptSheet
+import com.kori.app.core.ui.FinancialInputRules
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
 
@@ -80,7 +81,12 @@ private fun AgentCashInFormContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -97,7 +103,7 @@ private fun AgentCashInFormContent(
                     onValueChange = onPhoneChanged,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Numéro du client") },
-                    placeholder = { Text("+269 3xx xx xx") },
+                    placeholder = { Text("+269 3XX XX XX") },
                     singleLine = true,
                     isError = state.errors.phoneNumber != null,
                     supportingText = {
@@ -122,7 +128,10 @@ private fun AgentCashInFormContent(
 
         item {
             DebugPanel(
-                lines = listOf("Le quote générera une Idempotency-Key avant confirmation."),
+                lines = listOf(
+                    "Le quote générera une Idempotency-Key avant confirmation.",
+                    if (state.isLoading) "Réseau mock: préparation en cours" else "Réseau mock: prêt",
+                ),
             )
         }
 
@@ -158,7 +167,12 @@ private fun AgentCashInConfirmationContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -170,7 +184,7 @@ private fun AgentCashInConfirmationContent(
 
         item {
             SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Client", value = state.quote.phoneNumber)
+                DetailRow(label = "Client", value = FinancialInputRules.formatComorosPhoneForDisplay(state.quote.phoneNumber))
                 DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
                 DetailRow(label = "Frais", value = formatKmf(state.quote.fee), showDivider = false)
             }
@@ -178,7 +192,11 @@ private fun AgentCashInConfirmationContent(
 
         item {
             DebugPanel(
-                lines = listOf("Idempotency-Key", state.quote.idempotencyKey),
+                lines = listOf(
+                    "Idempotency-Key",
+                    state.quote.idempotencyKey,
+                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
+                ),
             )
         }
 
@@ -233,7 +251,12 @@ private fun AgentCashInSuccessContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -248,7 +271,7 @@ private fun AgentCashInSuccessContent(
                 title = "Reçu de cash-in",
                 lines = listOf(
                     "Référence" to state.receipt.transactionRef,
-                    "Client" to state.receipt.clientPhoneNumber,
+                    "Client" to FinancialInputRules.formatComorosPhoneForDisplay(state.receipt.clientPhoneNumber),
                     "Montant" to formatKmf(state.receipt.amount),
                     "Frais" to formatKmf(state.receipt.fee),
                     "Date" to formatIsoToDisplay(state.receipt.createdAt),
@@ -258,7 +281,10 @@ private fun AgentCashInSuccessContent(
 
         item {
             DebugPanel(
-                lines = listOf("Idempotency-Key", state.idempotencyKey),
+                lines = listOf(
+                    "Idempotency-Key",
+                    state.idempotencyKey,
+                ),
             )
         }
 
@@ -286,7 +312,12 @@ private fun AgentCashInFailureContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -299,13 +330,16 @@ private fun AgentCashInFailureContent(
         item {
             SectionCard(title = "Détails") {
                 DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.message, showDivider = false)
+                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
             }
         }
 
         item {
             DebugPanel(
-                lines = listOf("Idempotency-Key", state.idempotencyKey),
+                lines = listOf(
+                    "Idempotency-Key",
+                    state.idempotencyKey,
+                ),
             )
         }
 

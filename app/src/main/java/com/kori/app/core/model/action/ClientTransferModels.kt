@@ -1,5 +1,7 @@
 package com.kori.app.core.model.action
 
+import com.kori.app.core.ui.FinancialInputRules
+
 enum class FinancialErrorCode {
     INSUFFICIENT_FUNDS,
     DAILY_LIMIT_EXCEEDED,
@@ -8,7 +10,7 @@ enum class FinancialErrorCode {
 }
 
 data class ClientTransferDraft(
-    val recipientPhoneNumber: String = "",
+    val recipientPhoneNumber: String = FinancialInputRules.formatComorosPhoneForDisplay(""),
     val amountInput: String = "",
 )
 

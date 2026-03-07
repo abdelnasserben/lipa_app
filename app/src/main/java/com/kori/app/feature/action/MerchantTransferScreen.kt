@@ -88,7 +88,12 @@ private fun MerchantTransferFormContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -105,7 +110,7 @@ private fun MerchantTransferFormContent(
                     onValueChange = onRecipientChanged,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Code marchand bénéficiaire") },
-                    placeholder = { Text("Ex. MER-0088") },
+                    placeholder = { Text("M-123456") },
                     singleLine = true,
                     isError = state.errors.recipientMerchantCode != null,
                     supportingText = {
@@ -132,6 +137,7 @@ private fun MerchantTransferFormContent(
             DebugPanel(
                 lines = listOf(
                     "Le quote générera une Idempotency-Key avant confirmation.",
+                    if (state.isLoading) "Réseau mock: préparation en cours" else "Réseau mock: prêt",
                 ),
             )
         }
@@ -170,7 +176,12 @@ private fun MerchantTransferConfirmationContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -194,6 +205,7 @@ private fun MerchantTransferConfirmationContent(
                 lines = listOf(
                     "Idempotency-Key",
                     state.quote.idempotencyKey,
+                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
                 ),
             )
         }
@@ -251,7 +263,12 @@ private fun MerchantTransferSuccessContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -308,7 +325,12 @@ private fun MerchantTransferFailureContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -321,7 +343,7 @@ private fun MerchantTransferFailureContent(
         item {
             SectionCard(title = "Détails") {
                 DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.message, showDivider = false)
+                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
             }
         }
 

@@ -1,7 +1,9 @@
 package com.kori.app.core.model.action
 
+import com.kori.app.core.ui.FinancialInputRules
+
 data class MerchantTransferDraft(
-    val recipientMerchantCode: String = "",
+    val recipientMerchantCode: String = FinancialInputRules.normalizeMerchantCodeInput(""),
     val amountInput: String = "",
 )
 

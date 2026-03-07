@@ -7,10 +7,10 @@ import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.AgentMerchantWithdrawDraft
 import com.kori.app.core.model.action.AgentMerchantWithdrawResult
-import com.kori.app.core.model.action.FinancialErrorCode
+import com.kori.app.core.ui.FinancialInputRules
+import com.kori.app.core.ui.KmfAmountFormatters
 import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.domain.idempotency.IdempotencyManager
-import com.kori.app.core.ui.KmfAmountFormatters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +27,7 @@ class AgentMerchantWithdrawViewModel(
     fun onMerchantCodeChanged(value: String) {
         val current = _uiState.value as? AgentMerchantWithdrawUiState.Form ?: return
         _uiState.value = current.copy(
-            draft = current.draft.copy(merchantCode = value.uppercase()),
+            draft = current.draft.copy(merchantCode = FinancialInputRules.normalizeMerchantCodeInput(value)),
             errors = current.errors.copy(merchantCode = null),
         )
     }
@@ -43,16 +43,14 @@ class AgentMerchantWithdrawViewModel(
     fun requestQuote() {
         val current = _uiState.value as? AgentMerchantWithdrawUiState.Form ?: return
         val errors = validate(current.draft)
-        if (errors.merchantCode != null || errors.amount != null) {
+        if (errors.merchantCode != null || errors.amount != null || current.isLoading) {
             _uiState.value = current.copy(errors = errors)
             return
         }
 
         val amount = KmfAmountFormatters.parseToLong(current.draft.amountInput) ?: return
-        val intent = createActionIntent(
-            merchantCode = current.draft.merchantCode,
-            amount = amount,
-        )
+        val apiMerchantCode = FinancialInputRules.merchantCodeToApi(current.draft.merchantCode) ?: return
+        val intent = createActionIntent(merchantCode = apiMerchantCode, amount = amount)
         val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
@@ -60,14 +58,12 @@ class AgentMerchantWithdrawViewModel(
 
             runCatching {
                 repository.quoteMerchantWithdraw(
-                    merchantCode = current.draft.merchantCode.trim().uppercase(),
+                    merchantCode = apiMerchantCode,
                     amount = amount,
                     idempotencyKey = idempotencyKey,
                 )
             }.onSuccess { quote ->
-                _uiState.value = AgentMerchantWithdrawUiState.Confirmation(
-                    quote = quote,
-                )
+                _uiState.value = AgentMerchantWithdrawUiState.Confirmation(quote = quote)
             }.onFailure {
                 _uiState.value = current.copy(
                     isLoading = false,
@@ -95,22 +91,18 @@ class AgentMerchantWithdrawViewModel(
         val current = _uiState.value as? AgentMerchantWithdrawUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
-        val intent = createActionIntent(
-            merchantCode = current.quote.merchantCode,
-            amount = current.quote.amount,
-        )
-        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
-        if (!canStart) return
+        val intent = createActionIntent(merchantCode = current.quote.merchantCode, amount = current.quote.amount)
 
-        viewModelScope.launch {
-            _uiState.value = current.copy(
-                isSubmitting = true,
-                isConfirmDialogVisible = false,
-            )
-
-            runCatching {
-                repository.submitMerchantWithdraw(current.quote)
-            }.onSuccess { result ->
+        submitFinancialPost(
+            idempotencyManager = idempotencyManager,
+            intent = intent,
+            idempotencyKey = current.quote.idempotencyKey,
+            onSetSubmitting = { isSubmitting ->
+                val latest = _uiState.value as? AgentMerchantWithdrawUiState.Confirmation ?: return@submitFinancialPost
+                _uiState.value = latest.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false)
+            },
+            submitCall = { repository.submitMerchantWithdraw(current.quote) },
+            onBusinessResult = { result ->
                 _uiState.value = when (result) {
                     is AgentMerchantWithdrawResult.Success -> {
                         idempotencyManager.onSuccess(current.quote.idempotencyKey)
@@ -124,37 +116,34 @@ class AgentMerchantWithdrawViewModel(
                         idempotencyManager.onFailure(result.idempotencyKey)
                         AgentMerchantWithdrawUiState.Failure(
                             code = result.code,
-                            message = result.message,
+                            userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                            technicalMessage = result.message,
                             idempotencyKey = result.idempotencyKey,
                         )
                     }
                 }
-            }.onFailure {
-                idempotencyManager.onFailure(current.quote.idempotencyKey)
+            },
+            onTechnicalFailure = { failure ->
                 _uiState.value = AgentMerchantWithdrawUiState.Failure(
-                    code = FinancialErrorCode.INVALID_STATUS,
-                    message = "Une erreur inattendue est survenue pendant le retrait marchand.",
-                    idempotencyKey = current.quote.idempotencyKey,
+                    code = failure.code,
+                    userMessage = failure.userMessage,
+                    technicalMessage = failure.technicalMessage,
+                    idempotencyKey = failure.idempotencyKey,
                 )
-            }
-        }
+            },
+        )
     }
 
     fun edit() {
         val state = _uiState.value
         if (state is AgentMerchantWithdrawUiState.Confirmation) {
-            idempotencyManager.clear(
-                createActionIntent(
-                    merchantCode = state.quote.merchantCode,
-                    amount = state.quote.amount,
-                ),
-            )
+            idempotencyManager.clear(createActionIntent(merchantCode = state.quote.merchantCode, amount = state.quote.amount))
         }
 
         val draft = when (state) {
             is AgentMerchantWithdrawUiState.Form -> state.draft
             is AgentMerchantWithdrawUiState.Confirmation -> AgentMerchantWithdrawDraft(
-                merchantCode = state.quote.merchantCode,
+                merchantCode = FinancialInputRules.normalizeMerchantCodeInput(state.quote.merchantCode),
                 amountInput = state.quote.amount.toString(),
             )
 
@@ -167,36 +156,23 @@ class AgentMerchantWithdrawViewModel(
     fun restart() {
         val state = _uiState.value
         if (state is AgentMerchantWithdrawUiState.Confirmation) {
-            idempotencyManager.clear(
-                createActionIntent(
-                    merchantCode = state.quote.merchantCode,
-                    amount = state.quote.amount,
-                ),
-            )
+            idempotencyManager.clear(createActionIntent(merchantCode = state.quote.merchantCode, amount = state.quote.amount))
         }
         _uiState.value = AgentMerchantWithdrawUiState.Form()
     }
 
-    private fun createActionIntent(
-        merchantCode: String,
-        amount: Long,
-    ): ActionIntent {
-        return ActionIntent(
-            type = ActionIntentType.MERCHANT_WITHDRAW,
-            actor = merchantCode.trim().uppercase(),
-            amount = amount,
-        )
+    private fun createActionIntent(merchantCode: String, amount: Long): ActionIntent {
+        return ActionIntent(type = ActionIntentType.MERCHANT_WITHDRAW, actor = merchantCode.trim().uppercase(), amount = amount)
     }
 
     private fun validate(draft: AgentMerchantWithdrawDraft): AgentMerchantWithdrawFormErrors {
-        val merchantCode = draft.merchantCode.trim().uppercase()
         return AgentMerchantWithdrawFormErrors(
-            merchantCode = when {
-                merchantCode.isBlank() -> "Saisissez le code marchand."
-                merchantCode.length < 5 -> "Le code marchand paraît incomplet."
-                else -> null
-            },
-            amount = KmfAmountFormatters.validateAmount(draft.amountInput),
+            merchantCode = FinancialInputRules.validateMerchantCode(draft.merchantCode),
+            amount = KmfAmountFormatters.validateAmount(
+                rawInput = draft.amountInput,
+                min = FinancialFlowRules.MERCHANT_WITHDRAW_MIN_AMOUNT,
+                max = FinancialFlowRules.MERCHANT_WITHDRAW_MAX_AMOUNT,
+            ),
         )
     }
 

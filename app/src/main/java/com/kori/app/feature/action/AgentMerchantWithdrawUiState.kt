@@ -30,7 +30,8 @@ sealed interface AgentMerchantWithdrawUiState {
 
     data class Failure(
         val code: FinancialErrorCode,
-        val message: String,
+        val userMessage: String,
+        val technicalMessage: String? = null,
         val idempotencyKey: String,
     ) : AgentMerchantWithdrawUiState
 }

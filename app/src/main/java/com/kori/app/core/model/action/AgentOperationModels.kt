@@ -1,7 +1,9 @@
 package com.kori.app.core.model.action
 
+import com.kori.app.core.ui.FinancialInputRules
+
 data class AgentCashInDraft(
-    val phoneNumber: String = "",
+    val phoneNumber: String = FinancialInputRules.formatComorosPhoneForDisplay(""),
     val amountInput: String = "",
 )
 
@@ -35,7 +37,7 @@ sealed interface AgentCashInResult {
 }
 
 data class AgentMerchantWithdrawDraft(
-    val merchantCode: String = "",
+    val merchantCode: String = FinancialInputRules.normalizeMerchantCodeInput(""),
     val amountInput: String = "",
 )
 

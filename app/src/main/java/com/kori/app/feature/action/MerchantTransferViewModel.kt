@@ -5,12 +5,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
-import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.core.model.action.MerchantTransferDraft
 import com.kori.app.core.model.action.MerchantTransferResult
+import com.kori.app.core.ui.FinancialInputRules
+import com.kori.app.core.ui.KmfAmountFormatters
 import com.kori.app.data.repository.MerchantTransferRepository
 import com.kori.app.domain.idempotency.IdempotencyManager
-import com.kori.app.core.ui.KmfAmountFormatters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,7 +27,7 @@ class MerchantTransferViewModel(
     fun onRecipientChanged(value: String) {
         val current = _uiState.value as? MerchantTransferUiState.Form ?: return
         _uiState.value = current.copy(
-            draft = current.draft.copy(recipientMerchantCode = value.uppercase()),
+            draft = current.draft.copy(recipientMerchantCode = FinancialInputRules.normalizeMerchantCodeInput(value)),
             errors = current.errors.copy(recipientMerchantCode = null),
         )
     }
@@ -45,16 +45,14 @@ class MerchantTransferViewModel(
         val current = _uiState.value as? MerchantTransferUiState.Form ?: return
         val errors = validate(current.draft)
 
-        if (errors.recipientMerchantCode != null || errors.amount != null) {
+        if (errors.recipientMerchantCode != null || errors.amount != null || current.isLoading) {
             _uiState.value = current.copy(errors = errors)
             return
         }
 
         val amount = KmfAmountFormatters.parseToLong(current.draft.amountInput) ?: return
-        val intent = createActionIntent(
-            recipientMerchantCode = current.draft.recipientMerchantCode,
-            amount = amount,
-        )
+        val apiMerchantCode = FinancialInputRules.merchantCodeToApi(current.draft.recipientMerchantCode) ?: return
+        val intent = createActionIntent(recipientMerchantCode = apiMerchantCode, amount = amount)
         val idempotencyKey = idempotencyManager.getOrCreateIdempotencyKey(intent)
 
         viewModelScope.launch {
@@ -62,16 +60,12 @@ class MerchantTransferViewModel(
 
             runCatching {
                 repository.quoteTransfer(
-                    recipientMerchantCode = current.draft.recipientMerchantCode.trim().uppercase(),
+                    recipientMerchantCode = apiMerchantCode,
                     amount = amount,
                     idempotencyKey = idempotencyKey,
                 )
             }.onSuccess { quote ->
-                _uiState.value = MerchantTransferUiState.Confirmation(
-                    quote = quote,
-                    isSubmitting = false,
-                    isConfirmDialogVisible = false,
-                )
+                _uiState.value = MerchantTransferUiState.Confirmation(quote = quote)
             }.onFailure {
                 _uiState.value = current.copy(
                     isLoading = false,
@@ -87,18 +81,14 @@ class MerchantTransferViewModel(
         val current = _uiState.value as? MerchantTransferUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
-        _uiState.value = current.copy(
-            isConfirmDialogVisible = true,
-        )
+        _uiState.value = current.copy(isConfirmDialogVisible = true)
     }
 
     fun dismissConfirmDialog() {
         val current = _uiState.value as? MerchantTransferUiState.Confirmation ?: return
         if (current.isSubmitting) return
 
-        _uiState.value = current.copy(
-            isConfirmDialogVisible = false,
-        )
+        _uiState.value = current.copy(isConfirmDialogVisible = false)
     }
 
     fun submitTransfer() {
@@ -109,18 +99,17 @@ class MerchantTransferViewModel(
             recipientMerchantCode = current.quote.recipientMerchantCode,
             amount = current.quote.amount,
         )
-        val canStart = idempotencyManager.start(intent, current.quote.idempotencyKey)
-        if (!canStart) return
 
-        viewModelScope.launch {
-            _uiState.value = current.copy(
-                isSubmitting = true,
-                isConfirmDialogVisible = false,
-            )
-
-            runCatching {
-                repository.submitTransfer(current.quote)
-            }.onSuccess { result ->
+        submitFinancialPost(
+            idempotencyManager = idempotencyManager,
+            intent = intent,
+            idempotencyKey = current.quote.idempotencyKey,
+            onSetSubmitting = { isSubmitting ->
+                val latest = _uiState.value as? MerchantTransferUiState.Confirmation ?: return@submitFinancialPost
+                _uiState.value = latest.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false)
+            },
+            submitCall = { repository.submitTransfer(current.quote) },
+            onBusinessResult = { result ->
                 _uiState.value = when (result) {
                     is MerchantTransferResult.Success -> {
                         idempotencyManager.onSuccess(current.quote.idempotencyKey)
@@ -134,20 +123,22 @@ class MerchantTransferViewModel(
                         idempotencyManager.onFailure(result.idempotencyKey)
                         MerchantTransferUiState.Failure(
                             code = result.code,
-                            message = result.message,
+                            userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                            technicalMessage = result.message,
                             idempotencyKey = result.idempotencyKey,
                         )
                     }
                 }
-            }.onFailure {
-                idempotencyManager.onFailure(current.quote.idempotencyKey)
+            },
+            onTechnicalFailure = { failure ->
                 _uiState.value = MerchantTransferUiState.Failure(
-                    code = FinancialErrorCode.INVALID_STATUS,
-                    message = "Une erreur inattendue est survenue pendant le transfert marchand.",
-                    idempotencyKey = current.quote.idempotencyKey,
+                    code = failure.code,
+                    userMessage = failure.userMessage,
+                    technicalMessage = failure.technicalMessage,
+                    idempotencyKey = failure.idempotencyKey,
                 )
-            }
-        }
+            },
+        )
     }
 
     fun editForm() {
@@ -164,7 +155,7 @@ class MerchantTransferViewModel(
         val draft = when (state) {
             is MerchantTransferUiState.Form -> state.draft
             is MerchantTransferUiState.Confirmation -> MerchantTransferDraft(
-                recipientMerchantCode = state.quote.recipientMerchantCode,
+                recipientMerchantCode = FinancialInputRules.normalizeMerchantCodeInput(state.quote.recipientMerchantCode),
                 amountInput = state.quote.amount.toString(),
             )
 
@@ -202,18 +193,16 @@ class MerchantTransferViewModel(
     private fun validate(
         draft: MerchantTransferDraft,
     ): MerchantTransferFormErrors {
-        val merchantCode = draft.recipientMerchantCode.trim().uppercase()
-        val merchantCodeError = when {
-            merchantCode.isBlank() -> "Saisissez le code marchand bénéficiaire."
-            merchantCode.length < 5 -> "Le code marchand paraît incomplet."
-            else -> null
-        }
-
-        val amountError = KmfAmountFormatters.validateAmount(draft.amountInput)
-
         return MerchantTransferFormErrors(
-            recipientMerchantCode = merchantCodeError,
-            amount = amountError,
+            recipientMerchantCode = FinancialInputRules.validateMerchantCode(
+                draft.recipientMerchantCode,
+                "le code marchand bénéficiaire",
+            ),
+            amount = KmfAmountFormatters.validateAmount(
+                rawInput = draft.amountInput,
+                min = FinancialFlowRules.MERCHANT_TRANSFER_MIN_AMOUNT,
+                max = FinancialFlowRules.MERCHANT_TRANSFER_MAX_AMOUNT,
+            ),
         )
     }
 

@@ -22,6 +22,7 @@ import com.kori.app.core.designsystem.component.DetailRow
 import com.kori.app.core.designsystem.component.ScreenHeader
 import com.kori.app.core.designsystem.component.SectionCard
 import com.kori.app.core.designsystem.component.SuccessReceiptSheet
+import com.kori.app.core.ui.FinancialInputRules
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
 
@@ -88,7 +89,12 @@ private fun ClientTransferFormContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -105,7 +111,7 @@ private fun ClientTransferFormContent(
                     onValueChange = onRecipientChanged,
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Numéro du bénéficiaire") },
-                    placeholder = { Text("+269 3xx xx xx") },
+                    placeholder = { Text("+269 3XX XX XX") },
                     singleLine = true,
                     isError = state.errors.recipientPhoneNumber != null,
                     supportingText = {
@@ -132,6 +138,7 @@ private fun ClientTransferFormContent(
             DebugPanel(
                 lines = listOf(
                     "Le quote générera une Idempotency-Key avant confirmation.",
+                    if (state.isLoading) "Réseau mock: préparation en cours" else "Réseau mock: prêt",
                 ),
             )
         }
@@ -170,7 +177,12 @@ private fun ClientTransferConfirmationContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -182,7 +194,7 @@ private fun ClientTransferConfirmationContent(
 
         item {
             SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Bénéficiaire", value = state.quote.recipientPhoneNumber)
+                DetailRow(label = "Bénéficiaire", value = FinancialInputRules.formatComorosPhoneForDisplay(state.quote.recipientPhoneNumber))
                 DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
                 DetailRow(label = "Frais", value = formatKmf(state.quote.fee))
                 DetailRow(
@@ -198,6 +210,7 @@ private fun ClientTransferConfirmationContent(
                 lines = listOf(
                     "Idempotency-Key",
                     state.quote.idempotencyKey,
+                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
                 ),
             )
         }
@@ -255,7 +268,12 @@ private fun ClientTransferSuccessContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -270,7 +288,7 @@ private fun ClientTransferSuccessContent(
                 title = "Reçu de transfert",
                 lines = listOf(
                     "Référence" to state.receipt.transactionRef,
-                    "Bénéficiaire" to state.receipt.recipientPhoneNumber,
+                    "Bénéficiaire" to FinancialInputRules.formatComorosPhoneForDisplay(state.receipt.recipientPhoneNumber),
                     "Montant" to formatKmf(state.receipt.amount),
                     "Frais" to formatKmf(state.receipt.fee),
                     "Total débité" to formatKmf(state.receipt.totalDebited),
@@ -312,7 +330,12 @@ private fun ClientTransferFailureContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(20.dp),
+        contentPadding = PaddingValues(
+            start = 20.dp,
+            end = 20.dp,
+            top = 92.dp,
+            bottom = 20.dp
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
@@ -325,7 +348,7 @@ private fun ClientTransferFailureContent(
         item {
             SectionCard(title = "Détails") {
                 DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.message, showDivider = false)
+                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
             }
         }
 

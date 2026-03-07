@@ -28,7 +28,7 @@ object KmfAmountFormatters {
         if (rawInput.isBlank()) return requiredMessage
 
         val amount = parseToLong(rawInput) ?: return invalidMessage
-        if (amount < min) return "Le montant doit être supérieur à zéro."
+        if (amount < min) return "Le montant minimum autorisé est ${formatAmount(min)}."
         if (max != null && amount > max) return "Le montant maximum autorisé est ${formatAmount(max)}."
 
         return null
