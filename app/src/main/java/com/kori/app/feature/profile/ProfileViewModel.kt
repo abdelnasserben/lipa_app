@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kori.app.core.model.UserRole
+import com.kori.app.core.model.auth.AuthState
 import com.kori.app.data.local.LocalStorage
 import com.kori.app.data.repository.ProfileRepository
 import com.kori.app.data.repository.RoleProfilePayload
@@ -26,8 +27,15 @@ class ProfileViewModel(
         notificationsEnabled = localStorage.isNotificationsEnabled(),
     )
 
+    private var sessionSummary: SessionSummaryUiModel = SessionSummaryUiModel.disconnected()
+
     init {
         load()
+    }
+
+    fun onAuthStateChanged(authState: AuthState) {
+        sessionSummary = authState.toSessionSummary()
+        refreshSettingsOnly()
     }
 
     fun load() {
@@ -44,6 +52,7 @@ class ProfileViewModel(
                         status = payload.value.status.name,
                         createdAt = payload.value.createdAt,
                         phone = payload.value.phone,
+                        sessionSubject = sessionSummary.subject,
                     )
 
                     is RoleProfilePayload.Merchant -> ProfileCardUiModel(
@@ -51,6 +60,7 @@ class ProfileViewModel(
                         code = payload.value.code,
                         status = payload.value.status.name,
                         createdAt = payload.value.createdAt,
+                        sessionSubject = sessionSummary.subject,
                     )
 
                     is RoleProfilePayload.Agent -> ProfileCardUiModel(
@@ -58,12 +68,14 @@ class ProfileViewModel(
                         code = payload.value.code,
                         status = payload.value.status.name,
                         createdAt = payload.value.createdAt,
+                        sessionSubject = sessionSummary.subject,
                     )
                 }
 
                 _uiState.value = ProfileUiState.Content(
                     role = role,
                     profile = profile,
+                    session = sessionSummary,
                     settings = settingsState,
                 )
             }.onFailure {
@@ -92,7 +104,20 @@ class ProfileViewModel(
         _uiState.value = when (current) {
             ProfileUiState.Loading -> current
             is ProfileUiState.Error -> current.copy(settings = settingsState)
-            is ProfileUiState.Content -> current.copy(settings = settingsState)
+            is ProfileUiState.Content -> current.copy(
+                profile = current.profile.copy(sessionSubject = sessionSummary.subject),
+                session = sessionSummary,
+                settings = settingsState,
+            )
+        }
+    }
+
+    private fun AuthState.toSessionSummary(): SessionSummaryUiModel {
+        return when (this) {
+            is AuthState.Authenticated -> SessionSummaryUiModel.fromSession(session)
+            AuthState.Authenticating -> SessionSummaryUiModel(connectionState = ConnectionState.CONNECTING)
+            AuthState.Unauthenticated -> SessionSummaryUiModel.disconnected()
+            is AuthState.Error -> SessionSummaryUiModel(connectionState = ConnectionState.ERROR)
         }
     }
 

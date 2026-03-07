@@ -56,6 +56,11 @@ fun SessionScreen(
                     SessionLine("Expiration", session.expiresAtIso)
                     SessionLine("Subject", session.subject)
                     SessionLine("Issuer", session.issuer)
+                    Text(
+                        text = "Se déconnecter remet la session OIDC et le rôle actif à zéro.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
         }

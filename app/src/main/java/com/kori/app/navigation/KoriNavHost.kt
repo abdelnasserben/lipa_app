@@ -427,6 +427,7 @@ fun KoriNavHost(
             ) { contentModifier ->
                 ProfileRoute(
                     role = role,
+                    authState = authState,
                     repository = profileRepository,
                     localStorage = localStorage,
                     onOpenSession = {
@@ -461,7 +462,8 @@ fun KoriNavHost(
                     session = (currentState as AuthState.Authenticated).session,
                     onLogout = {
                         authService.logout()
-                        navController.navigate(KoriDestination.AuthWelcome.route) {
+                        appState.logoutToRolePicker()
+                        navController.navigate(KoriDestination.RolePicker.route) {
                             popUpTo(navController.graph.id) { inclusive = true }
                             launchSingleTop = true
                         }

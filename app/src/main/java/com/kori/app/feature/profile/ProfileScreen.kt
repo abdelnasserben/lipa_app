@@ -44,10 +44,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
 ) {
     when (uiState) {
-        ProfileUiState.Loading -> {
-            LoadingContent(modifier = modifier)
-        }
-
+        ProfileUiState.Loading -> LoadingContent(modifier = modifier)
         is ProfileUiState.Error -> {
             ErrorContent(
                 message = uiState.message,
@@ -82,7 +79,7 @@ private fun LoadingContent(
             start = 20.dp,
             end = 20.dp,
             top = 20.dp,
-            bottom = 96.dp
+            bottom = 96.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -94,13 +91,8 @@ private fun LoadingContent(
             )
         }
 
-        item {
-            SkeletonCard(title = "Chargement du profil…")
-        }
-
-        item {
-            SkeletonCard(title = "Préparation des paramètres…")
-        }
+        item { SkeletonCard(title = "Chargement du profil…") }
+        item { SkeletonCard(title = "Préparation des paramètres…") }
     }
 }
 
@@ -158,9 +150,7 @@ private fun ProfileContent(
         contentPadding = PaddingValues(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item {
-            Header(role = state.role)
-        }
+        item { Header(role = state.role) }
 
         item {
             ProfileCard(
@@ -170,6 +160,7 @@ private fun ProfileContent(
 
         item {
             SessionCard(
+                session = state.session,
                 onOpenSession = onOpenSession,
             )
         }
@@ -235,15 +226,15 @@ private fun ProfileCard(
             ProfileLine("Statut", profile.status)
             ProfileLine("Créé le", formatIsoToDisplay(profile.createdAt))
 
-            profile.phone?.let {
-                ProfileLine("Téléphone", it)
-            }
+            profile.phone?.let { ProfileLine("Téléphone", it) }
+            profile.sessionSubject?.let { ProfileLine("Sujet session", it) }
         }
     }
 }
 
 @Composable
 private fun SessionCard(
+    session: SessionSummaryUiModel,
     onOpenSession: () -> Unit,
 ) {
     Card(
@@ -260,9 +251,15 @@ private fun SessionCard(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
+
+            ProfileLine("État", session.connectionState.label)
+            session.issuer?.let { ProfileLine("Issuer", it) }
+            session.subject?.let { ProfileLine("Subject", it) }
+            session.expiration?.let { ProfileLine("Expiration", formatIsoToDisplay(it)) }
+
             Text(
-                text = "Consultez les informations de session OIDC mockées, les tokens masqués et l’expiration ISO-8601.",
-                style = MaterialTheme.typography.bodyMedium,
+                text = "Switch role conserve la session OIDC. Se déconnecter supprime la session et le rôle actif.",
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
@@ -274,7 +271,7 @@ private fun SessionCard(
                     contentColor = KoriPrimary,
                 ),
             ) {
-                Text("Ouvrir la session OIDC")
+                Text(if (session.isConnected) "Ouvrir la session OIDC" else "Ouvrir l'écran session")
             }
         }
     }
@@ -301,17 +298,13 @@ private fun SettingsCard(
                 fontWeight = FontWeight.SemiBold,
             )
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
                     text = "Langue",
                     style = MaterialTheme.typography.labelLarge,
                 )
 
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(AppLanguage.entries) { language ->
                         FilterChip(
                             selected = language == settings.language,
@@ -324,9 +317,7 @@ private fun SettingsCard(
 
             HorizontalDivider()
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
                     text = "Thème",
                     style = MaterialTheme.typography.labelLarge,
@@ -390,14 +381,12 @@ private fun DevMenuCard(
             )
 
             Text(
-                text = "Changez rapidement de rôle pour prévisualiser les expériences Client, Merchant et Agent.",
+                text = "Changez rapidement de rôle pour prévisualiser les expériences Client, Merchant et Agent. Le switch rôle conserve la session courante.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(UserRole.entries) { role ->
                     FilterChip(
                         selected = role == activeRole,
@@ -415,9 +404,7 @@ private fun ProfileLine(
     label: String,
     value: String,
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
