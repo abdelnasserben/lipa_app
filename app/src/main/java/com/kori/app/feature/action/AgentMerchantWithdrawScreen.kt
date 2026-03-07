@@ -183,11 +183,11 @@ private fun AgentMerchantWithdrawConfirmationContent(
 
         item {
             SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Marchand", value = state.quote.merchantCode)
-                DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
-                DetailRow(label = "Frais", value = formatKmf(state.quote.fee))
-                DetailRow(label = "Commission", value = formatKmf(state.quote.commission))
-                DetailRow(label = "Total débité marchand", value = formatKmf(state.quote.totalDebitedMerchant), showDivider = false)
+                DetailRow(label = "Marchand", value = state.model.quote.merchantCode)
+                DetailRow(label = "Montant", value = formatKmf(state.model.quote.amount))
+                DetailRow(label = "Frais", value = formatKmf(state.model.quote.fee))
+                DetailRow(label = "Commission", value = formatKmf(state.model.quote.commission))
+                DetailRow(label = "Total débité marchand", value = formatKmf(state.model.quote.totalDebitedMerchant), showDivider = false)
             }
         }
 
@@ -195,8 +195,8 @@ private fun AgentMerchantWithdrawConfirmationContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.quote.idempotencyKey,
-                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
+                    state.model.quote.idempotencyKey,
+                    if (state.model.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
                 ),
             )
         }
@@ -204,7 +204,7 @@ private fun AgentMerchantWithdrawConfirmationContent(
         item {
             OutlinedButton(
                 onClick = onEdit,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
             ) {
@@ -215,7 +215,7 @@ private fun AgentMerchantWithdrawConfirmationContent(
         item {
             Button(
                 onClick = onOpenConfirmDialog,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -223,7 +223,7 @@ private fun AgentMerchantWithdrawConfirmationContent(
                     contentColor = KoriPrimary,
                 ),
             ) {
-                if (state.isSubmitting) {
+                if (state.model.isSubmitting) {
                     CircularProgressIndicator(strokeWidth = 2.dp)
                 } else {
                     Text("Confirmer le retrait")
@@ -232,7 +232,7 @@ private fun AgentMerchantWithdrawConfirmationContent(
         }
     }
 
-    if (state.isConfirmDialogVisible) {
+    if (state.model.isConfirmDialogVisible) {
         ConfirmModal(
             title = "Dernière vérification",
             message = "Cette opération va débiter le solde marchand et générer une commission agent. Assurez-vous que le code marchand et le montant sont corrects.",
@@ -271,13 +271,13 @@ private fun AgentMerchantWithdrawSuccessContent(
             SuccessReceiptSheet(
                 title = "Reçu de retrait marchand",
                 lines = listOf(
-                    "Référence" to state.receipt.transactionRef,
-                    "Marchand" to state.receipt.merchantCode,
-                    "Montant" to formatKmf(state.receipt.amount),
-                    "Frais" to formatKmf(state.receipt.fee),
-                    "Commission" to formatKmf(state.receipt.commission),
-                    "Total débité marchand" to formatKmf(state.receipt.totalDebitedMerchant),
-                    "Date" to formatIsoToDisplay(state.receipt.createdAt),
+                    "Référence" to state.model.receipt.transactionRef,
+                    "Marchand" to state.model.receipt.merchantCode,
+                    "Montant" to formatKmf(state.model.receipt.amount),
+                    "Frais" to formatKmf(state.model.receipt.fee),
+                    "Commission" to formatKmf(state.model.receipt.commission),
+                    "Total débité marchand" to formatKmf(state.model.receipt.totalDebitedMerchant),
+                    "Date" to formatIsoToDisplay(state.model.receipt.createdAt),
                 ),
             )
         }
@@ -286,7 +286,7 @@ private fun AgentMerchantWithdrawSuccessContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }
@@ -332,8 +332,8 @@ private fun AgentMerchantWithdrawFailureContent(
 
         item {
             SectionCard(title = "Détails") {
-                DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
+                DetailRow(label = "Code erreur", value = state.model.code.name)
+                DetailRow(label = "Message", value = state.model.userMessage, showDivider = false)
             }
         }
 
@@ -341,7 +341,7 @@ private fun AgentMerchantWithdrawFailureContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }

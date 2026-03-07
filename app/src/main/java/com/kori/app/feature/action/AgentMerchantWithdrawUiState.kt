@@ -3,7 +3,6 @@ package com.kori.app.feature.action
 import com.kori.app.core.model.action.AgentMerchantWithdrawDraft
 import com.kori.app.core.model.action.AgentMerchantWithdrawQuote
 import com.kori.app.core.model.action.AgentMerchantWithdrawReceipt
-import com.kori.app.core.model.action.FinancialErrorCode
 
 data class AgentMerchantWithdrawFormErrors(
     val merchantCode: String? = null,
@@ -18,20 +17,14 @@ sealed interface AgentMerchantWithdrawUiState {
     ) : AgentMerchantWithdrawUiState
 
     data class Confirmation(
-        val quote: AgentMerchantWithdrawQuote,
-        val isSubmitting: Boolean = false,
-        val isConfirmDialogVisible: Boolean = false,
+        val model: FinancialConfirmationModel<AgentMerchantWithdrawQuote>,
     ) : AgentMerchantWithdrawUiState
 
     data class Success(
-        val receipt: AgentMerchantWithdrawReceipt,
-        val idempotencyKey: String,
+        val model: FinancialSuccessModel<AgentMerchantWithdrawReceipt>,
     ) : AgentMerchantWithdrawUiState
 
     data class Failure(
-        val code: FinancialErrorCode,
-        val userMessage: String,
-        val technicalMessage: String? = null,
-        val idempotencyKey: String,
+        val model: FinancialFailureModel,
     ) : AgentMerchantWithdrawUiState
 }

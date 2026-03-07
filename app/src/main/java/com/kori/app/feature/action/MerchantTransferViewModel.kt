@@ -65,7 +65,7 @@ class MerchantTransferViewModel(
                     idempotencyKey = idempotencyKey,
                 )
             }.onSuccess { quote ->
-                _uiState.value = MerchantTransferUiState.Confirmation(quote = quote)
+                _uiState.value = MerchantTransferUiState.Confirmation(model = FinancialConfirmationModel(quote = quote))
             }.onFailure {
                 _uiState.value = current.copy(
                     isLoading = false,
@@ -79,63 +79,64 @@ class MerchantTransferViewModel(
 
     fun openConfirmDialog() {
         val current = _uiState.value as? MerchantTransferUiState.Confirmation ?: return
-        if (current.isSubmitting) return
+        if (current.model.isSubmitting) return
 
-        _uiState.value = current.copy(isConfirmDialogVisible = true)
+        _uiState.value = current.copy(model = current.model.copy(isConfirmDialogVisible = true))
     }
 
     fun dismissConfirmDialog() {
         val current = _uiState.value as? MerchantTransferUiState.Confirmation ?: return
-        if (current.isSubmitting) return
+        if (current.model.isSubmitting) return
 
-        _uiState.value = current.copy(isConfirmDialogVisible = false)
+        _uiState.value = current.copy(model = current.model.copy(isConfirmDialogVisible = false))
     }
 
     fun submitTransfer() {
         val current = _uiState.value as? MerchantTransferUiState.Confirmation ?: return
-        if (current.isSubmitting) return
+        if (current.model.isSubmitting) return
 
         val intent = createActionIntent(
-            recipientMerchantCode = current.quote.recipientMerchantCode,
-            amount = current.quote.amount,
+            recipientMerchantCode = current.model.quote.recipientMerchantCode,
+            amount = current.model.quote.amount,
         )
 
         submitFinancialPost(
             idempotencyManager = idempotencyManager,
             intent = intent,
-            idempotencyKey = current.quote.idempotencyKey,
+            idempotencyKey = current.model.quote.idempotencyKey,
             onSetSubmitting = { isSubmitting ->
                 val latest = _uiState.value as? MerchantTransferUiState.Confirmation ?: return@submitFinancialPost
-                _uiState.value = latest.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false)
+                _uiState.value = latest.copy(model = latest.model.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false))
             },
-            submitCall = { repository.submitTransfer(current.quote) },
+            submitCall = { repository.submitTransfer(current.model.quote) },
             onBusinessResult = { result ->
                 _uiState.value = when (result) {
                     is MerchantTransferResult.Success -> {
-                        idempotencyManager.onSuccess(current.quote.idempotencyKey)
+                        idempotencyManager.onSuccess(current.model.quote.idempotencyKey)
                         MerchantTransferUiState.Success(
-                            receipt = result.receipt,
-                            idempotencyKey = current.quote.idempotencyKey,
+                            model = FinancialSuccessModel(
+                                receipt = result.receipt,
+                                idempotencyKey = current.model.quote.idempotencyKey,
+                            ),
                         )
                     }
 
                     is MerchantTransferResult.Failure -> {
                         idempotencyManager.onFailure(result.idempotencyKey)
                         MerchantTransferUiState.Failure(
-                            code = result.code,
-                            userMessage = FinancialErrorMapper.userMessageFor(result.code),
-                            technicalMessage = result.message,
-                            idempotencyKey = result.idempotencyKey,
+                            model = FinancialFailureModel(
+                                code = result.code,
+                                userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                                technicalMessage = result.message,
+                                idempotencyKey = result.idempotencyKey,
+                            ),
                         )
                     }
                 }
             },
             onTechnicalFailure = { failure ->
                 _uiState.value = MerchantTransferUiState.Failure(
-                    code = failure.code,
-                    userMessage = failure.userMessage,
-                    technicalMessage = failure.technicalMessage,
-                    idempotencyKey = failure.idempotencyKey,
+                    model = failure.toFailureModel(),
                 )
             },
         )
@@ -146,8 +147,8 @@ class MerchantTransferViewModel(
         if (state is MerchantTransferUiState.Confirmation) {
             idempotencyManager.clear(
                 createActionIntent(
-                    recipientMerchantCode = state.quote.recipientMerchantCode,
-                    amount = state.quote.amount,
+                    recipientMerchantCode = state.model.quote.recipientMerchantCode,
+                    amount = state.model.quote.amount,
                 ),
             )
         }
@@ -155,8 +156,8 @@ class MerchantTransferViewModel(
         val draft = when (state) {
             is MerchantTransferUiState.Form -> state.draft
             is MerchantTransferUiState.Confirmation -> MerchantTransferDraft(
-                recipientMerchantCode = FinancialInputRules.normalizeMerchantCodeInput(state.quote.recipientMerchantCode),
-                amountInput = state.quote.amount.toString(),
+                recipientMerchantCode = FinancialInputRules.normalizeMerchantCodeInput(state.model.quote.recipientMerchantCode),
+                amountInput = state.model.quote.amount.toString(),
             )
 
             is MerchantTransferUiState.Success -> MerchantTransferDraft()
@@ -171,8 +172,8 @@ class MerchantTransferViewModel(
         if (state is MerchantTransferUiState.Confirmation) {
             idempotencyManager.clear(
                 createActionIntent(
-                    recipientMerchantCode = state.quote.recipientMerchantCode,
-                    amount = state.quote.amount,
+                    recipientMerchantCode = state.model.quote.recipientMerchantCode,
+                    amount = state.model.quote.amount,
                 ),
             )
         }

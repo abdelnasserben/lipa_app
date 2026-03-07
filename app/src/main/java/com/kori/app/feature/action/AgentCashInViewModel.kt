@@ -63,7 +63,7 @@ class AgentCashInViewModel(
                     idempotencyKey = idempotencyKey,
                 )
             }.onSuccess { quote ->
-                _uiState.value = AgentCashInUiState.Confirmation(quote = quote)
+                _uiState.value = AgentCashInUiState.Confirmation(model = FinancialConfirmationModel(quote = quote))
             }.onFailure { throwable ->
                 _uiState.value = current.copy(
                     isLoading = false,
@@ -77,58 +77,59 @@ class AgentCashInViewModel(
 
     fun openConfirmDialog() {
         val current = _uiState.value as? AgentCashInUiState.Confirmation ?: return
-        if (current.isSubmitting) return
-        _uiState.value = current.copy(isConfirmDialogVisible = true)
+        if (current.model.isSubmitting) return
+        _uiState.value = current.copy(model = current.model.copy(isConfirmDialogVisible = true))
     }
 
     fun dismissConfirmDialog() {
         val current = _uiState.value as? AgentCashInUiState.Confirmation ?: return
-        if (current.isSubmitting) return
-        _uiState.value = current.copy(isConfirmDialogVisible = false)
+        if (current.model.isSubmitting) return
+        _uiState.value = current.copy(model = current.model.copy(isConfirmDialogVisible = false))
     }
 
     fun submit() {
         val current = _uiState.value as? AgentCashInUiState.Confirmation ?: return
-        if (current.isSubmitting) return
+        if (current.model.isSubmitting) return
 
-        val intent = createActionIntent(phoneNumber = current.quote.phoneNumber, amount = current.quote.amount)
+        val intent = createActionIntent(phoneNumber = current.model.quote.phoneNumber, amount = current.model.quote.amount)
 
         submitFinancialPost(
             idempotencyManager = idempotencyManager,
             intent = intent,
-            idempotencyKey = current.quote.idempotencyKey,
+            idempotencyKey = current.model.quote.idempotencyKey,
             onSetSubmitting = { isSubmitting ->
                 val latest = _uiState.value as? AgentCashInUiState.Confirmation ?: return@submitFinancialPost
-                _uiState.value = latest.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false)
+                _uiState.value = latest.copy(model = latest.model.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false))
             },
-            submitCall = { repository.submitCashIn(current.quote) },
+            submitCall = { repository.submitCashIn(current.model.quote) },
             onBusinessResult = { result ->
                 _uiState.value = when (result) {
                     is AgentCashInResult.Success -> {
-                        idempotencyManager.onSuccess(current.quote.idempotencyKey)
+                        idempotencyManager.onSuccess(current.model.quote.idempotencyKey)
                         AgentCashInUiState.Success(
-                            receipt = result.receipt,
-                            idempotencyKey = current.quote.idempotencyKey,
+                            model = FinancialSuccessModel(
+                                receipt = result.receipt,
+                                idempotencyKey = current.model.quote.idempotencyKey,
+                            ),
                         )
                     }
 
                     is AgentCashInResult.Failure -> {
                         idempotencyManager.onFailure(result.idempotencyKey)
                         AgentCashInUiState.Failure(
-                            code = result.code,
-                            userMessage = FinancialErrorMapper.userMessageFor(result.code),
-                            technicalMessage = result.message,
-                            idempotencyKey = result.idempotencyKey,
+                            model = FinancialFailureModel(
+                                code = result.code,
+                                userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                                technicalMessage = result.message,
+                                idempotencyKey = result.idempotencyKey,
+                            ),
                         )
                     }
                 }
             },
             onTechnicalFailure = { failure ->
                 _uiState.value = AgentCashInUiState.Failure(
-                    code = failure.code,
-                    userMessage = failure.userMessage,
-                    technicalMessage = failure.technicalMessage,
-                    idempotencyKey = failure.idempotencyKey,
+                    model = failure.toFailureModel(),
                 )
             },
         )
@@ -137,14 +138,14 @@ class AgentCashInViewModel(
     fun edit() {
         val state = _uiState.value
         if (state is AgentCashInUiState.Confirmation) {
-            idempotencyManager.clear(createActionIntent(phoneNumber = state.quote.phoneNumber, amount = state.quote.amount))
+            idempotencyManager.clear(createActionIntent(phoneNumber = state.model.quote.phoneNumber, amount = state.model.quote.amount))
         }
 
         val draft = when (state) {
             is AgentCashInUiState.Form -> state.draft
             is AgentCashInUiState.Confirmation -> AgentCashInDraft(
-                phoneNumber = FinancialInputRules.normalizeComorosPhoneInput(state.quote.phoneNumber),
-                amountInput = state.quote.amount.toString(),
+                phoneNumber = FinancialInputRules.normalizeComorosPhoneInput(state.model.quote.phoneNumber),
+                amountInput = state.model.quote.amount.toString(),
             )
             is AgentCashInUiState.Success -> AgentCashInDraft()
             is AgentCashInUiState.Failure -> AgentCashInDraft()
@@ -155,7 +156,7 @@ class AgentCashInViewModel(
     fun restart() {
         val state = _uiState.value
         if (state is AgentCashInUiState.Confirmation) {
-            idempotencyManager.clear(createActionIntent(phoneNumber = state.quote.phoneNumber, amount = state.quote.amount))
+            idempotencyManager.clear(createActionIntent(phoneNumber = state.model.quote.phoneNumber, amount = state.model.quote.amount))
         }
         _uiState.value = AgentCashInUiState.Form()
     }

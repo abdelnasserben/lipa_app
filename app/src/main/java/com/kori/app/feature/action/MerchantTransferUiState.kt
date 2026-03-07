@@ -1,6 +1,5 @@
 package com.kori.app.feature.action
 
-import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.core.model.action.MerchantTransferDraft
 import com.kori.app.core.model.action.MerchantTransferQuote
 import com.kori.app.core.model.action.MerchantTransferReceipt
@@ -18,20 +17,14 @@ sealed interface MerchantTransferUiState {
     ) : MerchantTransferUiState
 
     data class Confirmation(
-        val quote: MerchantTransferQuote,
-        val isSubmitting: Boolean = false,
-        val isConfirmDialogVisible: Boolean = false,
+        val model: FinancialConfirmationModel<MerchantTransferQuote>,
     ) : MerchantTransferUiState
 
     data class Success(
-        val receipt: MerchantTransferReceipt,
-        val idempotencyKey: String,
+        val model: FinancialSuccessModel<MerchantTransferReceipt>,
     ) : MerchantTransferUiState
 
     data class Failure(
-        val code: FinancialErrorCode,
-        val userMessage: String,
-        val technicalMessage: String? = null,
-        val idempotencyKey: String,
+        val model: FinancialFailureModel,
     ) : MerchantTransferUiState
 }

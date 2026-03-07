@@ -184,9 +184,9 @@ private fun AgentCashInConfirmationContent(
 
         item {
             SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Client", value = FinancialInputRules.formatComorosPhoneForDisplay(state.quote.phoneNumber))
-                DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
-                DetailRow(label = "Frais", value = formatKmf(state.quote.fee), showDivider = false)
+                DetailRow(label = "Client", value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.phoneNumber))
+                DetailRow(label = "Montant", value = formatKmf(state.model.quote.amount))
+                DetailRow(label = "Frais", value = formatKmf(state.model.quote.fee), showDivider = false)
             }
         }
 
@@ -194,8 +194,8 @@ private fun AgentCashInConfirmationContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.quote.idempotencyKey,
-                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
+                    state.model.quote.idempotencyKey,
+                    if (state.model.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
                 ),
             )
         }
@@ -203,7 +203,7 @@ private fun AgentCashInConfirmationContent(
         item {
             OutlinedButton(
                 onClick = onEdit,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
             ) {
@@ -214,7 +214,7 @@ private fun AgentCashInConfirmationContent(
         item {
             Button(
                 onClick = onOpenConfirmDialog,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -222,7 +222,7 @@ private fun AgentCashInConfirmationContent(
                     contentColor = KoriPrimary,
                 ),
             ) {
-                if (state.isSubmitting) {
+                if (state.model.isSubmitting) {
                     CircularProgressIndicator(strokeWidth = 2.dp)
                 } else {
                     Text("Confirmer le cash-in")
@@ -231,7 +231,7 @@ private fun AgentCashInConfirmationContent(
         }
     }
 
-    if (state.isConfirmDialogVisible) {
+    if (state.model.isConfirmDialogVisible) {
         ConfirmModal(
             title = "Dernière vérification",
             message = "Cette opération va créditer le portefeuille du client. Assurez-vous que le numéro et le montant sont corrects.",
@@ -270,11 +270,11 @@ private fun AgentCashInSuccessContent(
             SuccessReceiptSheet(
                 title = "Reçu de cash-in",
                 lines = listOf(
-                    "Référence" to state.receipt.transactionRef,
-                    "Client" to FinancialInputRules.formatComorosPhoneForDisplay(state.receipt.clientPhoneNumber),
-                    "Montant" to formatKmf(state.receipt.amount),
-                    "Frais" to formatKmf(state.receipt.fee),
-                    "Date" to formatIsoToDisplay(state.receipt.createdAt),
+                    "Référence" to state.model.receipt.transactionRef,
+                    "Client" to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.clientPhoneNumber),
+                    "Montant" to formatKmf(state.model.receipt.amount),
+                    "Frais" to formatKmf(state.model.receipt.fee),
+                    "Date" to formatIsoToDisplay(state.model.receipt.createdAt),
                 ),
             )
         }
@@ -283,7 +283,7 @@ private fun AgentCashInSuccessContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }
@@ -329,8 +329,8 @@ private fun AgentCashInFailureContent(
 
         item {
             SectionCard(title = "Détails") {
-                DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
+                DetailRow(label = "Code erreur", value = state.model.code.name)
+                DetailRow(label = "Message", value = state.model.userMessage, showDivider = false)
             }
         }
 
@@ -338,7 +338,7 @@ private fun AgentCashInFailureContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }

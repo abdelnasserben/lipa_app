@@ -193,10 +193,10 @@ private fun MerchantTransferConfirmationContent(
 
         item {
             SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Marchand bénéficiaire", value = state.quote.recipientMerchantCode)
-                DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
-                DetailRow(label = "Frais", value = formatKmf(state.quote.fee))
-                DetailRow(label = "Total débité", value = formatKmf(state.quote.totalDebited), showDivider = false)
+                DetailRow(label = "Marchand bénéficiaire", value = state.model.quote.recipientMerchantCode)
+                DetailRow(label = "Montant", value = formatKmf(state.model.quote.amount))
+                DetailRow(label = "Frais", value = formatKmf(state.model.quote.fee))
+                DetailRow(label = "Total débité", value = formatKmf(state.model.quote.totalDebited), showDivider = false)
             }
         }
 
@@ -204,8 +204,8 @@ private fun MerchantTransferConfirmationContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.quote.idempotencyKey,
-                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
+                    state.model.quote.idempotencyKey,
+                    if (state.model.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
                 ),
             )
         }
@@ -213,7 +213,7 @@ private fun MerchantTransferConfirmationContent(
         item {
             OutlinedButton(
                 onClick = onEdit,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
             ) {
@@ -224,7 +224,7 @@ private fun MerchantTransferConfirmationContent(
         item {
             Button(
                 onClick = onOpenConfirmDialog,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -232,7 +232,7 @@ private fun MerchantTransferConfirmationContent(
                     contentColor = KoriPrimary,
                 ),
             ) {
-                if (state.isSubmitting) {
+                if (state.model.isSubmitting) {
                     CircularProgressIndicator(
                         strokeWidth = 2.dp,
                     )
@@ -243,7 +243,7 @@ private fun MerchantTransferConfirmationContent(
         }
     }
 
-    if (state.isConfirmDialogVisible) {
+    if (state.model.isConfirmDialogVisible) {
         ConfirmModal(
             title = "Dernière vérification",
             message = "Cette opération va débiter votre solde marchand. Assurez-vous que le code marchand bénéficiaire et le montant sont corrects.",
@@ -282,12 +282,12 @@ private fun MerchantTransferSuccessContent(
             SuccessReceiptSheet(
                 title = "Reçu de transfert marchand",
                 lines = listOf(
-                    "Référence" to state.receipt.transactionRef,
-                    "Marchand bénéficiaire" to state.receipt.recipientMerchantCode,
-                    "Montant" to formatKmf(state.receipt.amount),
-                    "Frais" to formatKmf(state.receipt.fee),
-                    "Total débité" to formatKmf(state.receipt.totalDebited),
-                    "Date" to formatIsoToDisplay(state.receipt.createdAt),
+                    "Référence" to state.model.receipt.transactionRef,
+                    "Marchand bénéficiaire" to state.model.receipt.recipientMerchantCode,
+                    "Montant" to formatKmf(state.model.receipt.amount),
+                    "Frais" to formatKmf(state.model.receipt.fee),
+                    "Total débité" to formatKmf(state.model.receipt.totalDebited),
+                    "Date" to formatIsoToDisplay(state.model.receipt.createdAt),
                 ),
             )
         }
@@ -296,7 +296,7 @@ private fun MerchantTransferSuccessContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }
@@ -342,8 +342,8 @@ private fun MerchantTransferFailureContent(
 
         item {
             SectionCard(title = "Détails") {
-                DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
+                DetailRow(label = "Code erreur", value = state.model.code.name)
+                DetailRow(label = "Message", value = state.model.userMessage, showDivider = false)
             }
         }
 
@@ -351,7 +351,7 @@ private fun MerchantTransferFailureContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }

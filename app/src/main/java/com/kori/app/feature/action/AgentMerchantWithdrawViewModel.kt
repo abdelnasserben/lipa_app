@@ -63,7 +63,7 @@ class AgentMerchantWithdrawViewModel(
                     idempotencyKey = idempotencyKey,
                 )
             }.onSuccess { quote ->
-                _uiState.value = AgentMerchantWithdrawUiState.Confirmation(quote = quote)
+                _uiState.value = AgentMerchantWithdrawUiState.Confirmation(model = FinancialConfirmationModel(quote = quote))
             }.onFailure {
                 _uiState.value = current.copy(
                     isLoading = false,
@@ -77,58 +77,59 @@ class AgentMerchantWithdrawViewModel(
 
     fun openConfirmDialog() {
         val current = _uiState.value as? AgentMerchantWithdrawUiState.Confirmation ?: return
-        if (current.isSubmitting) return
-        _uiState.value = current.copy(isConfirmDialogVisible = true)
+        if (current.model.isSubmitting) return
+        _uiState.value = current.copy(model = current.model.copy(isConfirmDialogVisible = true))
     }
 
     fun dismissConfirmDialog() {
         val current = _uiState.value as? AgentMerchantWithdrawUiState.Confirmation ?: return
-        if (current.isSubmitting) return
-        _uiState.value = current.copy(isConfirmDialogVisible = false)
+        if (current.model.isSubmitting) return
+        _uiState.value = current.copy(model = current.model.copy(isConfirmDialogVisible = false))
     }
 
     fun submit() {
         val current = _uiState.value as? AgentMerchantWithdrawUiState.Confirmation ?: return
-        if (current.isSubmitting) return
+        if (current.model.isSubmitting) return
 
-        val intent = createActionIntent(merchantCode = current.quote.merchantCode, amount = current.quote.amount)
+        val intent = createActionIntent(merchantCode = current.model.quote.merchantCode, amount = current.model.quote.amount)
 
         submitFinancialPost(
             idempotencyManager = idempotencyManager,
             intent = intent,
-            idempotencyKey = current.quote.idempotencyKey,
+            idempotencyKey = current.model.quote.idempotencyKey,
             onSetSubmitting = { isSubmitting ->
                 val latest = _uiState.value as? AgentMerchantWithdrawUiState.Confirmation ?: return@submitFinancialPost
-                _uiState.value = latest.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false)
+                _uiState.value = latest.copy(model = latest.model.copy(isSubmitting = isSubmitting, isConfirmDialogVisible = false))
             },
-            submitCall = { repository.submitMerchantWithdraw(current.quote) },
+            submitCall = { repository.submitMerchantWithdraw(current.model.quote) },
             onBusinessResult = { result ->
                 _uiState.value = when (result) {
                     is AgentMerchantWithdrawResult.Success -> {
-                        idempotencyManager.onSuccess(current.quote.idempotencyKey)
+                        idempotencyManager.onSuccess(current.model.quote.idempotencyKey)
                         AgentMerchantWithdrawUiState.Success(
-                            receipt = result.receipt,
-                            idempotencyKey = current.quote.idempotencyKey,
+                            model = FinancialSuccessModel(
+                                receipt = result.receipt,
+                                idempotencyKey = current.model.quote.idempotencyKey,
+                            ),
                         )
                     }
 
                     is AgentMerchantWithdrawResult.Failure -> {
                         idempotencyManager.onFailure(result.idempotencyKey)
                         AgentMerchantWithdrawUiState.Failure(
-                            code = result.code,
-                            userMessage = FinancialErrorMapper.userMessageFor(result.code),
-                            technicalMessage = result.message,
-                            idempotencyKey = result.idempotencyKey,
+                            model = FinancialFailureModel(
+                                code = result.code,
+                                userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                                technicalMessage = result.message,
+                                idempotencyKey = result.idempotencyKey,
+                            ),
                         )
                     }
                 }
             },
             onTechnicalFailure = { failure ->
                 _uiState.value = AgentMerchantWithdrawUiState.Failure(
-                    code = failure.code,
-                    userMessage = failure.userMessage,
-                    technicalMessage = failure.technicalMessage,
-                    idempotencyKey = failure.idempotencyKey,
+                    model = failure.toFailureModel(),
                 )
             },
         )
@@ -137,14 +138,14 @@ class AgentMerchantWithdrawViewModel(
     fun edit() {
         val state = _uiState.value
         if (state is AgentMerchantWithdrawUiState.Confirmation) {
-            idempotencyManager.clear(createActionIntent(merchantCode = state.quote.merchantCode, amount = state.quote.amount))
+            idempotencyManager.clear(createActionIntent(merchantCode = state.model.quote.merchantCode, amount = state.model.quote.amount))
         }
 
         val draft = when (state) {
             is AgentMerchantWithdrawUiState.Form -> state.draft
             is AgentMerchantWithdrawUiState.Confirmation -> AgentMerchantWithdrawDraft(
-                merchantCode = FinancialInputRules.normalizeMerchantCodeInput(state.quote.merchantCode),
-                amountInput = state.quote.amount.toString(),
+                merchantCode = FinancialInputRules.normalizeMerchantCodeInput(state.model.quote.merchantCode),
+                amountInput = state.model.quote.amount.toString(),
             )
 
             is AgentMerchantWithdrawUiState.Success -> AgentMerchantWithdrawDraft()
@@ -156,7 +157,7 @@ class AgentMerchantWithdrawViewModel(
     fun restart() {
         val state = _uiState.value
         if (state is AgentMerchantWithdrawUiState.Confirmation) {
-            idempotencyManager.clear(createActionIntent(merchantCode = state.quote.merchantCode, amount = state.quote.amount))
+            idempotencyManager.clear(createActionIntent(merchantCode = state.model.quote.merchantCode, amount = state.model.quote.amount))
         }
         _uiState.value = AgentMerchantWithdrawUiState.Form()
     }

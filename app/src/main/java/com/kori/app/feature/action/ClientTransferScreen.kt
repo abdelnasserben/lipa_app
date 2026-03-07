@@ -194,12 +194,12 @@ private fun ClientTransferConfirmationContent(
 
         item {
             SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Bénéficiaire", value = FinancialInputRules.formatComorosPhoneForDisplay(state.quote.recipientPhoneNumber))
-                DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
-                DetailRow(label = "Frais", value = formatKmf(state.quote.fee))
+                DetailRow(label = "Bénéficiaire", value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.recipientPhoneNumber))
+                DetailRow(label = "Montant", value = formatKmf(state.model.quote.amount))
+                DetailRow(label = "Frais", value = formatKmf(state.model.quote.fee))
                 DetailRow(
                     label = "Total débité",
-                    value = formatKmf(state.quote.totalDebited),
+                    value = formatKmf(state.model.quote.totalDebited),
                     showDivider = false,
                 )
             }
@@ -209,8 +209,8 @@ private fun ClientTransferConfirmationContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.quote.idempotencyKey,
-                    if (state.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
+                    state.model.quote.idempotencyKey,
+                    if (state.model.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
                 ),
             )
         }
@@ -218,7 +218,7 @@ private fun ClientTransferConfirmationContent(
         item {
             OutlinedButton(
                 onClick = onEdit,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
             ) {
@@ -229,7 +229,7 @@ private fun ClientTransferConfirmationContent(
         item {
             Button(
                 onClick = onOpenConfirmDialog,
-                enabled = !state.isSubmitting,
+                enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -237,7 +237,7 @@ private fun ClientTransferConfirmationContent(
                     contentColor = KoriPrimary,
                 ),
             ) {
-                if (state.isSubmitting) {
+                if (state.model.isSubmitting) {
                     CircularProgressIndicator(
                         strokeWidth = 2.dp,
                     )
@@ -248,7 +248,7 @@ private fun ClientTransferConfirmationContent(
         }
     }
 
-    if (state.isConfirmDialogVisible) {
+    if (state.model.isConfirmDialogVisible) {
         ConfirmModal(
             title = "Dernière vérification",
             message = "Cette opération financière va débiter votre solde principal. Assurez-vous que le numéro et le montant sont corrects.",
@@ -287,12 +287,12 @@ private fun ClientTransferSuccessContent(
             SuccessReceiptSheet(
                 title = "Reçu de transfert",
                 lines = listOf(
-                    "Référence" to state.receipt.transactionRef,
-                    "Bénéficiaire" to FinancialInputRules.formatComorosPhoneForDisplay(state.receipt.recipientPhoneNumber),
-                    "Montant" to formatKmf(state.receipt.amount),
-                    "Frais" to formatKmf(state.receipt.fee),
-                    "Total débité" to formatKmf(state.receipt.totalDebited),
-                    "Date" to formatIsoToDisplay(state.receipt.createdAt),
+                    "Référence" to state.model.receipt.transactionRef,
+                    "Bénéficiaire" to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.recipientPhoneNumber),
+                    "Montant" to formatKmf(state.model.receipt.amount),
+                    "Frais" to formatKmf(state.model.receipt.fee),
+                    "Total débité" to formatKmf(state.model.receipt.totalDebited),
+                    "Date" to formatIsoToDisplay(state.model.receipt.createdAt),
                 ),
             )
         }
@@ -301,7 +301,7 @@ private fun ClientTransferSuccessContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }
@@ -347,8 +347,8 @@ private fun ClientTransferFailureContent(
 
         item {
             SectionCard(title = "Détails") {
-                DetailRow(label = "Code erreur", value = state.code.name)
-                DetailRow(label = "Message", value = state.userMessage, showDivider = false)
+                DetailRow(label = "Code erreur", value = state.model.code.name)
+                DetailRow(label = "Message", value = state.model.userMessage, showDivider = false)
             }
         }
 
@@ -356,7 +356,7 @@ private fun ClientTransferFailureContent(
             DebugPanel(
                 lines = listOf(
                     "Idempotency-Key",
-                    state.idempotencyKey,
+                    state.model.idempotencyKey,
                 ),
             )
         }
