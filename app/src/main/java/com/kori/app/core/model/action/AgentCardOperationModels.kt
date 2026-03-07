@@ -15,6 +15,17 @@ data class AgentCardAddDraft(
     val pin: String = "",
 )
 
+enum class AgentCardTargetStatus {
+    BLOCKED,
+    LOST,
+}
+
+data class AgentCardStatusUpdateDraft(
+    val cardUid: String = "",
+    val targetStatus: AgentCardTargetStatus? = null,
+    val reason: String = "",
+)
+
 data class AgentCardEnrollReceipt(
     val transactionId: String,
     val clientCode: String,
@@ -32,6 +43,12 @@ data class AgentCardAddReceipt(
     val cardUid: String,
     val cardPrice: Long,
     val agentCommission: Long,
+)
+
+data class AgentCardStatusUpdateReceipt(
+    val subjectRef: String,
+    val previousStatus: String,
+    val newStatus: String,
 )
 
 sealed interface AgentCardEnrollResult {
@@ -54,4 +71,15 @@ sealed interface AgentCardAddResult {
         val code: FinancialErrorCode,
         val message: String,
     ) : AgentCardAddResult
+}
+
+sealed interface AgentCardStatusUpdateResult {
+    data class Success(
+        val receipt: AgentCardStatusUpdateReceipt,
+    ) : AgentCardStatusUpdateResult
+
+    data class Failure(
+        val code: FinancialErrorCode,
+        val message: String,
+    ) : AgentCardStatusUpdateResult
 }

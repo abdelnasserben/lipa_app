@@ -31,6 +31,7 @@ fun ActionScreen(
     onOpenAgentMerchantWithdraw: () -> Unit,
     onOpenAgentCardEnroll: () -> Unit,
     onOpenAgentCardAdd: () -> Unit,
+    onOpenAgentCardStatusUpdate: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (role) {
@@ -54,6 +55,7 @@ fun ActionScreen(
                 onOpenMerchantWithdraw = onOpenAgentMerchantWithdraw,
                 onOpenCardEnroll = onOpenAgentCardEnroll,
                 onOpenCardAdd = onOpenAgentCardAdd,
+                onOpenCardStatusUpdate = onOpenAgentCardStatusUpdate,
                 modifier = modifier,
             )
         }
@@ -126,6 +128,7 @@ private fun AgentActionHome(
     onOpenMerchantWithdraw: () -> Unit,
     onOpenCardEnroll: () -> Unit,
     onOpenCardAdd: () -> Unit,
+    onOpenCardStatusUpdate: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -175,6 +178,15 @@ private fun AgentActionHome(
                 message = "Ajoutez une nouvelle carte à un client déjà existant.",
                 cta = "Lancer",
                 onClick = onOpenCardAdd,
+            )
+        }
+
+        item {
+            ActionEntryCard(
+                title = "Modification statut carte",
+                message = "Passez une carte existante en statut BLOCKED ou LOST.",
+                cta = "Lancer",
+                onClick = onOpenCardStatusUpdate,
             )
         }
     }

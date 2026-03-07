@@ -47,6 +47,7 @@ import com.kori.app.feature.action.ActionScreen
 import com.kori.app.feature.action.AgentCashInRoute
 import com.kori.app.feature.action.AgentCardAddRoute
 import com.kori.app.feature.action.AgentCardEnrollRoute
+import com.kori.app.feature.action.AgentCardStatusUpdateRoute
 import com.kori.app.feature.action.AgentMerchantWithdrawRoute
 import com.kori.app.feature.action.ClientTransferRoute
 import com.kori.app.feature.action.MerchantTransferRoute
@@ -392,6 +393,20 @@ fun KoriNavHost(
             }
         }
 
+        composable(KoriDestination.AgentCardStatusUpdate.route) {
+            if (role == null || role != UserRole.AGENT) return@composable
+            if (authState !is AuthState.Authenticated) return@composable
+
+            TopBarPage(
+                title = "Statut carte",
+                onBack = { navController.popBackStack() },
+            ) { _ ->
+                AgentCardStatusUpdateRoute(
+                    repository = agentActionRepository,
+                )
+            }
+        }
+
         composable(KoriDestination.Action.route) {
             if (role == null) return@composable
             if (authState !is AuthState.Authenticated) return@composable
@@ -425,6 +440,9 @@ fun KoriNavHost(
                     },
                     onOpenAgentCardAdd = {
                         navController.navigate(KoriDestination.AgentCardAdd.route)
+                    },
+                    onOpenAgentCardStatusUpdate = {
+                        navController.navigate(KoriDestination.AgentCardStatusUpdate.route)
                     },
                     modifier = contentModifier,
                 )
@@ -555,6 +573,7 @@ private val protectedRoutes = setOf(
     KoriDestination.AgentMerchantWithdraw.route,
     KoriDestination.AgentCardEnroll.route,
     KoriDestination.AgentCardAdd.route,
+    KoriDestination.AgentCardStatusUpdate.route,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

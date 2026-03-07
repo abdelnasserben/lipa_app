@@ -7,6 +7,9 @@ import com.kori.app.core.model.action.AgentCardAddReceipt
 import com.kori.app.core.model.action.AgentCardAddResult
 import com.kori.app.core.model.action.AgentCardEnrollReceipt
 import com.kori.app.core.model.action.AgentCardEnrollResult
+import com.kori.app.core.model.action.AgentCardStatusUpdateReceipt
+import com.kori.app.core.model.action.AgentCardStatusUpdateResult
+import com.kori.app.core.model.action.AgentCardTargetStatus
 import com.kori.app.core.model.action.AgentMerchantWithdrawQuote
 import com.kori.app.core.model.action.AgentMerchantWithdrawReceipt
 import com.kori.app.core.model.action.AgentMerchantWithdrawResult
@@ -17,6 +20,47 @@ import java.time.Instant
 import java.util.UUID
 
 class MockAgentActionRepository : AgentActionRepository {
+
+    override suspend fun updateCardStatusAsAgent(
+        cardUid: String,
+        targetStatus: AgentCardTargetStatus,
+        reason: String?,
+    ): AgentCardStatusUpdateResult {
+        delay(600)
+
+        return when {
+            cardUid.endsWith("000") -> {
+                AgentCardStatusUpdateResult.Failure(
+                    code = FinancialErrorCode.UNAUTHORIZED,
+                    message = "Votre session n’autorise pas ce changement de statut.",
+                )
+            }
+
+            cardUid.endsWith("999") -> {
+                AgentCardStatusUpdateResult.Failure(
+                    code = FinancialErrorCode.INVALID_STATUS,
+                    message = "Le statut actuel de cette carte n’autorise pas cette transition.",
+                )
+            }
+
+            reason?.length ?: 0 > 255 -> {
+                AgentCardStatusUpdateResult.Failure(
+                    code = FinancialErrorCode.INVALID_STATUS,
+                    message = "La raison fournie dépasse la limite autorisée.",
+                )
+            }
+
+            else -> {
+                AgentCardStatusUpdateResult.Success(
+                    receipt = AgentCardStatusUpdateReceipt(
+                        subjectRef = cardUid,
+                        previousStatus = "ACTIVE",
+                        newStatus = targetStatus.name,
+                    ),
+                )
+            }
+        }
+    }
 
     override suspend fun enrollCard(
         phoneNumber: String?,

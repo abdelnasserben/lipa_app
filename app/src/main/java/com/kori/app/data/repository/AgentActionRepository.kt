@@ -4,6 +4,8 @@ import com.kori.app.core.model.action.AgentCashInQuote
 import com.kori.app.core.model.action.AgentCashInResult
 import com.kori.app.core.model.action.AgentCardAddResult
 import com.kori.app.core.model.action.AgentCardEnrollResult
+import com.kori.app.core.model.action.AgentCardStatusUpdateResult
+import com.kori.app.core.model.action.AgentCardTargetStatus
 import com.kori.app.core.model.action.AgentMerchantWithdrawQuote
 import com.kori.app.core.model.action.AgentMerchantWithdrawResult
 
@@ -42,4 +44,11 @@ interface AgentActionRepository {
         cardUid: String,
         pin: String,
     ): AgentCardAddResult
+
+    /** API: PATCH /api/v1/cards/{cardUid}/status/agent */
+    suspend fun updateCardStatusAsAgent(
+        cardUid: String,
+        targetStatus: AgentCardTargetStatus,
+        reason: String?,
+    ): AgentCardStatusUpdateResult
 }

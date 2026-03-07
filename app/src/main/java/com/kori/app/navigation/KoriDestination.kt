@@ -78,6 +78,11 @@ sealed class KoriDestination(
         label = "Ajout carte",
     )
 
+    data object AgentCardStatusUpdate : KoriDestination(
+        route = "agent_card_status_update",
+        label = "Statut carte",
+    )
+
     data object Action : KoriDestination(
         route = "action",
         label = "Action",

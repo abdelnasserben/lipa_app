@@ -1,0 +1,294 @@
+package com.kori.app.feature.action
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.kori.app.core.designsystem.KoriAccent
+import com.kori.app.core.designsystem.KoriPrimary
+import com.kori.app.core.designsystem.component.ConfirmModal
+import com.kori.app.core.designsystem.component.DetailRow
+import com.kori.app.core.designsystem.component.ScreenHeader
+import com.kori.app.core.designsystem.component.SectionCard
+import com.kori.app.core.designsystem.component.SuccessReceiptSheet
+import com.kori.app.core.model.action.AgentCardTargetStatus
+
+@Composable
+fun AgentCardStatusUpdateScreen(
+    uiState: AgentCardStatusUpdateUiState,
+    onCardUidChanged: (String) -> Unit,
+    onTargetStatusChanged: (AgentCardTargetStatus) -> Unit,
+    onReasonChanged: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onConfirmSubmit: () -> Unit,
+    onDismissConfirm: () -> Unit,
+    onRestart: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    when (uiState) {
+        is AgentCardStatusUpdateUiState.Form -> {
+            LazyColumn(
+                modifier = modifier,
+                contentPadding = PaddingValues(
+                    start = 20.dp,
+                    end = 20.dp,
+                    top = 92.dp,
+                    bottom = 28.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                item {
+                    ScreenHeader(
+                        title = "Modifier statut carte",
+                        subtitle = "Bloquez rapidement une carte ou marquez-la comme perdue.",
+                    )
+                }
+
+                item {
+                    SectionCard(
+                        title = "Mise à jour",
+                        subtitle = "Renseignez la carte puis choisissez le nouveau statut.",
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.draft.cardUid,
+                            onValueChange = onCardUidChanged,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("UID carte") },
+                            placeholder = { Text("Ex. CARD-8F2A91") },
+                            singleLine = true,
+                            isError = uiState.errors.cardUid != null,
+                            supportingText = {
+                                uiState.errors.cardUid?.let { Text(it) }
+                            },
+                        )
+
+                        CompactStatusSelector(
+                            selectedStatus = uiState.draft.targetStatus,
+                            onStatusSelected = onTargetStatusChanged,
+                            error = uiState.errors.targetStatus,
+                        )
+
+                        OutlinedTextField(
+                            value = uiState.draft.reason,
+                            onValueChange = onReasonChanged,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Raison (optionnel)") },
+                            placeholder = {
+                                Text("Ex. Carte signalée perdue par le client")
+                            },
+                            minLines = 3,
+                            maxLines = 4,
+                            isError = uiState.errors.reason != null,
+                            supportingText = {
+                                val error = uiState.errors.reason
+                                if (error != null) {
+                                    Text(error)
+                                } else {
+                                    Text("${uiState.draft.reason.length}/255")
+                                }
+                            },
+                        )
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = onSubmit,
+                        enabled = !uiState.isSubmitting,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(999.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = KoriAccent,
+                            contentColor = KoriPrimary,
+                        ),
+                        contentPadding = PaddingValues(vertical = 16.dp),
+                    ) {
+                        if (uiState.isSubmitting) {
+                            CircularProgressIndicator(strokeWidth = 2.dp)
+                        } else {
+                            Text("Continuer")
+                        }
+                    }
+                }
+            }
+
+            if (uiState.showConfirmModal) {
+                val status = uiState.draft.targetStatus?.name ?: "-"
+                ConfirmModal(
+                    title = "Confirmer le changement",
+                    message = "Vous allez passer la carte ${uiState.draft.cardUid} au statut $status.",
+                    confirmLabel = "Je confirme",
+                    dismissLabel = "Annuler",
+                    onConfirm = onConfirmSubmit,
+                    onDismiss = onDismissConfirm,
+                )
+            }
+        }
+
+        is AgentCardStatusUpdateUiState.Success -> LazyColumn(
+            modifier = modifier,
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                ScreenHeader(
+                    title = "Statut mis à jour",
+                    subtitle = "La carte a bien été mise à jour avec le nouveau statut."
+                )
+            }
+            item {
+                SuccessReceiptSheet(
+                    title = "Résultat",
+                    lines = listOf(
+                        "Carte" to uiState.receipt.subjectRef,
+                        "Ancien statut" to uiState.receipt.previousStatus,
+                        "Nouveau statut" to uiState.receipt.newStatus,
+                    ),
+                )
+            }
+            item {
+                Button(
+                    onClick = onRestart,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(999.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
+                ) { Text("Nouvelle modification") }
+            }
+        }
+
+        is AgentCardStatusUpdateUiState.Failure -> LazyColumn(
+            modifier = modifier,
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                ScreenHeader(
+                    title = "Échec modification",
+                    subtitle = "Le statut de la carte n’a pas pu être modifié."
+                )
+            }
+            item {
+                SectionCard(title = "Détails") {
+                    DetailRow(label = "Code", value = uiState.code)
+                    DetailRow(label = "Message", value = uiState.userMessage, showDivider = false)
+                }
+            }
+            item {
+                Button(
+                    onClick = onRestart,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(999.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
+                ) { Text("Réessayer") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompactStatusSelector(
+    selectedStatus: AgentCardTargetStatus?,
+    onStatusSelected: (AgentCardTargetStatus) -> Unit,
+    error: String?,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+
+        Text(
+            text = "Action",
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+
+            StatusOptionCard(
+                label = "Bloquer",
+                selected = selectedStatus == AgentCardTargetStatus.BLOCKED,
+                onClick = { onStatusSelected(AgentCardTargetStatus.BLOCKED) },
+                modifier = Modifier.weight(1f),
+            )
+
+            StatusOptionCard(
+                label = "Marquer perdue",
+                selected = selectedStatus == AgentCardTargetStatus.LOST,
+                onClick = { onStatusSelected(AgentCardTargetStatus.LOST) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        error?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatusOptionCard(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val shape = RoundedCornerShape(999.dp)
+
+    val borderColor =
+        if (selected) KoriAccent else MaterialTheme.colorScheme.outlineVariant
+
+    val containerColor =
+        if (selected) {
+            KoriAccent.copy(alpha = 0.12f)
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .background(containerColor)
+            .border(1.dp, borderColor, shape)
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp)
+            .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
