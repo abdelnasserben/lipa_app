@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Info
@@ -35,13 +34,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.designsystem.KoriSurfaceVariant
 import com.kori.app.core.designsystem.component.BalanceCard
+import com.kori.app.core.designsystem.component.ClientCardListItem
 import com.kori.app.core.designsystem.component.EmptyState
 import com.kori.app.core.designsystem.component.ErrorState
 import com.kori.app.core.designsystem.component.KPIWidget
@@ -72,6 +71,7 @@ fun DashboardScreen(
     uiState: DashboardUiState,
     onRetry: () -> Unit,
     onOpenProfile: () -> Unit,
+    onOpenCards: () -> Unit,
     onOpenTransactions: () -> Unit,
     onOpenAction: () -> Unit,
     modifier: Modifier = Modifier,
@@ -106,6 +106,7 @@ fun DashboardScreen(
                 role = role,
                 state = uiState,
                 onOpenProfile = onOpenProfile,
+                onOpenCards = onOpenCards,
                 onOpenTransactions = onOpenTransactions,
                 onOpenAction = onOpenAction,
                 modifier = modifier,
@@ -257,6 +258,7 @@ private fun ClientDashboardContent(
     role: UserRole,
     state: DashboardUiState.Client,
     onOpenProfile: () -> Unit,
+    onOpenCards: () -> Unit,
     onOpenTransactions: () -> Unit,
     onOpenAction: () -> Unit,
     modifier: Modifier = Modifier,
@@ -301,7 +303,7 @@ private fun ClientDashboardContent(
                         QuickActionItem(
                             title = "Cartes",
                             icon = QuickActionIcon.CARD,
-                            onClick = onOpenProfile,
+                            onClick = onOpenCards,
                         ),
                     ),
                 )
@@ -322,7 +324,7 @@ private fun ClientDashboardContent(
             item {
                 CardsPreviewSection(
                     cards = state.data.cards.take(5),
-                    onOpenProfile = onOpenProfile,
+                    onOpenCards = onOpenCards,
                 )
             }
         }
@@ -707,7 +709,7 @@ private fun AlertMessageCard(
 @Composable
 private fun CardsPreviewSection(
     cards: List<CardItem>,
-    onOpenProfile: () -> Unit,
+    onOpenCards: () -> Unit,
 ) {
     SectionBlock(
         eyebrow = "Cartes",
@@ -717,17 +719,18 @@ private fun CardsPreviewSection(
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             cards.forEachIndexed { index, card ->
                 ClientCardPreviewItem(
+                    modifier = Modifier,
                     card = card,
                     index = index + 1,
                 )
             }
 
             OutlinedButton(
-                onClick = onOpenProfile,
+                onClick = onOpenCards,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
             ) {
-                Text("Gérer mes cartes")
+                Text("Voir toutes mes cartes")
             }
         }
     }
@@ -735,70 +738,11 @@ private fun CardsPreviewSection(
 
 @Composable
 private fun ClientCardPreviewItem(
+    modifier: Modifier,
     card: CardItem,
     index: Int,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = KoriSurfaceVariant),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(KoriAccent.copy(alpha = 0.20f)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.CreditCard,
-                            contentDescription = null,
-                            tint = KoriPrimary,
-                        )
-                    }
-
-                    Column {
-                        Text(
-                            text = "Carte $index",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                        )
-                        Text(
-                            text = card.cardUid,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-
-                DashboardPill(
-                    text = card.status,
-                    highlighted = card.status.equals("ACTIVE", ignoreCase = true),
-                )
-            }
-
-            Text(
-                text = "Créée le ${formatIsoToDisplay(card.createdAt)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+    ClientCardListItem(card = card, index = index, modifier = modifier)
 }
 
 @Composable

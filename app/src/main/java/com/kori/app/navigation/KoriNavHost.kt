@@ -36,6 +36,7 @@ import com.kori.app.data.local.LocalStorage
 import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.data.repository.ActivityRepository
 import com.kori.app.data.repository.AuthService
+import com.kori.app.data.repository.ClientCardRepository
 import com.kori.app.data.repository.ClientTransferRepository
 import com.kori.app.data.repository.MerchantTransferRepository
 import com.kori.app.data.repository.ProfileRepository
@@ -53,6 +54,7 @@ import com.kori.app.feature.auth.AuthCallbackScreen
 import com.kori.app.feature.auth.AuthSuccessScreen
 import com.kori.app.feature.auth.AuthViewModel
 import com.kori.app.feature.auth.AuthWelcomeScreen
+import com.kori.app.feature.cards.ClientCardsRoute
 import com.kori.app.feature.dashboard.DashboardRoute
 import com.kori.app.feature.profile.ProfileRoute
 import com.kori.app.feature.profile.SessionScreen
@@ -66,6 +68,7 @@ fun KoriNavHost(
     navController: NavHostController,
     getDashboardUseCase: GetDashboardUseCase,
     transactionRepository: TransactionRepository,
+    clientCardRepository: ClientCardRepository,
     authService: AuthService,
     clientTransferRepository: ClientTransferRepository,
     merchantTransferRepository: MerchantTransferRepository,
@@ -231,6 +234,9 @@ fun KoriNavHost(
                     getDashboardUseCase = getDashboardUseCase,
                     onOpenProfile = {
                         navController.navigateToTopLevel(KoriDestination.Profile.route)
+                    },
+                    onOpenCards = {
+                        navController.navigate(KoriDestination.ClientCards.route)
                     },
                     onOpenTransactions = {
                         navController.navigateToTopLevel(KoriDestination.Transactions.route)
@@ -411,6 +417,22 @@ fun KoriNavHost(
             }
         }
 
+
+        composable(KoriDestination.ClientCards.route) {
+            if (role == null || role != UserRole.CLIENT) return@composable
+            if (authState !is AuthState.Authenticated) return@composable
+
+            TopBarPage(
+                title = "Mes cartes",
+                onBack = { navController.popBackStack() },
+            ) { contentModifier ->
+                ClientCardsRoute(
+                    repository = clientCardRepository,
+                    modifier = contentModifier,
+                )
+            }
+        }
+
         composable(KoriDestination.Profile.route) {
             if (role == null) return@composable
             if (authState !is AuthState.Authenticated) return@composable
@@ -489,6 +511,7 @@ private val protectedRoutes = setOf(
     KoriDestination.Action.route,
     KoriDestination.Activity.route,
     KoriDestination.Profile.route,
+    KoriDestination.ClientCards.route,
     KoriDestination.Session.route,
     KoriDestination.ClientTransfer.route,
     KoriDestination.MerchantTransfer.route,

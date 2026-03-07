@@ -13,6 +13,7 @@ fun DashboardRoute(
     role: UserRole,
     getDashboardUseCase: GetDashboardUseCase,
     onOpenProfile: () -> Unit,
+    onOpenCards: () -> Unit,
     onOpenTransactions: () -> Unit,
     onOpenAction: () -> Unit,
     modifier: Modifier = Modifier,
@@ -31,6 +32,7 @@ fun DashboardRoute(
         uiState = uiState,
         onRetry = viewModel::load,
         onOpenProfile = onOpenProfile,
+        onOpenCards = onOpenCards,
         onOpenTransactions = onOpenTransactions,
         onOpenAction = onOpenAction,
         modifier = modifier

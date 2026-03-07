@@ -78,6 +78,12 @@ sealed class KoriDestination(
         label = "Activités",
     )
 
+
+    data object ClientCards : KoriDestination(
+        route = "client_cards",
+        label = "Mes cartes",
+    )
+
     data object Profile : KoriDestination(
         route = "profile",
         label = "Profil",

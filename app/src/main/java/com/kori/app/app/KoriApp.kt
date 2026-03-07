@@ -9,6 +9,7 @@ import com.kori.app.data.local.SharedPrefsLocalStorage
 import com.kori.app.data.mock.MockAgentActionRepository
 import com.kori.app.data.mock.MockActivityRepository
 import com.kori.app.data.mock.MockAuthService
+import com.kori.app.data.mock.MockClientCardRepository
 import com.kori.app.data.mock.MockClientTransferRepository
 import com.kori.app.data.mock.MockDashboardRepository
 import com.kori.app.data.mock.MockMerchantTransferRepository
@@ -28,6 +29,7 @@ fun KoriApp() {
     val sessionRepository = remember(localStorage) { MockSessionRepository(localStorage) }
     val dashboardRepository = remember { MockDashboardRepository() }
     val transactionRepository = remember { MockTransactionRepository() }
+    val clientCardRepository = remember { MockClientCardRepository() }
     val authService = remember(localStorage) { MockAuthService(localStorage) }
     val activityRepository = remember { MockActivityRepository() }
     val clientTransferRepository = remember { MockClientTransferRepository() }
@@ -49,6 +51,7 @@ fun KoriApp() {
             navController = navController,
             getDashboardUseCase = getDashboardUseCase,
             transactionRepository = transactionRepository,
+            clientCardRepository = clientCardRepository,
             authService = authService,
             clientTransferRepository = clientTransferRepository,
             merchantTransferRepository = merchantTransferRepository,
