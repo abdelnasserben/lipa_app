@@ -32,6 +32,7 @@ import com.kori.app.core.designsystem.component.KoriBottomBar
 import com.kori.app.core.designsystem.component.KoriScaffold
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.auth.AuthState
+import com.kori.app.data.local.LocalStorage
 import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.data.repository.ActivityRepository
 import com.kori.app.data.repository.AuthService
@@ -71,6 +72,7 @@ fun KoriNavHost(
     agentActionRepository: AgentActionRepository,
     activityRepository: ActivityRepository,
     profileRepository: ProfileRepository,
+    localStorage: LocalStorage,
     idempotencyManager: IdempotencyManager,
     modifier: Modifier = Modifier,
 ) {
@@ -426,6 +428,7 @@ fun KoriNavHost(
                 ProfileRoute(
                     role = role,
                     repository = profileRepository,
+                    localStorage = localStorage,
                     onOpenSession = {
                         navController.navigate(KoriDestination.Session.route)
                     },

@@ -6,7 +6,13 @@ enum class AppLanguage(
     val label: String,
 ) {
     FR("Français"),
-    EN("English"),
+    EN("English");
+
+    companion object {
+        fun fromCode(code: String): AppLanguage {
+            return entries.firstOrNull { it.name == code } ?: FR
+        }
+    }
 }
 
 enum class AppThemeMode(

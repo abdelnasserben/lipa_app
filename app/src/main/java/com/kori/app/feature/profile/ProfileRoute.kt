@@ -6,12 +6,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.core.model.UserRole
+import com.kori.app.data.local.LocalStorage
 import com.kori.app.data.repository.ProfileRepository
 
 @Composable
 fun ProfileRoute(
     role: UserRole,
     repository: ProfileRepository,
+    localStorage: LocalStorage,
     onOpenSession: () -> Unit,
     onSelectRole: (UserRole) -> Unit,
     modifier: Modifier = Modifier,
@@ -20,6 +22,7 @@ fun ProfileRoute(
         factory = ProfileViewModel.factory(
             role = role,
             repository = repository,
+            localStorage = localStorage,
         ),
     )
 
@@ -32,6 +35,6 @@ fun ProfileRoute(
         onLanguageSelected = viewModel::onLanguageSelected,
         onNotificationsChanged = viewModel::onNotificationsChanged,
         onSelectRole = onSelectRole,
-        modifier = modifier
+        modifier = modifier,
     )
 }

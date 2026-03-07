@@ -2,8 +2,10 @@ package com.kori.app.app
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.kori.app.core.designsystem.KoriTheme
+import com.kori.app.data.local.SharedPrefsLocalStorage
 import com.kori.app.data.mock.MockAgentActionRepository
 import com.kori.app.data.mock.MockActivityRepository
 import com.kori.app.data.mock.MockAuthService
@@ -20,10 +22,13 @@ import com.kori.app.navigation.KoriNavHost
 
 @Composable
 fun KoriApp() {
-    val sessionRepository = remember { MockSessionRepository() }
+    val context = LocalContext.current.applicationContext
+    val localStorage = remember(context) { SharedPrefsLocalStorage(context) }
+
+    val sessionRepository = remember(localStorage) { MockSessionRepository(localStorage) }
     val dashboardRepository = remember { MockDashboardRepository() }
     val transactionRepository = remember { MockTransactionRepository() }
-    val authService = remember { MockAuthService() }
+    val authService = remember(localStorage) { MockAuthService(localStorage) }
     val activityRepository = remember { MockActivityRepository() }
     val clientTransferRepository = remember { MockClientTransferRepository() }
     val merchantTransferRepository = remember { MockMerchantTransferRepository() }
@@ -50,6 +55,7 @@ fun KoriApp() {
             agentActionRepository = agentActionRepository,
             activityRepository = activityRepository,
             profileRepository = profileRepository,
+            localStorage = localStorage,
             idempotencyManager = idempotencyManager,
         )
     }

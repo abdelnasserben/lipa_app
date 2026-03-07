@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.kori.app.core.model.UserRole
+import com.kori.app.data.local.LocalStorage
 import com.kori.app.data.repository.ProfileRepository
 import com.kori.app.data.repository.RoleProfilePayload
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +15,16 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(
     private val role: UserRole,
     private val repository: ProfileRepository,
+    private val localStorage: LocalStorage,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    private var settingsState = ProfileSettingsUiModel()
+    private var settingsState = ProfileSettingsUiModel(
+        language = AppLanguage.fromCode(localStorage.getLanguageCode()),
+        notificationsEnabled = localStorage.isNotificationsEnabled(),
+    )
 
     init {
         load()
@@ -71,11 +76,13 @@ class ProfileViewModel(
     }
 
     fun onLanguageSelected(language: AppLanguage) {
+        localStorage.setLanguageCode(language.name)
         settingsState = settingsState.copy(language = language)
         refreshSettingsOnly()
     }
 
     fun onNotificationsChanged(enabled: Boolean) {
+        localStorage.setNotificationsEnabled(enabled)
         settingsState = settingsState.copy(notificationsEnabled = enabled)
         refreshSettingsOnly()
     }
@@ -93,6 +100,7 @@ class ProfileViewModel(
         fun factory(
             role: UserRole,
             repository: ProfileRepository,
+            localStorage: LocalStorage,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -100,6 +108,7 @@ class ProfileViewModel(
                     return ProfileViewModel(
                         role = role,
                         repository = repository,
+                        localStorage = localStorage,
                     ) as T
                 }
             }
