@@ -1,4 +1,4 @@
-package com.kori.app.core.designsystem.components
+package com.kori.app.core.designsystem.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,9 +20,8 @@ fun DetailRow(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
-    supporting: String? = null,
-    valueContent: (@Composable () -> Unit)? = null,
     showDivider: Boolean = true,
+    supporting: String? = null,
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Row(
@@ -30,38 +29,32 @@ fun DetailRow(
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.Top,
         ) {
             Text(
                 text = label,
-                modifier = Modifier.weight(0.4f),
+                modifier = Modifier.weight(0.45f),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-
             Column(
-                modifier = Modifier.weight(0.6f),
+                modifier = Modifier.weight(0.55f),
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                if (valueContent != null) {
-                    valueContent()
-                } else {
-                    Text(
-                        text = value,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.End
-                    )
-                }
-
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.End,
+                )
                 if (!supporting.isNullOrBlank()) {
                     Text(
                         text = supporting,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.End
+                        textAlign = TextAlign.End,
                     )
                 }
             }

@@ -10,6 +10,7 @@ import com.kori.app.core.model.action.AgentCashInResult
 import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.domain.idempotency.IdempotencyManager
+import com.kori.app.core.ui.KmfAmountFormatters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +35,7 @@ class AgentCashInViewModel(
     fun onAmountChanged(value: String) {
         val current = _uiState.value as? AgentCashInUiState.Form ?: return
         _uiState.value = current.copy(
-            draft = current.draft.copy(amountInput = value.filter { it.isDigit() }),
+            draft = current.draft.copy(amountInput = KmfAmountFormatters.normalizeInput(value)),
             errors = current.errors.copy(amount = null),
         )
     }
@@ -47,7 +48,7 @@ class AgentCashInViewModel(
             return
         }
 
-        val amount = current.draft.amountInput.toLong()
+        val amount = KmfAmountFormatters.parseToLong(current.draft.amountInput) ?: return
         val intent = createActionIntent(
             phoneNumber = current.draft.phoneNumber,
             amount = amount,
@@ -189,20 +190,13 @@ class AgentCashInViewModel(
 
     private fun validate(draft: AgentCashInDraft): AgentCashInFormErrors {
         val phone = draft.phoneNumber.trim()
-        val amount = draft.amountInput.toLongOrNull()
-
         return AgentCashInFormErrors(
             phoneNumber = when {
                 phone.isBlank() -> "Saisissez le numéro du client."
                 phone.length < 7 -> "Le numéro paraît incomplet."
                 else -> null
             },
-            amount = when {
-                draft.amountInput.isBlank() -> "Saisissez un montant."
-                amount == null -> "Montant invalide."
-                amount <= 0L -> "Le montant doit être supérieur à zéro."
-                else -> null
-            },
+            amount = KmfAmountFormatters.validateAmount(draft.amountInput),
         )
     }
 

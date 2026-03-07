@@ -1,29 +1,26 @@
 package com.kori.app.feature.action
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
-import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.designsystem.component.ConfirmModal
+import com.kori.app.core.designsystem.component.DebugPanel
+import com.kori.app.core.designsystem.component.DetailRow
+import com.kori.app.core.designsystem.component.ScreenHeader
+import com.kori.app.core.designsystem.component.SectionCard
 import com.kori.app.core.designsystem.component.SuccessReceiptSheet
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
@@ -87,47 +84,39 @@ private fun AgentMerchantWithdrawFormContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Retrait marchand",
                 subtitle = "Saisissez le code marchand et le montant à retirer.",
             )
         }
 
         item {
-            Card(
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = KoriSurface),
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    OutlinedTextField(
-                        value = state.draft.merchantCode,
-                        onValueChange = onMerchantCodeChanged,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Code marchand") },
-                        placeholder = { Text("Ex. MER-0061") },
-                        singleLine = true,
-                        isError = state.errors.merchantCode != null,
-                        supportingText = {
-                            state.errors.merchantCode?.let { Text(it) }
-                        },
-                    )
+            SectionCard(title = "Informations de retrait") {
+                OutlinedTextField(
+                    value = state.draft.merchantCode,
+                    onValueChange = onMerchantCodeChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Code marchand") },
+                    placeholder = { Text("Ex. MER-0061") },
+                    singleLine = true,
+                    isError = state.errors.merchantCode != null,
+                    supportingText = {
+                        state.errors.merchantCode?.let { Text(it) }
+                    },
+                )
 
-                    OutlinedTextField(
-                        value = state.draft.amountInput,
-                        onValueChange = onAmountChanged,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Montant") },
-                        placeholder = { Text("Ex. 120000") },
-                        singleLine = true,
-                        isError = state.errors.amount != null,
-                        supportingText = {
-                            state.errors.amount?.let { Text(it) }
-                        },
-                    )
-                }
+                OutlinedTextField(
+                    value = state.draft.amountInput,
+                    onValueChange = onAmountChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Montant") },
+                    placeholder = { Text("Ex. 120000") },
+                    singleLine = true,
+                    isError = state.errors.amount != null,
+                    supportingText = {
+                        state.errors.amount?.let { Text(it) }
+                    },
+                )
             }
         }
 
@@ -173,22 +162,20 @@ private fun AgentMerchantWithdrawConfirmationContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Confirmer le retrait marchand",
                 subtitle = "Vérifiez les informations avant de valider l’opération.",
             )
         }
 
         item {
-            SummaryCard(
-                lines = listOf(
-                    "Marchand" to state.quote.merchantCode,
-                    "Montant" to formatKmf(state.quote.amount),
-                    "Frais" to formatKmf(state.quote.fee),
-                    "Commission" to formatKmf(state.quote.commission),
-                    "Total débité marchand" to formatKmf(state.quote.totalDebitedMerchant),
-                ),
-            )
+            SectionCard(title = "Récapitulatif") {
+                DetailRow(label = "Marchand", value = state.quote.merchantCode)
+                DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
+                DetailRow(label = "Frais", value = formatKmf(state.quote.fee))
+                DetailRow(label = "Commission", value = formatKmf(state.quote.commission))
+                DetailRow(label = "Total débité marchand", value = formatKmf(state.quote.totalDebitedMerchant), showDivider = false)
+            }
         }
 
         item {
@@ -252,7 +239,7 @@ private fun AgentMerchantWithdrawSuccessContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Retrait marchand enregistré",
                 subtitle = "L’opération a été finalisée avec succès.",
             )
@@ -307,19 +294,17 @@ private fun AgentMerchantWithdrawFailureContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Retrait marchand non abouti",
                 subtitle = "L’opération n’a pas pu être finalisée.",
             )
         }
 
         item {
-            SummaryCard(
-                lines = listOf(
-                    "Code erreur" to state.code.name,
-                    "Message" to state.message,
-                ),
-            )
+            SectionCard(title = "Détails") {
+                DetailRow(label = "Code erreur", value = state.code.name)
+                DetailRow(label = "Message", value = state.message, showDivider = false)
+            }
         }
 
         item {

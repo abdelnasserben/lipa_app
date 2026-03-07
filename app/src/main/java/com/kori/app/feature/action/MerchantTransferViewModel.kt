@@ -10,6 +10,7 @@ import com.kori.app.core.model.action.MerchantTransferDraft
 import com.kori.app.core.model.action.MerchantTransferResult
 import com.kori.app.data.repository.MerchantTransferRepository
 import com.kori.app.domain.idempotency.IdempotencyManager
+import com.kori.app.core.ui.KmfAmountFormatters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +33,7 @@ class MerchantTransferViewModel(
     }
 
     fun onAmountChanged(value: String) {
-        val sanitized = value.filter { it.isDigit() }
+        val sanitized = KmfAmountFormatters.normalizeInput(value)
         val current = _uiState.value as? MerchantTransferUiState.Form ?: return
         _uiState.value = current.copy(
             draft = current.draft.copy(amountInput = sanitized),
@@ -49,7 +50,7 @@ class MerchantTransferViewModel(
             return
         }
 
-        val amount = current.draft.amountInput.toLong()
+        val amount = KmfAmountFormatters.parseToLong(current.draft.amountInput) ?: return
         val intent = createActionIntent(
             recipientMerchantCode = current.draft.recipientMerchantCode,
             amount = amount,
@@ -202,20 +203,13 @@ class MerchantTransferViewModel(
         draft: MerchantTransferDraft,
     ): MerchantTransferFormErrors {
         val merchantCode = draft.recipientMerchantCode.trim().uppercase()
-        val amountValue = draft.amountInput.toLongOrNull()
-
         val merchantCodeError = when {
             merchantCode.isBlank() -> "Saisissez le code marchand bénéficiaire."
             merchantCode.length < 5 -> "Le code marchand paraît incomplet."
             else -> null
         }
 
-        val amountError = when {
-            draft.amountInput.isBlank() -> "Saisissez un montant."
-            amountValue == null -> "Montant invalide."
-            amountValue <= 0L -> "Le montant doit être supérieur à zéro."
-            else -> null
-        }
+        val amountError = KmfAmountFormatters.validateAmount(draft.amountInput)
 
         return MerchantTransferFormErrors(
             recipientMerchantCode = merchantCodeError,

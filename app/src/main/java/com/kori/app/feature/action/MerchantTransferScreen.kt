@@ -1,16 +1,12 @@
 package com.kori.app.feature.action
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -20,8 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
-import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.designsystem.component.ConfirmModal
+import com.kori.app.core.designsystem.component.DebugPanel
+import com.kori.app.core.designsystem.component.DetailRow
+import com.kori.app.core.designsystem.component.ScreenHeader
+import com.kori.app.core.designsystem.component.SectionCard
 import com.kori.app.core.designsystem.component.SuccessReceiptSheet
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
@@ -93,47 +92,39 @@ private fun MerchantTransferFormContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Transfert marchand",
                 subtitle = "Saisissez le code marchand bénéficiaire et le montant à transférer.",
             )
         }
 
         item {
-            Card(
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = KoriSurface),
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    OutlinedTextField(
-                        value = state.draft.recipientMerchantCode,
-                        onValueChange = onRecipientChanged,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Code marchand bénéficiaire") },
-                        placeholder = { Text("Ex. MER-0088") },
-                        singleLine = true,
-                        isError = state.errors.recipientMerchantCode != null,
-                        supportingText = {
-                            state.errors.recipientMerchantCode?.let { Text(it) }
-                        },
-                    )
+            SectionCard(title = "Informations de transfert") {
+                OutlinedTextField(
+                    value = state.draft.recipientMerchantCode,
+                    onValueChange = onRecipientChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Code marchand bénéficiaire") },
+                    placeholder = { Text("Ex. MER-0088") },
+                    singleLine = true,
+                    isError = state.errors.recipientMerchantCode != null,
+                    supportingText = {
+                        state.errors.recipientMerchantCode?.let { Text(it) }
+                    },
+                )
 
-                    OutlinedTextField(
-                        value = state.draft.amountInput,
-                        onValueChange = onAmountChanged,
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Montant") },
-                        placeholder = { Text("Ex. 75000") },
-                        singleLine = true,
-                        isError = state.errors.amount != null,
-                        supportingText = {
-                            state.errors.amount?.let { Text(it) }
-                        },
-                    )
-                }
+                OutlinedTextField(
+                    value = state.draft.amountInput,
+                    onValueChange = onAmountChanged,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("Montant") },
+                    placeholder = { Text("Ex. 75000") },
+                    singleLine = true,
+                    isError = state.errors.amount != null,
+                    supportingText = {
+                        state.errors.amount?.let { Text(it) }
+                    },
+                )
             }
         }
 
@@ -183,21 +174,19 @@ private fun MerchantTransferConfirmationContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Confirmer le transfert marchand",
                 subtitle = "Vérifiez les informations avant d’exécuter l’opération.",
             )
         }
 
         item {
-            SummaryCard(
-                lines = listOf(
-                    "Marchand bénéficiaire" to state.quote.recipientMerchantCode,
-                    "Montant" to formatKmf(state.quote.amount),
-                    "Frais" to formatKmf(state.quote.fee),
-                    "Total débité" to formatKmf(state.quote.totalDebited),
-                ),
-            )
+            SectionCard(title = "Récapitulatif") {
+                DetailRow(label = "Marchand bénéficiaire", value = state.quote.recipientMerchantCode)
+                DetailRow(label = "Montant", value = formatKmf(state.quote.amount))
+                DetailRow(label = "Frais", value = formatKmf(state.quote.fee))
+                DetailRow(label = "Total débité", value = formatKmf(state.quote.totalDebited), showDivider = false)
+            }
         }
 
         item {
@@ -266,7 +255,7 @@ private fun MerchantTransferSuccessContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Transfert marchand envoyé",
                 subtitle = "L’opération a été enregistrée avec succès.",
             )
@@ -323,19 +312,17 @@ private fun MerchantTransferFailureContent(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            ActionHeader(
+            ScreenHeader(
                 title = "Transfert marchand non abouti",
                 subtitle = "L’opération n’a pas pu être finalisée.",
             )
         }
 
         item {
-            SummaryCard(
-                lines = listOf(
-                    "Code erreur" to state.code.name,
-                    "Message" to state.message,
-                ),
-            )
+            SectionCard(title = "Détails") {
+                DetailRow(label = "Code erreur", value = state.code.name)
+                DetailRow(label = "Message", value = state.message, showDivider = false)
+            }
         }
 
         item {

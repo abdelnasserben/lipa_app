@@ -1,9 +1,9 @@
-package com.kori.app.core.designsystem.components
+package com.kori.app.core.designsystem.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ExpandLess
@@ -23,32 +23,35 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun DebugPanel(
-    title: String = "Debug",
+    lines: List<String>,
     modifier: Modifier = Modifier,
+    title: String = "Debug",
+    subtitle: String? = "Données techniques",
     initiallyExpanded: Boolean = false,
-    content: String,
 ) {
+    val content = lines.joinToString(separator = "\n")
+
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
 
     SectionCard(
         title = title,
+        subtitle = subtitle,
         modifier = modifier,
-        subtitle = "Données techniques",
-        actionContent = {
+        headerTrailingContent = {
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
-        }
+        },
     ) {
         AnimatedVisibility(visible = expanded) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 tonalElevation = 1.dp,
                 shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.surfaceVariant
+                color = MaterialTheme.colorScheme.surfaceVariant,
             ) {
                 Text(
                     text = content,

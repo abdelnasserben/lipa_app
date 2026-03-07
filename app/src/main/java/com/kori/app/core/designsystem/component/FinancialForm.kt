@@ -1,11 +1,10 @@
-package com.kori.app.core.designsystem.components
+package com.kori.app.core.designsystem.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -16,8 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.kori.app.core.designsystem.formatter.MoneyInputFormatter
-import java.math.BigDecimal
+import com.kori.app.core.ui.KmfAmountFormatters
 
 data class FinancialFormState(
     val amountInput: String = "",
@@ -32,6 +30,7 @@ fun FinancialForm(
     actionLabel: String,
     state: FinancialFormState,
     modifier: Modifier = Modifier,
+    subtitle: String? = null,
     amountLabel: String = "Montant",
     amountPlaceholder: String = "0 KMF",
     helperText: String? = "Montant en francs comoriens",
@@ -39,30 +38,30 @@ fun FinancialForm(
     onAmountChange: (String) -> Unit,
     onSubmit: () -> Unit,
 ) {
-    val formattedAmount = MoneyInputFormatter.formatKmf(state.amountInput)
-
     SectionCard(
         title = title,
-        modifier = modifier
+        subtitle = subtitle,
+        modifier = modifier,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             OutlinedTextField(
                 value = state.amountInput,
-                onValueChange = { onAmountChange(MoneyInputFormatter.digitsOnly(it)) },
+                onValueChange = { onAmountChange(KmfAmountFormatters.normalizeInput(it)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 label = { Text(amountLabel) },
                 placeholder = { Text(amountPlaceholder) },
                 isError = state.amountError != null,
                 supportingText = {
-                    Text(state.amountError ?: helperText.orEmpty())
+                    val amountHint = KmfAmountFormatters.formatInputForDisplay(state.amountInput)
+                    Text(state.amountError ?: amountHint.ifBlank { helperText.orEmpty() })
                 },
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                )
+                    keyboardType = KeyboardType.Number,
+                ),
             )
 
             extraFields?.invoke()
@@ -73,16 +72,16 @@ fun FinancialForm(
                     !state.isLoading &&
                     state.amountError == null &&
                     state.amountInput.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
                             strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
                     } else {
                         Text(actionLabel)
@@ -91,26 +90,4 @@ fun FinancialForm(
             }
         }
     }
-}
-
-fun validateKmfAmount(
-    raw: String,
-    min: BigDecimal = BigDecimal.ONE,
-    max: BigDecimal? = null,
-): String? {
-    if (raw.isBlank()) return "Le montant est requis"
-
-    val normalized = raw.filter { it.isDigit() }
-    if (normalized.isBlank()) return "Montant invalide"
-
-    val amount = normalized.toBigDecimalOrNull() ?: return "Montant invalide"
-
-    if (amount < min) {
-        return "Le montant minimum est ${min.toPlainString()} KMF"
-    }
-    if (max != null && amount > max) {
-        return "Le montant maximum est ${max.toPlainString()} KMF"
-    }
-
-    return null
 }

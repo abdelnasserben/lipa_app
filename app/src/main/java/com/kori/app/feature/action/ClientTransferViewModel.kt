@@ -10,6 +10,7 @@ import com.kori.app.core.model.action.ClientTransferResult
 import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.data.repository.ClientTransferRepository
 import com.kori.app.domain.idempotency.IdempotencyManager
+import com.kori.app.core.ui.KmfAmountFormatters
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +33,7 @@ class ClientTransferViewModel(
     }
 
     fun onAmountChanged(value: String) {
-        val sanitized = value.filter { it.isDigit() }
+        val sanitized = KmfAmountFormatters.normalizeInput(value)
         val current = _uiState.value as? ClientTransferUiState.Form ?: return
         _uiState.value = current.copy(
             draft = current.draft.copy(amountInput = sanitized),
@@ -49,7 +50,7 @@ class ClientTransferViewModel(
             return
         }
 
-        val amount = current.draft.amountInput.toLong()
+        val amount = KmfAmountFormatters.parseToLong(current.draft.amountInput) ?: return
         val intent = createActionIntent(
             recipientPhoneNumber = current.draft.recipientPhoneNumber,
             amount = amount,
@@ -202,20 +203,13 @@ class ClientTransferViewModel(
         draft: ClientTransferDraft,
     ): ClientTransferFormErrors {
         val phone = draft.recipientPhoneNumber.trim()
-        val amountValue = draft.amountInput.toLongOrNull()
-
         val phoneError = when {
             phone.isBlank() -> "Saisissez le numéro du bénéficiaire."
             phone.length < 7 -> "Le numéro paraît incomplet."
             else -> null
         }
 
-        val amountError = when {
-            draft.amountInput.isBlank() -> "Saisissez un montant."
-            amountValue == null -> "Montant invalide."
-            amountValue <= 0L -> "Le montant doit être supérieur à zéro."
-            else -> null
-        }
+        val amountError = KmfAmountFormatters.validateAmount(draft.amountInput)
 
         return ClientTransferFormErrors(
             recipientPhoneNumber = phoneError,

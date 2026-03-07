@@ -24,7 +24,9 @@ import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
+import com.kori.app.core.designsystem.component.DetailRow
 import com.kori.app.core.designsystem.component.ErrorState
+import com.kori.app.core.designsystem.component.SectionCard
 import com.kori.app.core.designsystem.component.StatusBadge
 import com.kori.app.core.designsystem.component.TimelineStepRow
 import com.kori.app.core.designsystem.component.TypeChip
@@ -222,51 +224,16 @@ private fun TimelineCard(
 private fun DetailsCard(
     transaction: TransactionItemResponse,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = KoriSurface),
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = "Détails",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-
-            DetailLine("Référence", transaction.transactionRef)
-            DetailLine("Montant", formatKmf(transaction.amount))
-            DetailLine("Frais", formatKmf(transaction.fee ?: 0L))
-            DetailLine("Total débité", formatKmf(transaction.totalDebited ?: transaction.amount))
-            DetailLine("Statut", transaction.status.displayLabel())
-            DetailLine("Type", transaction.type.displayLabel())
-            DetailLine("Contrepartie", transaction.counterparty.displayName)
-            DetailLine("Téléphone", transaction.counterparty.phone ?: "—")
-            DetailLine("Code", transaction.counterparty.code ?: "—")
-            DetailLine("Date", formatIsoToDisplay(transaction.createdAt))
-        }
-    }
-}
-
-@Composable
-private fun DetailLine(
-    label: String,
-    value: String,
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+    SectionCard(title = "Détails") {
+        DetailRow(label = "Référence", value = transaction.transactionRef)
+        DetailRow(label = "Montant", value = formatKmf(transaction.amount))
+        DetailRow(label = "Frais", value = formatKmf(transaction.fee ?: 0L))
+        DetailRow(label = "Total débité", value = formatKmf(transaction.totalDebited ?: transaction.amount))
+        DetailRow(label = "Statut", value = transaction.status.displayLabel())
+        DetailRow(label = "Type", value = transaction.type.displayLabel())
+        DetailRow(label = "Contrepartie", value = transaction.counterparty.displayName)
+        DetailRow(label = "Téléphone", value = transaction.counterparty.phone ?: "—")
+        DetailRow(label = "Code", value = transaction.counterparty.code ?: "—")
+        DetailRow(label = "Date", value = formatIsoToDisplay(transaction.createdAt), showDivider = false)
     }
 }
