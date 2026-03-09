@@ -32,6 +32,7 @@ fun ActionScreen(
     onOpenAgentCardEnroll: () -> Unit,
     onOpenAgentCardAdd: () -> Unit,
     onOpenAgentCardStatusUpdate: () -> Unit,
+    onOpenAgentSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (role) {
@@ -56,6 +57,7 @@ fun ActionScreen(
                 onOpenCardEnroll = onOpenAgentCardEnroll,
                 onOpenCardAdd = onOpenAgentCardAdd,
                 onOpenCardStatusUpdate = onOpenAgentCardStatusUpdate,
+                onOpenAgentSearch = onOpenAgentSearch,
                 modifier = modifier,
             )
         }
@@ -129,6 +131,7 @@ private fun AgentActionHome(
     onOpenCardEnroll: () -> Unit,
     onOpenCardAdd: () -> Unit,
     onOpenCardStatusUpdate: () -> Unit,
+    onOpenAgentSearch: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -187,6 +190,15 @@ private fun AgentActionHome(
                 message = "Passez une carte existante en statut BLOCKED ou LOST.",
                 cta = "Lancer",
                 onClick = onOpenCardStatusUpdate,
+            )
+        }
+
+        item {
+            ActionEntryCard(
+                title = "Recherche agent",
+                message = "Recherchez rapidement un client, une carte ou un terminal.",
+                cta = "Rechercher",
+                onClick = onOpenAgentSearch,
             )
         }
     }

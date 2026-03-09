@@ -5,9 +5,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import com.kori.app.core.designsystem.KoriTheme
+import com.kori.app.data.idempotency.InMemoryPendingActionStore
 import com.kori.app.data.local.SharedPrefsLocalStorage
-import com.kori.app.data.mock.MockAgentActionRepository
 import com.kori.app.data.mock.MockActivityRepository
+import com.kori.app.data.mock.MockAgentActionRepository
+import com.kori.app.data.mock.MockAgentSearchRepository
 import com.kori.app.data.mock.MockAuthService
 import com.kori.app.data.mock.MockClientCardRepository
 import com.kori.app.data.mock.MockClientTransferRepository
@@ -16,7 +18,6 @@ import com.kori.app.data.mock.MockMerchantTransferRepository
 import com.kori.app.data.mock.MockProfileRepository
 import com.kori.app.data.mock.MockSessionRepository
 import com.kori.app.data.mock.MockTransactionRepository
-import com.kori.app.data.idempotency.InMemoryPendingActionStore
 import com.kori.app.domain.GetDashboardUseCase
 import com.kori.app.domain.idempotency.IdempotencyManager
 import com.kori.app.navigation.KoriNavHost
@@ -35,6 +36,7 @@ fun KoriApp() {
     val clientTransferRepository = remember { MockClientTransferRepository() }
     val merchantTransferRepository = remember { MockMerchantTransferRepository() }
     val agentActionRepository = remember { MockAgentActionRepository() }
+    val agentSearchRepository = remember { MockAgentSearchRepository() }
     val profileRepository = remember { MockProfileRepository() }
     val pendingActionStore = remember { InMemoryPendingActionStore() }
     val idempotencyManager = remember(pendingActionStore) { IdempotencyManager(pendingActionStore) }
@@ -56,6 +58,7 @@ fun KoriApp() {
             clientTransferRepository = clientTransferRepository,
             merchantTransferRepository = merchantTransferRepository,
             agentActionRepository = agentActionRepository,
+            agentSearchRepository = agentSearchRepository,
             activityRepository = activityRepository,
             profileRepository = profileRepository,
             localStorage = localStorage,

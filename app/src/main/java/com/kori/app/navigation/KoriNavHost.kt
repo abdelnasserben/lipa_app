@@ -23,9 +23,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.kori.app.app.KoriAppState
 import com.kori.app.core.designsystem.component.KoriBottomBar
@@ -33,8 +33,9 @@ import com.kori.app.core.designsystem.component.KoriScaffold
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.auth.AuthState
 import com.kori.app.data.local.LocalStorage
-import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.data.repository.ActivityRepository
+import com.kori.app.data.repository.AgentActionRepository
+import com.kori.app.data.repository.AgentSearchRepository
 import com.kori.app.data.repository.AuthService
 import com.kori.app.data.repository.ClientCardRepository
 import com.kori.app.data.repository.ClientTransferRepository
@@ -44,14 +45,15 @@ import com.kori.app.data.repository.TransactionRepository
 import com.kori.app.domain.GetDashboardUseCase
 import com.kori.app.domain.idempotency.IdempotencyManager
 import com.kori.app.feature.action.ActionScreen
-import com.kori.app.feature.action.AgentCashInRoute
 import com.kori.app.feature.action.AgentCardAddRoute
 import com.kori.app.feature.action.AgentCardEnrollRoute
 import com.kori.app.feature.action.AgentCardStatusUpdateRoute
+import com.kori.app.feature.action.AgentCashInRoute
 import com.kori.app.feature.action.AgentMerchantWithdrawRoute
 import com.kori.app.feature.action.ClientTransferRoute
 import com.kori.app.feature.action.MerchantTransferRoute
 import com.kori.app.feature.activity.ActivityRoute
+import com.kori.app.feature.agentsearch.AgentSearchRoute
 import com.kori.app.feature.auth.AuthBrowserMockScreen
 import com.kori.app.feature.auth.AuthCallbackScreen
 import com.kori.app.feature.auth.AuthSuccessScreen
@@ -76,6 +78,7 @@ fun KoriNavHost(
     clientTransferRepository: ClientTransferRepository,
     merchantTransferRepository: MerchantTransferRepository,
     agentActionRepository: AgentActionRepository,
+    agentSearchRepository: AgentSearchRepository,
     activityRepository: ActivityRepository,
     profileRepository: ProfileRepository,
     localStorage: LocalStorage,
@@ -407,6 +410,18 @@ fun KoriNavHost(
             }
         }
 
+
+        composable(KoriDestination.AgentSearch.route) {
+            if (role == null || role != UserRole.AGENT) return@composable
+            if (authState !is AuthState.Authenticated) return@composable
+
+            TopBarPage(
+                title = "Recherche agent",
+                onBack = { navController.popBackStack() },
+            ) { _ ->
+                AgentSearchRoute(repository = agentSearchRepository)
+            }
+        }
         composable(KoriDestination.Action.route) {
             if (role == null) return@composable
             if (authState !is AuthState.Authenticated) return@composable
@@ -443,6 +458,9 @@ fun KoriNavHost(
                     },
                     onOpenAgentCardStatusUpdate = {
                         navController.navigate(KoriDestination.AgentCardStatusUpdate.route)
+                    },
+                    onOpenAgentSearch = {
+                        navController.navigate(KoriDestination.AgentSearch.route)
                     },
                     modifier = contentModifier,
                 )

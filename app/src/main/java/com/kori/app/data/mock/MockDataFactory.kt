@@ -1,11 +1,11 @@
 package com.kori.app.data.mock
 
-import com.kori.app.core.model.balance.ActorBalanceResponse
-import com.kori.app.core.model.balance.BalanceItemResponse
 import com.kori.app.core.model.activity.ActivityCategory
 import com.kori.app.core.model.activity.ActivityFeedItem
 import com.kori.app.core.model.activity.ActivityStatus
 import com.kori.app.core.model.activity.ActivityType
+import com.kori.app.core.model.balance.ActorBalanceResponse
+import com.kori.app.core.model.balance.BalanceItemResponse
 import com.kori.app.core.model.common.ActorStatus
 import com.kori.app.core.model.common.BalanceKind
 import com.kori.app.core.model.common.CurrencyCode

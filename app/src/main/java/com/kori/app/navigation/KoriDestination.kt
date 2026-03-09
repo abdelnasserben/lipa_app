@@ -83,6 +83,11 @@ sealed class KoriDestination(
         label = "Statut carte",
     )
 
+    data object AgentSearch : KoriDestination(
+        route = "agent_search",
+        label = "Recherche",
+    )
+
     data object Action : KoriDestination(
         route = "action",
         label = "Action",

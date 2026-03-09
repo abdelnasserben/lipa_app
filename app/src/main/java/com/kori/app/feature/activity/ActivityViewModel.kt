@@ -10,14 +10,14 @@ import com.kori.app.core.model.activity.ActivityStatus
 import com.kori.app.core.model.activity.ActivityType
 import com.kori.app.data.repository.ActivityQuery
 import com.kori.app.data.repository.ActivityRepository
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class ActivityViewModel(

@@ -1,8 +1,5 @@
 package com.kori.app.data.mock
 
-import com.kori.app.core.model.action.AgentCashInQuote
-import com.kori.app.core.model.action.AgentCashInReceipt
-import com.kori.app.core.model.action.AgentCashInResult
 import com.kori.app.core.model.action.AgentCardAddReceipt
 import com.kori.app.core.model.action.AgentCardAddResult
 import com.kori.app.core.model.action.AgentCardEnrollReceipt
@@ -10,6 +7,9 @@ import com.kori.app.core.model.action.AgentCardEnrollResult
 import com.kori.app.core.model.action.AgentCardStatusUpdateReceipt
 import com.kori.app.core.model.action.AgentCardStatusUpdateResult
 import com.kori.app.core.model.action.AgentCardTargetStatus
+import com.kori.app.core.model.action.AgentCashInQuote
+import com.kori.app.core.model.action.AgentCashInReceipt
+import com.kori.app.core.model.action.AgentCashInResult
 import com.kori.app.core.model.action.AgentMerchantWithdrawQuote
 import com.kori.app.core.model.action.AgentMerchantWithdrawReceipt
 import com.kori.app.core.model.action.AgentMerchantWithdrawResult

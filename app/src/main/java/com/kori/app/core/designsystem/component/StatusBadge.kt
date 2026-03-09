@@ -16,9 +16,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriError
+import com.kori.app.core.designsystem.KoriSuccess
 import com.kori.app.core.designsystem.KoriSurfaceVariant
 import com.kori.app.core.designsystem.KoriTheme
-import com.kori.app.core.designsystem.KoriSuccess
 import com.kori.app.core.designsystem.KoriWarning
 import com.kori.app.core.model.transaction.TransactionStatus
 import com.kori.app.core.ui.displayLabel
