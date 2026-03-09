@@ -2,12 +2,12 @@ package com.kori.app.app
 
 import androidx.compose.runtime.Stable
 import com.kori.app.core.model.UserRole
-import com.kori.app.data.mock.MockSessionRepository
+import com.kori.app.data.repository.SessionRepository
 import kotlinx.coroutines.flow.StateFlow
 
 @Stable
 class KoriAppState(
-    val sessionRepository: MockSessionRepository,
+    val sessionRepository: SessionRepository,
 ) {
     val session: StateFlow<KoriSession> = sessionRepository.session
 
