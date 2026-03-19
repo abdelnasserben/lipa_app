@@ -60,14 +60,12 @@ class SharedPrefsLocalStorage(
 
     override fun getAuthSession(): AuthSession? {
         val accessToken = sharedPreferences.getString(KEY_ACCESS_TOKEN, null) ?: return null
-        val refreshToken = sharedPreferences.getString(KEY_REFRESH_TOKEN, null) ?: return null
         val expiresAtIso = sharedPreferences.getString(KEY_EXPIRES_AT_ISO, null) ?: return null
         val subject = sharedPreferences.getString(KEY_SUBJECT, null) ?: return null
         val issuer = sharedPreferences.getString(KEY_ISSUER, null) ?: return null
 
         return AuthSession(
             accessToken = accessToken,
-            refreshToken = refreshToken,
             expiresAtIso = expiresAtIso,
             subject = subject,
             issuer = issuer,
@@ -84,7 +82,7 @@ class SharedPrefsLocalStorage(
                 remove(KEY_ISSUER)
             } else {
                 putString(KEY_ACCESS_TOKEN, session.accessToken)
-                putString(KEY_REFRESH_TOKEN, session.refreshToken)
+                remove(KEY_REFRESH_TOKEN)
                 putString(KEY_EXPIRES_AT_ISO, session.expiresAtIso)
                 putString(KEY_SUBJECT, session.subject)
                 putString(KEY_ISSUER, session.issuer)

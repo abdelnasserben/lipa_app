@@ -17,7 +17,7 @@ class AuthServiceImpl(
     override suspend fun handleAuthorizationResponse(intent: Intent) =
         dataSource.handleAuthorizationResponse(intent)
 
-    override suspend fun ensureFreshAccessToken(): String? = dataSource.ensureFreshAccessToken()
+    override suspend fun getValidAccessToken(): String? = dataSource.getValidAccessToken()
 
     override fun isAuthenticated(): Boolean = dataSource.isAuthenticated()
 

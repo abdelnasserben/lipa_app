@@ -54,7 +54,6 @@ fun SessionScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     SessionLine("Access token", maskToken(session.accessToken))
-                    SessionLine("Refresh token", maskToken(session.refreshToken))
                     SessionLine("Expiration", session.expiresAtIso)
                     SessionLine("Subject", session.subject)
                     SessionLine("Issuer", session.issuer)

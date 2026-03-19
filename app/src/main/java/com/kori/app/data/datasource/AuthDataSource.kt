@@ -12,7 +12,7 @@ interface AuthDataSource {
 
     suspend fun handleAuthorizationResponse(intent: Intent)
 
-    suspend fun ensureFreshAccessToken(): String?
+    suspend fun getValidAccessToken(): String?
 
     fun isAuthenticated(): Boolean
 

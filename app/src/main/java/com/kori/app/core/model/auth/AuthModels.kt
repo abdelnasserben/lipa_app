@@ -14,7 +14,6 @@ sealed interface AuthState {
 
 data class AuthSession(
     val accessToken: String,
-    val refreshToken: String,
     val expiresAtIso: String,
     val subject: String,
     val issuer: String,

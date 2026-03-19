@@ -25,6 +25,7 @@ android {
         buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.kori.app:/oauth2redirect\"")
         buildConfigField("String", "OIDC_POST_LOGOUT_REDIRECT_URI", "\"com.kori.app:/oauth2redirect/logout\"")
         buildConfigField("String", "OIDC_SCOPES", "\"openid profile email offline_access\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://api.dabel.fr\"")
 
         manifestPlaceholders["appAuthRedirectScheme"] = "com.kori.app"
     }

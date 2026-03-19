@@ -11,9 +11,15 @@ import com.kori.app.core.model.auth.AuthSession
 import com.kori.app.core.model.auth.AuthState
 import com.kori.app.data.datasource.AuthDataSource
 import com.kori.app.data.local.LocalStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import net.openid.appauth.AuthState as AppAuthState
 import net.openid.appauth.AuthorizationException
@@ -24,6 +30,7 @@ import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.EndSessionRequest
 import net.openid.appauth.EndSessionResponse
 import org.json.JSONObject
+import java.time.Duration
 import java.time.Instant
 import kotlin.coroutines.resume
 
@@ -34,6 +41,8 @@ class OidcAuthDataSource(
 ) : AuthDataSource {
 
     private val authService = AuthorizationService(context)
+    private val sessionScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var expirationJob: Job? = null
     private var appAuthState = AppAuthState()
     private var cachedServiceConfiguration: AuthorizationServiceConfiguration? = null
     private var authFlowInProgress = false
@@ -100,34 +109,41 @@ class OidcAuthDataSource(
         }
     }
 
-    override suspend fun ensureFreshAccessToken(): String? {
-        if (!isAuthenticated()) {
-            Log.w(TAG, "ensureFreshAccessToken called without an authenticated session")
+    override suspend fun getValidAccessToken(): String? {
+        val session = (_authState.value as? AuthState.Authenticated)?.session ?: run {
+            Log.w(TAG, "getValidAccessToken called without an authenticated session")
             return null
         }
 
-        return suspendCancellableCoroutine { cont ->
-            appAuthState.performActionWithFreshTokens(authService) { accessToken, _, exception ->
-                if (exception != null) {
-                    Log.e(TAG, "Token refresh failed during performActionWithFreshTokens", exception)
-                    clearSession()
-                    _authState.value = AuthState.Error(
-                        exception.errorDescription ?: "Impossible de rafraîchir la session OIDC",
-                    )
-                    cont.resume(null)
-                    return@performActionWithFreshTokens
-                }
+        val expiresAt = parseInstant(session.expiresAtIso) ?: run {
+            invalidateSession("Stored access token expiration is unreadable")
+            return null
+        }
 
-                Log.i(TAG, "performActionWithFreshTokens completed successfully")
-                persistCurrentState()
-                cont.resume(accessToken)
-            }
+        return if (Instant.now().isBefore(expiresAt)) {
+            session.accessToken
+        } else {
+            invalidateSession("Access token expired at $expiresAt")
+            null
         }
     }
 
     override fun isAuthenticated(): Boolean {
-        val authenticated = appAuthState.isAuthorized && _authState.value is AuthState.Authenticated
+        val session = (_authState.value as? AuthState.Authenticated)?.session ?: return false
+        val expiresAt = parseInstant(session.expiresAtIso)
+
+        if (expiresAt == null) {
+            invalidateSession("Stored access token expiration is unreadable")
+            return false
+        }
+
+        val authenticated = Instant.now().isBefore(expiresAt)
         Log.d(TAG, "isAuthenticated() -> $authenticated")
+
+        if (!authenticated) {
+            invalidateSession("Access token expired at $expiresAt")
+        }
+
         return authenticated
     }
 
@@ -163,7 +179,9 @@ class OidcAuthDataSource(
     }
 
     override fun clearSession() {
-        Log.i(TAG, "clearSession(): clearing persisted AuthState and session snapshot")
+        Log.i(TAG, "clearSession(): clearing persisted session snapshot")
+        expirationJob?.cancel()
+        expirationJob = null
         appAuthState = AppAuthState()
         cachedServiceConfiguration = null
         authFlowInProgress = false
@@ -229,6 +247,7 @@ class OidcAuthDataSource(
         if (tokenException != null || tokenResponse == null) {
             val message = tokenException?.errorDescription ?: "Échange code -> tokens impossible"
             Log.e(TAG, "Token exchange failed: $message", tokenException)
+            clearSession()
             _authState.value = AuthState.Error(message)
             return
         }
@@ -272,77 +291,135 @@ class OidcAuthDataSource(
     }
 
     private fun restorePersistedState() {
-        val persistedJson = localStorage.getOidcAuthStateJson()
-        Log.i(TAG, "Restoring AuthState from storage: found=${persistedJson != null}")
+        localStorage.setOidcAuthStateJson(null)
+        val session = localStorage.getAuthSession()
+        Log.i(TAG, "Restoring local auth session: found=${session != null}")
 
-        if (persistedJson.isNullOrBlank()) {
+        if (session == null) {
             _authState.value = AuthState.Unauthenticated
-            Log.d(TAG, "No persisted AppAuth state found")
             return
         }
 
-        val restoredState = runCatching { AppAuthState.jsonDeserialize(persistedJson) }
-            .onFailure {
-                Log.e(TAG, "Failed to deserialize persisted AppAuth state", it)
-                localStorage.setOidcAuthStateJson(null)
-                localStorage.setAuthSession(null)
-            }
-            .getOrNull()
-            ?: run {
-                _authState.value = AuthState.Unauthenticated
-                return
-            }
-
-        appAuthState = restoredState
-        cachedServiceConfiguration = restoredState.authorizationServiceConfiguration
-
-        val session = createSessionFromStateOrNull(restoredState)
-        if (restoredState.isAuthorized && session != null) {
-            localStorage.setAuthSession(session)
-            _authState.value = AuthState.Authenticated(session)
-            Log.i(TAG, "AuthState restored successfully for subject=${session.subject}")
-        } else {
-            Log.w(TAG, "Persisted AuthState is not authorized anymore; clearing local session")
-            clearSession()
+        val expiresAt = parseInstant(session.expiresAtIso)
+        if (expiresAt == null || !Instant.now().isBefore(expiresAt)) {
+            invalidateSession("Persisted access token is expired or unreadable")
+            return
         }
+
+        _authState.value = AuthState.Authenticated(session)
+        scheduleSessionExpiration(session)
+        Log.i(TAG, "Local auth session restored for subject=${session.subject}")
     }
 
     private fun persistCurrentState() {
         val session = createSessionFromStateOrNull(appAuthState)
-        if (!appAuthState.isAuthorized || session == null) {
-            Log.w(TAG, "Refusing to persist non-authorized AppAuth state")
-            clearSession()
+        if (session == null) {
+            Log.w(TAG, "Refusing to persist unauthorized or incomplete auth state")
+            invalidateSession("OIDC token response does not contain a valid access token")
             return
         }
 
-        // AppAuth AuthState remains the source of truth so browser round-trips survive process death.
-        localStorage.setOidcAuthStateJson(appAuthState.jsonSerializeString())
+        localStorage.setOidcAuthStateJson(null)
         localStorage.setAuthSession(session)
         _authState.value = AuthState.Authenticated(session)
-        Log.i(TAG, "Persisted AuthState for subject=${session.subject}")
+        scheduleSessionExpiration(session)
+        Log.i(TAG, "Persisted access-token-only session for subject=${session.subject}")
     }
 
     private fun createSessionFromStateOrNull(state: AppAuthState): AuthSession? {
-        val accessToken = state.accessToken ?: return null
-        val refreshToken = state.refreshToken.orEmpty()
-        val expiresAt = state.accessTokenExpirationTime?.let { Instant.ofEpochMilli(it) }
-            ?: Instant.now().plusSeconds(300)
+        if (!state.isAuthorized) return null
 
-        val claims = state.idToken
+        val accessToken = state.accessToken ?: return null
+        val expiresAt = resolveExpiration(state, accessToken, state.idToken) ?: return null
+
+        if (!Instant.now().isBefore(expiresAt)) {
+            Log.w(TAG, "Ignoring already expired access token during session creation")
+            return null
+        }
+
+        val idTokenClaims = state.idToken
             ?.takeIf { it.isNotBlank() }
             ?.let(::decodeJwtPayload)
-            ?.let { payload -> runCatching { JSONObject(payload) }.getOrNull() }
+            ?.let(::parseJsonObject)
+        val accessTokenClaims = accessToken
+            .takeIf { it.isNotBlank() }
+            ?.let(::decodeJwtPayload)
+            ?.let(::parseJsonObject)
 
-        val subject = claims?.optString("sub")?.takeIf { it.isNotBlank() } ?: "unknown"
-        val issuer = claims?.optString("iss")?.takeIf { it.isNotBlank() } ?: oidcConfig.issuer.toString()
+        val subject = idTokenClaims?.optString("sub")?.takeIf { it.isNotBlank() }
+            ?: accessTokenClaims?.optString("sub")?.takeIf { it.isNotBlank() }
+            ?: "unknown"
+        val issuer = idTokenClaims?.optString("iss")?.takeIf { it.isNotBlank() }
+            ?: accessTokenClaims?.optString("iss")?.takeIf { it.isNotBlank() }
+            ?: oidcConfig.issuer.toString()
 
         return AuthSession(
             accessToken = accessToken,
-            refreshToken = refreshToken,
             expiresAtIso = expiresAt.toString(),
             subject = subject,
             issuer = issuer,
         )
+    }
+
+    private fun resolveExpiration(
+        state: AppAuthState,
+        accessToken: String,
+        idToken: String?,
+    ): Instant? {
+        state.accessTokenExpirationTime?.let { return Instant.ofEpochMilli(it) }
+
+        decodeJwtPayload(accessToken)
+            .let(::parseJsonObject)
+            ?.optLong("exp")
+            ?.takeIf { it > 0L }
+            ?.let { return Instant.ofEpochSecond(it) }
+
+        idToken
+            ?.takeIf { it.isNotBlank() }
+            ?.let(::decodeJwtPayload)
+            ?.let(::parseJsonObject)
+            ?.optLong("exp")
+            ?.takeIf { it > 0L }
+            ?.let { return Instant.ofEpochSecond(it) }
+
+        return null
+    }
+
+    private fun parseJsonObject(payload: String): JSONObject? {
+        return runCatching { JSONObject(payload) }
+            .onFailure { Log.w(TAG, "Unable to parse JWT payload as JSON", it) }
+            .getOrNull()
+    }
+
+    private fun parseInstant(value: String): Instant? {
+        return runCatching { Instant.parse(value) }
+            .onFailure { Log.w(TAG, "Unable to parse instant=$value", it) }
+            .getOrNull()
+    }
+
+    private fun invalidateSession(reason: String) {
+        Log.w(TAG, "Invalidating local session: $reason")
+        clearSession()
+    }
+
+
+    private fun scheduleSessionExpiration(session: AuthSession) {
+        expirationJob?.cancel()
+        val expiresAt = parseInstant(session.expiresAtIso) ?: run {
+            invalidateSession("Stored access token expiration is unreadable")
+            return
+        }
+        val delayMillis = Duration.between(Instant.now(), expiresAt).toMillis()
+
+        if (delayMillis <= 0L) {
+            invalidateSession("Access token expired at $expiresAt")
+            return
+        }
+
+        expirationJob = sessionScope.launch {
+            delay(delayMillis)
+            invalidateSession("Access token expired at $expiresAt")
+        }
     }
 
     private fun createCompletionPendingIntent(
@@ -379,7 +456,12 @@ class OidcAuthDataSource(
     private fun decodeJwtPayload(jwt: String): String {
         val chunks = jwt.split('.')
         if (chunks.size < 2) return "{}"
-        return String(Base64.decode(chunks[1], Base64.URL_SAFE or Base64.NO_WRAP))
+        return runCatching {
+            String(Base64.decode(chunks[1], Base64.URL_SAFE or Base64.NO_WRAP))
+        }.getOrElse {
+            Log.w(TAG, "Unable to decode JWT payload", it)
+            "{}"
+        }
     }
 
     private companion object {
