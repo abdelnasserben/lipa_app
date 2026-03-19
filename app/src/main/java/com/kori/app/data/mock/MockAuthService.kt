@@ -1,5 +1,7 @@
 package com.kori.app.data.mock
 
+import android.app.Activity
+import android.content.Intent
 import com.kori.app.core.model.auth.AuthSession
 import com.kori.app.core.model.auth.AuthState
 import com.kori.app.data.local.LocalStorage
@@ -23,11 +25,11 @@ class MockAuthService(
     )
     override val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    override fun beginAuthentication() {
+    override fun beginAuthentication(activity: Activity) {
         _authState.value = AuthState.Authenticating
     }
 
-    override suspend fun completeAuthenticationSuccess() {
+    override suspend fun completeAuthenticationFromIntent(intent: Intent) {
         _authState.value = AuthState.Authenticating
         delay(1200)
 
@@ -43,8 +45,8 @@ class MockAuthService(
         _authState.value = AuthState.Authenticated(session)
     }
 
-    override fun failAuthentication(message: String) {
-        _authState.value = AuthState.Error(message)
+    override suspend fun refreshSessionIfNeeded() {
+        // No-op for legacy mock implementation.
     }
 
     override fun logout() {

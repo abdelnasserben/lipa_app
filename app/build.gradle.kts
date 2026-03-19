@@ -19,6 +19,14 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "OIDC_ISSUER", "\"https://auth.dabel.fr/realms/kori\"")
+        buildConfigField("String", "OIDC_CLIENT_ID", "\"kori-android\"")
+        buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.kori.app://oidc/callback\"")
+        buildConfigField("String", "OIDC_POST_LOGOUT_REDIRECT_URI", "\"com.kori.app://oidc/logout-callback\"")
+        buildConfigField("String", "OIDC_SCOPES", "\"openid profile email\"")
+
+        manifestPlaceholders["appAuthRedirectScheme"] = "com.kori.app"
     }
 
     buildTypes {
@@ -36,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -50,6 +59,8 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.appauth)
+    implementation(libs.androidx.security.crypto)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

@@ -12,9 +12,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -80,12 +78,8 @@ fun AuthWelcomeScreen(
                         text = "Session sécurisée par Keycloak",
                     )
                     FeatureLine(
-                        icon = { Icon(Icons.Outlined.OpenInBrowser, contentDescription = null) },
-                        text = "Ouverture du navigateur système",
-                    )
-                    FeatureLine(
-                        icon = { Icon(Icons.Outlined.Language, contentDescription = null) },
-                        text = "Retour applicatif via callback",
+                        icon = { Icon(Icons.Outlined.CheckCircle, contentDescription = null) },
+                        text = "Authorization Code Flow + PKCE",
                     )
                 }
             }
@@ -101,95 +95,6 @@ fun AuthWelcomeScreen(
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
             ) {
                 Text("Se connecter")
-            }
-        }
-    }
-}
-
-@Composable
-fun AuthBrowserMockScreen(
-    onContinueClick: () -> Unit,
-    onErrorClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .safeDrawingPadding(),
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
-        ) {
-            Text(
-                text = "Keycloak Login",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = KoriPrimary,
-            )
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = KoriSurface),
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        text = "Realm",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = "kori",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-
-                    Text(
-                        text = "Utilisateur",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = "demo.user@kori.mock",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-
-                    Text(
-                        text = "Méthode",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Text(
-                        text = "Authorization Code + PKCE",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                }
-            }
-
-            Button(
-                onClick = onContinueClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
-            ) {
-                Text("Autoriser et revenir à KORI")
-            }
-
-            OutlinedButton(
-                onClick = onErrorClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(999.dp),
-            ) {
-                Text("Simuler une erreur")
             }
         }
     }

@@ -8,8 +8,6 @@ import com.kori.app.data.mock.MockActivityRepository
 import com.kori.app.data.mock.MockAgentActionDataSource
 import com.kori.app.data.mock.MockAgentActionRepository
 import com.kori.app.data.mock.MockAgentSearchRepository
-import com.kori.app.data.mock.MockAuthDataSource
-import com.kori.app.data.mock.MockAuthService
 import com.kori.app.data.mock.MockClientCardRepository
 import com.kori.app.data.mock.MockClientTransferDataSource
 import com.kori.app.data.mock.MockClientTransferRepository
@@ -22,6 +20,8 @@ import com.kori.app.data.mock.MockProfileRepository
 import com.kori.app.data.mock.MockSessionRepository
 import com.kori.app.data.mock.MockTransactionDataSource
 import com.kori.app.data.mock.MockTransactionRepository
+import com.kori.app.data.oidc.OidcAuthDataSource
+import com.kori.app.data.oidc.OidcConfig
 import com.kori.app.data.repository.ActivityRepository
 import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.data.repository.AgentSearchRepository
@@ -75,7 +75,6 @@ private class MockKoriAppContainer(context: Context) : KoriAppContainer {
 
     private val mockDashboardRepository = MockDashboardRepository()
     private val mockTransactionRepository = MockTransactionRepository()
-    private val mockAuthService = MockAuthService(localStorage)
     private val mockProfileRepository = MockProfileRepository()
     private val mockClientTransferRepository = MockClientTransferRepository()
     private val mockMerchantTransferRepository = MockMerchantTransferRepository()
@@ -86,7 +85,13 @@ private class MockKoriAppContainer(context: Context) : KoriAppContainer {
     override val transactionRepository: TransactionRepository =
         TransactionRepositoryImpl(MockTransactionDataSource(mockTransactionRepository))
     override val clientCardRepository: ClientCardRepository = MockClientCardRepository()
-    override val authService: AuthService = AuthServiceImpl(MockAuthDataSource(mockAuthService))
+    override val authService: AuthService = AuthServiceImpl(
+        OidcAuthDataSource(
+            context = context,
+            localStorage = localStorage,
+            oidcConfig = OidcConfig.fromBuildConfig(),
+        ),
+    )
     override val activityRepository: ActivityRepository = MockActivityRepository()
     override val clientTransferRepository: ClientTransferRepository =
         ClientTransferRepositoryImpl(MockClientTransferDataSource(mockClientTransferRepository))

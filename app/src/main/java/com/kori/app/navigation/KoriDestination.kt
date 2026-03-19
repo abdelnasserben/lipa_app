@@ -14,11 +14,6 @@ sealed class KoriDestination(
         label = "Connexion",
     )
 
-    data object AuthBrowserMock : KoriDestination(
-        route = "auth_browser_mock",
-        label = "Keycloak",
-    )
-
     data object AuthCallback : KoriDestination(
         route = "auth_callback",
         label = "Traitement",

@@ -1,5 +1,7 @@
 package com.kori.app.data.repository.impl
 
+import android.app.Activity
+import android.content.Intent
 import com.kori.app.core.model.auth.AuthState
 import com.kori.app.data.datasource.AuthDataSource
 import com.kori.app.data.repository.AuthService
@@ -10,11 +12,12 @@ class AuthServiceImpl(
 ) : AuthService {
     override val authState: StateFlow<AuthState> = dataSource.authState
 
-    override fun beginAuthentication() = dataSource.beginAuthentication()
+    override fun beginAuthentication(activity: Activity) = dataSource.beginAuthentication(activity)
 
-    override suspend fun completeAuthenticationSuccess() = dataSource.completeAuthenticationSuccess()
+    override suspend fun completeAuthenticationFromIntent(intent: Intent) =
+        dataSource.completeAuthenticationFromIntent(intent)
 
-    override fun failAuthentication(message: String) = dataSource.failAuthentication(message)
+    override suspend fun refreshSessionIfNeeded() = dataSource.refreshSessionIfNeeded()
 
     override fun logout() = dataSource.logout()
 }

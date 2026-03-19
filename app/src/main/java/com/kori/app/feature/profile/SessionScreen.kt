@@ -20,10 +20,12 @@ import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.model.auth.AuthSession
+import com.kori.app.core.model.auth.AuthState
 import com.kori.app.core.ui.maskToken
 
 @Composable
 fun SessionScreen(
+    authState: AuthState,
     session: AuthSession,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -56,6 +58,10 @@ fun SessionScreen(
                     SessionLine("Expiration", session.expiresAtIso)
                     SessionLine("Subject", session.subject)
                     SessionLine("Issuer", session.issuer)
+                    SessionLine(
+                        "État de connexion",
+                        if (authState is AuthState.Authenticated) "Connecté" else "Déconnecté",
+                    )
                     Text(
                         text = "Se déconnecter remet la session OIDC et le rôle actif à zéro.",
                         style = MaterialTheme.typography.bodySmall,

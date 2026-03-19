@@ -1,10 +1,8 @@
 package com.kori.app.data.mock
 
-import com.kori.app.core.model.auth.AuthState
 import com.kori.app.core.model.common.CursorPagedResponse
 import com.kori.app.core.model.transaction.TransactionItemResponse
 import com.kori.app.data.datasource.AgentActionDataSource
-import com.kori.app.data.datasource.AuthDataSource
 import com.kori.app.data.datasource.ClientTransferDataSource
 import com.kori.app.data.datasource.DashboardDataSource
 import com.kori.app.data.datasource.MerchantTransferDataSource
@@ -12,21 +10,6 @@ import com.kori.app.data.datasource.ProfileDataSource
 import com.kori.app.data.datasource.TransactionDataSource
 import com.kori.app.data.repository.RoleProfilePayload
 import com.kori.app.data.repository.TransactionQuery
-import kotlinx.coroutines.flow.StateFlow
-
-class MockAuthDataSource(
-    private val service: MockAuthService,
-) : AuthDataSource {
-    override val authState: StateFlow<AuthState> = service.authState
-
-    override fun beginAuthentication() = service.beginAuthentication()
-
-    override suspend fun completeAuthenticationSuccess() = service.completeAuthenticationSuccess()
-
-    override fun failAuthentication(message: String) = service.failAuthentication(message)
-
-    override fun logout() = service.logout()
-}
 
 class MockProfileDataSource(
     private val repository: MockProfileRepository,

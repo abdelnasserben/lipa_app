@@ -3,6 +3,8 @@ package com.kori.app.feature.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import android.app.Activity
+import android.content.Intent
 import com.kori.app.core.model.auth.AuthState
 import com.kori.app.data.repository.AuthService
 import kotlinx.coroutines.flow.StateFlow
@@ -14,18 +16,20 @@ class AuthViewModel(
 
     val authState: StateFlow<AuthState> = authService.authState
 
-    fun beginLogin() {
-        authService.beginAuthentication()
+    fun beginLogin(activity: Activity) {
+        authService.beginAuthentication(activity)
     }
 
-    fun completeLogin() {
+    fun completeLogin(intent: Intent) {
         viewModelScope.launch {
-            authService.completeAuthenticationSuccess()
+            authService.completeAuthenticationFromIntent(intent)
         }
     }
 
-    fun failLogin(message: String) {
-        authService.failAuthentication(message)
+    fun refreshSessionIfNeeded() {
+        viewModelScope.launch {
+            authService.refreshSessionIfNeeded()
+        }
     }
 
     fun logout() {

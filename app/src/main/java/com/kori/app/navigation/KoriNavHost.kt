@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -28,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.kori.app.app.KoriAppState
+import com.kori.app.app.OidcIntentBus
 import com.kori.app.core.designsystem.component.KoriBottomBar
 import com.kori.app.core.designsystem.component.KoriScaffold
 import com.kori.app.core.model.UserRole
@@ -54,7 +56,6 @@ import com.kori.app.feature.action.ClientTransferRoute
 import com.kori.app.feature.action.MerchantTransferRoute
 import com.kori.app.feature.activity.ActivityRoute
 import com.kori.app.feature.agentsearch.AgentSearchRoute
-import com.kori.app.feature.auth.AuthBrowserMockScreen
 import com.kori.app.feature.auth.AuthCallbackScreen
 import com.kori.app.feature.auth.AuthSuccessScreen
 import com.kori.app.feature.auth.AuthViewModel
@@ -86,6 +87,7 @@ fun KoriNavHost(
     modifier: Modifier = Modifier,
 ) {
     val session by appState.session.collectAsState()
+    val context = LocalContext.current
     val role = session.selectedRole
     val authState by authService.authState.collectAsState()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
@@ -121,6 +123,10 @@ fun KoriNavHost(
         }
     }
 
+    LaunchedEffect(authState) {
+        authService.refreshSessionIfNeeded()
+    }
+
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -154,25 +160,7 @@ fun KoriNavHost(
             AuthWelcomeScreen(
                 role = role,
                 onLoginClick = {
-                    authViewModel.beginLogin()
-                    navController.navigate(KoriDestination.AuthBrowserMock.route)
-                },
-            )
-        }
-
-        composable(KoriDestination.AuthBrowserMock.route) {
-            if (role == null || authState is AuthState.Authenticated) return@composable
-
-            val authViewModel: AuthViewModel = viewModel(
-                factory = AuthViewModel.factory(authService),
-            )
-
-            AuthBrowserMockScreen(
-                onContinueClick = {
-                    navController.navigate(KoriDestination.AuthCallback.route)
-                },
-                onErrorClick = {
-                    authViewModel.failLogin("La connexion Keycloak mock a été interrompue.")
+                    authViewModel.beginLogin(context as android.app.Activity)
                     navController.navigate(KoriDestination.AuthCallback.route)
                 },
             )
@@ -189,9 +177,7 @@ fun KoriNavHost(
             AuthCallbackScreen(
                 authState = localAuthState,
                 onProcess = {
-                    if (localAuthState !is AuthState.Error && localAuthState !is AuthState.Authenticated) {
-                        authViewModel.completeLogin()
-                    }
+                    authViewModel.refreshSessionIfNeeded()
                 },
                 onSuccess = {
                     navController.navigate(KoriDestination.AuthSuccess.route) {
@@ -199,12 +185,18 @@ fun KoriNavHost(
                     }
                 },
                 onRetry = {
-                    authViewModel.beginLogin()
-                    navController.navigate(KoriDestination.AuthBrowserMock.route) {
+                    authViewModel.beginLogin(context as android.app.Activity)
+                    navController.navigate(KoriDestination.AuthCallback.route) {
                         popUpTo(KoriDestination.AuthWelcome.route)
                     }
                 },
             )
+
+            LaunchedEffect(Unit) {
+                OidcIntentBus.intents.collect { incomingIntent ->
+                    authViewModel.completeLogin(incomingIntent)
+                }
+            }
         }
 
         composable(KoriDestination.AuthSuccess.route) {
@@ -553,6 +545,7 @@ fun KoriNavHost(
                 onBack = { navController.popBackStack() },
             ) { contentModifier ->
                 SessionScreen(
+                    authState = currentState,
                     session = (currentState as AuthState.Authenticated).session,
                     onLogout = {
                         authService.logout()
@@ -571,7 +564,6 @@ fun KoriNavHost(
 
 private val authRoutes = setOf(
     KoriDestination.AuthWelcome.route,
-    KoriDestination.AuthBrowserMock.route,
     KoriDestination.AuthCallback.route,
     KoriDestination.AuthSuccess.route,
 )
