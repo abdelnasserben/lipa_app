@@ -22,9 +22,9 @@ android {
 
         buildConfigField("String", "OIDC_ISSUER", "\"https://auth.dabel.fr/realms/kori\"")
         buildConfigField("String", "OIDC_CLIENT_ID", "\"kori-android\"")
-        buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.kori.app://oidc/callback\"")
-        buildConfigField("String", "OIDC_POST_LOGOUT_REDIRECT_URI", "\"com.kori.app://oidc/logout-callback\"")
-        buildConfigField("String", "OIDC_SCOPES", "\"openid profile email\"")
+        buildConfigField("String", "OIDC_REDIRECT_URI", "\"com.kori.app:/oauth2redirect\"")
+        buildConfigField("String", "OIDC_POST_LOGOUT_REDIRECT_URI", "\"com.kori.app:/oauth2redirect/logout\"")
+        buildConfigField("String", "OIDC_SCOPES", "\"openid profile email offline_access\"")
 
         manifestPlaceholders["appAuthRedirectScheme"] = "com.kori.app"
     }

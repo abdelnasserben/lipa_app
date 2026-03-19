@@ -8,11 +8,15 @@ import kotlinx.coroutines.flow.StateFlow
 interface AuthDataSource {
     val authState: StateFlow<AuthState>
 
-    fun beginAuthentication(activity: Activity)
+    fun startLogin(activity: Activity)
 
-    suspend fun completeAuthenticationFromIntent(intent: Intent)
+    suspend fun handleAuthorizationResponse(intent: Intent)
 
-    suspend fun refreshSessionIfNeeded()
+    suspend fun ensureFreshAccessToken(): String?
 
-    fun logout()
+    fun isAuthenticated(): Boolean
+
+    fun logout(activity: Activity)
+
+    fun clearSession()
 }

@@ -90,6 +90,7 @@ fun KoriNavHost(
     val context = LocalContext.current
     val role = session.selectedRole
     val authState by authService.authState.collectAsState()
+    val pendingOidcIntent by OidcIntentBus.intent.collectAsState()
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -123,10 +124,19 @@ fun KoriNavHost(
         }
     }
 
-    LaunchedEffect(authState) {
-        authService.refreshSessionIfNeeded()
-    }
+    LaunchedEffect(pendingOidcIntent) {
+        val incomingIntent = pendingOidcIntent ?: return@LaunchedEffect
+        val action = incomingIntent.action.orEmpty()
 
+        if (action.startsWith("com.kori.app.oidc.AUTH") && currentRoute != KoriDestination.AuthCallback.route) {
+            navController.navigate(KoriDestination.AuthCallback.route) {
+                launchSingleTop = true
+            }
+        }
+
+        authService.handleAuthorizationResponse(incomingIntent)
+        OidcIntentBus.clear()
+    }
 
     NavHost(
         navController = navController,
@@ -161,7 +171,7 @@ fun KoriNavHost(
             AuthWelcomeScreen(
                 role = role,
                 onLoginClick = {
-                    authViewModel.beginLogin(context as android.app.Activity)
+                    authViewModel.startLogin(context as android.app.Activity)
                     navController.navigate(KoriDestination.AuthCallback.route)
                 },
             )
@@ -174,13 +184,9 @@ fun KoriNavHost(
                 factory = AuthViewModel.factory(authService),
             )
             val localAuthState by authViewModel.authState.collectAsState()
-            val pendingOidcIntent by OidcIntentBus.intent.collectAsState()
 
             AuthCallbackScreen(
                 authState = localAuthState,
-                onProcess = {
-                    authViewModel.refreshSessionIfNeeded()
-                },
                 onSuccess = {
                     navController.navigate(KoriDestination.Dashboard.route) {
                         popUpTo(KoriDestination.AuthWelcome.route) {
@@ -190,18 +196,12 @@ fun KoriNavHost(
                     }
                 },
                 onRetry = {
-                    authViewModel.beginLogin(context as android.app.Activity)
+                    authViewModel.startLogin(context as android.app.Activity)
                     navController.navigate(KoriDestination.AuthCallback.route) {
                         popUpTo(KoriDestination.AuthWelcome.route)
                     }
                 },
             )
-
-            LaunchedEffect(pendingOidcIntent) {
-                val incomingIntent = pendingOidcIntent ?: return@LaunchedEffect
-                authViewModel.completeLogin(incomingIntent)
-                OidcIntentBus.clear()
-            }
         }
 
         composable(KoriDestination.AuthSuccess.route) {
@@ -553,12 +553,7 @@ fun KoriNavHost(
                     authState = currentState,
                     session = (currentState as AuthState.Authenticated).session,
                     onLogout = {
-                        authService.logout()
-                        appState.logoutToRolePicker()
-                        navController.navigate(KoriDestination.RolePicker.route) {
-                            popUpTo(navController.graph.id) { inclusive = true }
-                            launchSingleTop = true
-                        }
+                        authService.logout(context as android.app.Activity)
                     },
                     modifier = contentModifier,
                 )

@@ -65,6 +65,12 @@ fun AuthWelcomeScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
+            Text(
+                text = "État actuel : déconnecté",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             Card(
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(containerColor = KoriSurface),
@@ -103,15 +109,10 @@ fun AuthWelcomeScreen(
 @Composable
 fun AuthCallbackScreen(
     authState: AuthState,
-    onProcess: () -> Unit,
     onSuccess: () -> Unit,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LaunchedEffect(Unit) {
-        onProcess()
-    }
-
     LaunchedEffect(authState) {
         if (authState is AuthState.Authenticated) {
             onSuccess()

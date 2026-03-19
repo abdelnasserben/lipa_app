@@ -92,6 +92,18 @@ class SharedPrefsLocalStorage(
         }.apply()
     }
 
+    override fun getOidcAuthStateJson(): String? = sharedPreferences.getString(KEY_OIDC_AUTH_STATE_JSON, null)
+
+    override fun setOidcAuthStateJson(value: String?) {
+        sharedPreferences.edit().apply {
+            if (value == null) {
+                remove(KEY_OIDC_AUTH_STATE_JSON)
+            } else {
+                putString(KEY_OIDC_AUTH_STATE_JSON, value)
+            }
+        }.apply()
+    }
+
     private companion object {
         const val PREFS_NAME = "kori_local_storage"
 
@@ -104,6 +116,7 @@ class SharedPrefsLocalStorage(
         const val KEY_EXPIRES_AT_ISO = "auth_expires_at_iso"
         const val KEY_SUBJECT = "auth_subject"
         const val KEY_ISSUER = "auth_issuer"
+        const val KEY_OIDC_AUTH_STATE_JSON = "oidc_auth_state_json"
 
         const val DEFAULT_LANGUAGE_CODE = "FR"
         const val DEFAULT_NOTIFICATIONS_ENABLED = true

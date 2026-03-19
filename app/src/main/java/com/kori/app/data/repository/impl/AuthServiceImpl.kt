@@ -12,12 +12,16 @@ class AuthServiceImpl(
 ) : AuthService {
     override val authState: StateFlow<AuthState> = dataSource.authState
 
-    override fun beginAuthentication(activity: Activity) = dataSource.beginAuthentication(activity)
+    override fun startLogin(activity: Activity) = dataSource.startLogin(activity)
 
-    override suspend fun completeAuthenticationFromIntent(intent: Intent) =
-        dataSource.completeAuthenticationFromIntent(intent)
+    override suspend fun handleAuthorizationResponse(intent: Intent) =
+        dataSource.handleAuthorizationResponse(intent)
 
-    override suspend fun refreshSessionIfNeeded() = dataSource.refreshSessionIfNeeded()
+    override suspend fun ensureFreshAccessToken(): String? = dataSource.ensureFreshAccessToken()
 
-    override fun logout() = dataSource.logout()
+    override fun isAuthenticated(): Boolean = dataSource.isAuthenticated()
+
+    override fun logout(activity: Activity) = dataSource.logout(activity)
+
+    override fun clearSession() = dataSource.clearSession()
 }

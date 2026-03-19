@@ -19,4 +19,8 @@ interface LocalStorage {
     fun getAuthSession(): AuthSession?
 
     fun setAuthSession(session: AuthSession?)
+
+    fun getOidcAuthStateJson(): String?
+
+    fun setOidcAuthStateJson(value: String?)
 }

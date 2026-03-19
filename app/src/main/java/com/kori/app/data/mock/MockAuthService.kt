@@ -25,11 +25,11 @@ class MockAuthService(
     )
     override val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    override fun beginAuthentication(activity: Activity) {
+    override fun startLogin(activity: Activity) {
         _authState.value = AuthState.Authenticating
     }
 
-    override suspend fun completeAuthenticationFromIntent(intent: Intent) {
+    override suspend fun handleAuthorizationResponse(intent: Intent) {
         _authState.value = AuthState.Authenticating
         delay(1200)
 
@@ -45,11 +45,17 @@ class MockAuthService(
         _authState.value = AuthState.Authenticated(session)
     }
 
-    override suspend fun refreshSessionIfNeeded() {
-        // No-op for legacy mock implementation.
+    override suspend fun ensureFreshAccessToken(): String? {
+        return (authState.value as? AuthState.Authenticated)?.session?.accessToken
     }
 
-    override fun logout() {
+    override fun isAuthenticated(): Boolean = authState.value is AuthState.Authenticated
+
+    override fun logout(activity: Activity) {
+        clearSession()
+    }
+
+    override fun clearSession() {
         localStorage.setAuthSession(null)
         _authState.value = AuthState.Unauthenticated
     }

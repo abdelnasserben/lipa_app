@@ -35,8 +35,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="oidc"
-                    android:path="/callback"
+                    android:path="/oauth2redirect"
                     android:scheme="com.kori.app" />
             </intent-filter>
 
@@ -47,8 +46,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:host="oidc"
-                    android:path="/logout-callback"
+                    android:path="/oauth2redirect/logout"
                     android:scheme="com.kori.app" />
             </intent-filter>
         </activity>
