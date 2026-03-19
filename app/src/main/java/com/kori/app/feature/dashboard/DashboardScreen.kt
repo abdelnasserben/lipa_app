@@ -33,8 +33,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
@@ -54,6 +56,7 @@ import com.kori.app.core.designsystem.component.StatusBadge
 import com.kori.app.core.designsystem.component.TransactionRowCard
 import com.kori.app.core.designsystem.component.TypeChip
 import com.kori.app.core.model.UserRole
+import com.kori.app.core.ui.dashboardTitleResId
 import com.kori.app.core.model.balance.ActorBalanceResponse
 import com.kori.app.core.model.common.BalanceKind
 import com.kori.app.core.model.dashboard.ActivityItem
@@ -519,17 +522,16 @@ private fun DashboardHeader(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
-            text = role.dashboardTitle,
+            text = stringResource(role.dashboardTitleResId()),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             color = KoriPrimary,
         )
         Text(
             text = when (role) {
-                UserRole.CLIENT -> "Votre solde, vos cartes et vos derniers paiements en un coup d'œil."
-                UserRole.MERCHANT -> "Une lecture claire de votre performance, de vos terminaux et de vos flux."
-                UserRole.AGENT -> "Votre position cash, votre commission et vos opérations clés au même endroit."
-                else -> "Un aperçu clair et rassurant de votre activité KORI."
+                UserRole.CLIENT -> stringResource(R.string.role_picker_client_description)
+                UserRole.MERCHANT -> stringResource(R.string.role_picker_merchant_description)
+                UserRole.AGENT -> stringResource(R.string.role_picker_agent_description)
             },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

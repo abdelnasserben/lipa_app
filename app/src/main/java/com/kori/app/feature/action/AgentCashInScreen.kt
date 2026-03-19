@@ -13,11 +13,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.component.ConfirmModal
-import com.kori.app.core.designsystem.component.DebugPanel
 import com.kori.app.core.designsystem.component.DetailRow
 import com.kori.app.core.designsystem.component.ScreenHeader
 import com.kori.app.core.designsystem.component.SectionCard
@@ -40,34 +41,10 @@ fun AgentCashInScreen(
     modifier: Modifier = Modifier,
 ) {
     when (uiState) {
-        is AgentCashInUiState.Form -> AgentCashInFormContent(
-            state = uiState,
-            onPhoneChanged = onPhoneChanged,
-            onAmountChanged = onAmountChanged,
-            onContinue = onContinue,
-            modifier = modifier,
-        )
-
-        is AgentCashInUiState.Confirmation -> AgentCashInConfirmationContent(
-            state = uiState,
-            onOpenConfirmDialog = onOpenConfirmDialog,
-            onDismissConfirmDialog = onDismissConfirmDialog,
-            onConfirm = onConfirm,
-            onEdit = onEdit,
-            modifier = modifier,
-        )
-
-        is AgentCashInUiState.Success -> AgentCashInSuccessContent(
-            state = uiState,
-            onRestart = onRestart,
-            modifier = modifier,
-        )
-
-        is AgentCashInUiState.Failure -> AgentCashInFailureContent(
-            state = uiState,
-            onRestart = onRestart,
-            modifier = modifier,
-        )
+        is AgentCashInUiState.Form -> AgentCashInFormContent(uiState, onPhoneChanged, onAmountChanged, onContinue, modifier)
+        is AgentCashInUiState.Confirmation -> AgentCashInConfirmationContent(uiState, onOpenConfirmDialog, onDismissConfirmDialog, onConfirm, onEdit, modifier)
+        is AgentCashInUiState.Success -> AgentCashInSuccessContent(uiState, onRestart, modifier)
+        is AgentCashInUiState.Failure -> AgentCashInFailureContent(uiState, onRestart, modifier)
     }
 }
 
@@ -81,76 +58,37 @@ private fun AgentCashInFormContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item { ScreenHeader(stringResource(R.string.cash_in_form_title), stringResource(R.string.cash_in_form_subtitle)) }
         item {
-            ScreenHeader(
-                title = "Cash-in client",
-                subtitle = "Saisissez le numéro du client et le montant à créditer.",
-            )
-        }
-
-        item {
-            SectionCard(title = "Informations de cash-in") {
+            SectionCard(title = stringResource(R.string.cash_in_section)) {
                 OutlinedTextField(
                     value = state.draft.phoneNumber,
                     onValueChange = onPhoneChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Numéro du client") },
-                    placeholder = { Text("+269 3XX XX XX") },
+                    label = { Text(stringResource(R.string.cash_in_phone_label)) },
+                    placeholder = { Text(stringResource(R.string.cash_in_phone_placeholder)) },
                     singleLine = true,
                     isError = state.errors.phoneNumber != null,
-                    supportingText = {
-                        state.errors.phoneNumber?.let { Text(it) }
-                    },
+                    supportingText = { state.errors.phoneNumber?.let { Text(it) } },
                 )
-
                 OutlinedTextField(
                     value = state.draft.amountInput,
                     onValueChange = onAmountChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Montant") },
-                    placeholder = { Text("Ex. 25000") },
+                    label = { Text(stringResource(R.string.common_amount)) },
+                    placeholder = { Text(stringResource(R.string.cash_in_amount_placeholder)) },
                     singleLine = true,
                     isError = state.errors.amount != null,
-                    supportingText = {
-                        state.errors.amount?.let { Text(it) }
-                    },
+                    supportingText = { state.errors.amount?.let { Text(it) } },
                 )
             }
         }
-
         item {
-            DebugPanel(
-                lines = listOf(
-                    "Le quote générera une Idempotency-Key avant confirmation.",
-                    if (state.isLoading) "Réseau mock: préparation en cours" else "Réseau mock: prêt",
-                ),
-            )
-        }
-
-        item {
-            Button(
-                onClick = onContinue,
-                enabled = !state.isLoading,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(strokeWidth = 2.dp)
-                } else {
-                    Text("Continuer")
-                }
+            Button(onClick = onContinue, enabled = !state.isLoading, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary)) {
+                if (state.isLoading) CircularProgressIndicator(strokeWidth = 2.dp) else Text(stringResource(R.string.common_continue))
             }
         }
     }
@@ -167,76 +105,34 @@ private fun AgentCashInConfirmationContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item { ScreenHeader(stringResource(R.string.cash_in_confirm_title), stringResource(R.string.cash_in_confirm_subtitle)) }
         item {
-            ScreenHeader(
-                title = "Confirmer le cash-in",
-                subtitle = "Vérifiez les informations avant de valider l’opération.",
-            )
-        }
-
-        item {
-            SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Client", value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.phoneNumber))
-                DetailRow(label = "Montant", value = formatKmf(state.model.quote.amount))
-                DetailRow(label = "Frais", value = formatKmf(state.model.quote.fee), showDivider = false)
+            SectionCard(title = stringResource(R.string.common_details)) {
+                DetailRow(label = stringResource(R.string.cash_in_client), value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.phoneNumber))
+                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(state.model.quote.amount))
+                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(state.model.quote.fee), showDivider = false)
             }
         }
-
         item {
-            DebugPanel(
-                lines = listOf(
-                    "Idempotency-Key",
-                    state.model.quote.idempotencyKey,
-                    if (state.model.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
-                ),
-            )
-        }
-
-        item {
-            OutlinedButton(
-                onClick = onEdit,
-                enabled = !state.model.isSubmitting,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(999.dp),
-            ) {
-                Text("Modifier")
+            OutlinedButton(onClick = onEdit, enabled = !state.model.isSubmitting, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp)) {
+                Text(stringResource(R.string.common_edit))
             }
         }
-
         item {
-            Button(
-                onClick = onOpenConfirmDialog,
-                enabled = !state.model.isSubmitting,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
-            ) {
-                if (state.model.isSubmitting) {
-                    CircularProgressIndicator(strokeWidth = 2.dp)
-                } else {
-                    Text("Confirmer le cash-in")
-                }
+            Button(onClick = onOpenConfirmDialog, enabled = !state.model.isSubmitting, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary)) {
+                if (state.model.isSubmitting) CircularProgressIndicator(strokeWidth = 2.dp) else Text(stringResource(R.string.cash_in_confirm_button))
             }
         }
     }
-
     if (state.model.isConfirmDialogVisible) {
         ConfirmModal(
-            title = "Dernière vérification",
-            message = "Cette opération va créditer le portefeuille du client. Assurez-vous que le numéro et le montant sont corrects.",
-            confirmLabel = "Je confirme",
-            dismissLabel = "Annuler",
+            title = stringResource(R.string.flow_check_title),
+            message = stringResource(R.string.cash_in_confirm_message),
+            confirmLabel = stringResource(R.string.flow_check_confirm),
+            dismissLabel = stringResource(R.string.common_cancel),
             onConfirm = onConfirm,
             onDismiss = onDismissConfirmDialog,
         )
@@ -251,54 +147,25 @@ private fun AgentCashInSuccessContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item {
-            ScreenHeader(
-                title = "Cash-in enregistré",
-                subtitle = "Le portefeuille du client a été crédité avec succès.",
-            )
-        }
-
+        item { ScreenHeader(stringResource(R.string.cash_in_success_title), stringResource(R.string.cash_in_success_subtitle)) }
         item {
             SuccessReceiptSheet(
-                title = "Reçu de cash-in",
+                title = stringResource(R.string.cash_in_receipt_title),
                 lines = listOf(
-                    "Référence" to state.model.receipt.transactionRef,
-                    "Client" to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.clientPhoneNumber),
-                    "Montant" to formatKmf(state.model.receipt.amount),
-                    "Frais" to formatKmf(state.model.receipt.fee),
-                    "Date" to formatIsoToDisplay(state.model.receipt.createdAt),
+                    stringResource(R.string.common_reference) to state.model.receipt.transactionRef,
+                    stringResource(R.string.cash_in_client) to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.clientPhoneNumber),
+                    stringResource(R.string.common_amount) to formatKmf(state.model.receipt.amount),
+                    stringResource(R.string.common_fees) to formatKmf(state.model.receipt.fee),
+                    stringResource(R.string.common_date) to formatIsoToDisplay(state.model.receipt.createdAt),
                 ),
             )
         }
-
         item {
-            DebugPanel(
-                lines = listOf(
-                    "Idempotency-Key",
-                    state.model.idempotencyKey,
-                ),
-            )
-        }
-
-        item {
-            Button(
-                onClick = onRestart,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
-            ) {
-                Text("Nouveau cash-in")
+            Button(onClick = onRestart, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary)) {
+                Text(stringResource(R.string.cash_in_restart))
             }
         }
     }
@@ -312,48 +179,18 @@ private fun AgentCashInFailureContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        item { ScreenHeader(stringResource(R.string.cash_in_failure_title), stringResource(R.string.cash_in_failure_subtitle)) }
         item {
-            ScreenHeader(
-                title = "Cash-in non abouti",
-                subtitle = "L’opération n’a pas pu être finalisée.",
-            )
-        }
-
-        item {
-            SectionCard(title = "Détails") {
-                DetailRow(label = "Code erreur", value = state.model.code.name)
-                DetailRow(label = "Message", value = state.model.userMessage, showDivider = false)
+            SectionCard(title = stringResource(R.string.common_details)) {
+                DetailRow(label = stringResource(R.string.common_message), value = state.model.userMessage, showDivider = false)
             }
         }
-
         item {
-            DebugPanel(
-                lines = listOf(
-                    "Idempotency-Key",
-                    state.model.idempotencyKey,
-                ),
-            )
-        }
-
-        item {
-            Button(
-                onClick = onRestart,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
-            ) {
-                Text("Réessayer")
+            Button(onClick = onRestart, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary)) {
+                Text(stringResource(R.string.common_retry))
             }
         }
     }

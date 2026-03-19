@@ -19,12 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.model.UserRole
+import com.kori.app.core.ui.labelResId
 
 @Composable
 fun RolePickerScreen(
@@ -49,14 +52,14 @@ fun RolePickerScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = "Bienvenue sur KORI",
+                    text = stringResource(R.string.role_picker_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = KoriPrimary,
                 )
 
                 Text(
-                    text = "Choisissez un rôle pour prévisualiser l’expérience mobile.",
+                    text = stringResource(R.string.role_picker_subtitle),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -93,18 +96,20 @@ private fun RoleCard(
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Text(
-                text = role.label,
+                text = stringResource(role.labelResId()),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
 
             Text(
-                text = when (role) {
-                    UserRole.CLIENT -> "Consulter le solde, envoyer de l’argent, suivre les transactions."
-                    UserRole.MERCHANT -> "Piloter l’activité marchande, suivre les encaissements et transferts."
-                    UserRole.AGENT -> "Gérer les opérations terrain, le cash-in et les retraits marchands."
-                },
+                text = stringResource(
+                    when (role) {
+                        UserRole.CLIENT -> R.string.role_picker_client_description
+                        UserRole.MERCHANT -> R.string.role_picker_merchant_description
+                        UserRole.AGENT -> R.string.role_picker_agent_description
+                    },
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -119,7 +124,7 @@ private fun RoleCard(
                 ),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
             ) {
-                Text(text = "Entrer")
+                Text(text = stringResource(R.string.role_picker_enter))
             }
         }
     }

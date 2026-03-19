@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.CheckCircle
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kori.app.R
@@ -53,24 +54,24 @@ fun AuthWelcomeScreen(
                 .fillMaxSize()
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
                 painter = painterResource(id = R.drawable.lipa_wordmark),
-                contentDescription = "Logo Kori",
+                contentDescription = stringResource(R.string.auth_logo_description),
                 modifier = Modifier.width(200.dp).padding(bottom = 24.dp),
             )
 
             Text(
-                text = "Connexion sécurisée",
+                text = stringResource(R.string.auth_welcome_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = KoriPrimary,
             )
 
             Icon(
-                imageVector = Icons.Outlined.Lock,
-                contentDescription = "Sécurité",
+                imageVector = Icons.Filled.Lock,
+                contentDescription = stringResource(R.string.auth_security_icon_description),
                 modifier = Modifier.size(64.dp).padding(bottom = 24.dp),
                 tint = KoriAccent,
             )
@@ -85,7 +86,7 @@ fun AuthWelcomeScreen(
                 ),
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
             ) {
-                Text("Se connecter")
+                Text(stringResource(R.string.auth_login))
             }
         }
     }
@@ -116,12 +117,12 @@ fun AuthCallbackScreen(
             AuthState.Authenticating -> {
                 CircularProgressIndicator()
                 Text(
-                    text = "Traitement sécurisé de votre session…",
+                    text = stringResource(R.string.auth_callback_loading_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "Validation du code d’autorisation et finalisation de la session.",
+                    text = stringResource(R.string.auth_callback_loading_message),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -129,7 +130,7 @@ fun AuthCallbackScreen(
 
             is AuthState.Error -> {
                 Text(
-                    text = "Connexion interrompue",
+                    text = stringResource(R.string.auth_callback_error_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -142,14 +143,14 @@ fun AuthCallbackScreen(
                     onClick = onRetry,
                     shape = RoundedCornerShape(999.dp),
                 ) {
-                    Text("Réessayer")
+                    Text(stringResource(R.string.common_retry))
                 }
             }
 
             is AuthState.Authenticated -> {
                 CircularProgressIndicator()
                 Text(
-                    text = "Finalisation…",
+                    text = stringResource(R.string.auth_callback_success_title),
                     style = MaterialTheme.typography.titleMedium,
                 )
             }
@@ -176,14 +177,14 @@ fun AuthSuccessScreen(
         )
 
         Text(
-            text = "Connexion réussie",
+            text = stringResource(R.string.auth_success_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold,
             color = KoriPrimary,
         )
 
         Text(
-            text = "Votre session KORI est active. Vous pouvez maintenant accéder à votre dashboard.",
+            text = stringResource(R.string.auth_success_message),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -197,24 +198,7 @@ fun AuthSuccessScreen(
                 contentColor = KoriPrimary,
             ),
         ) {
-            Text("Accéder au dashboard")
+            Text(stringResource(R.string.auth_success_continue))
         }
-    }
-}
-
-@Composable
-private fun FeatureLine(
-    icon: @Composable () -> Unit,
-    text: String,
-) {
-    androidx.compose.foundation.layout.Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        icon()
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-        )
     }
 }

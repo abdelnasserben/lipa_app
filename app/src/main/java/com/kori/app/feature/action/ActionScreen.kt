@@ -15,8 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
@@ -76,7 +78,7 @@ private fun ClientActionHome(
     ) {
         item {
             Text(
-                text = "Envoyer",
+                text = stringResource(R.string.action_client_home_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = KoriPrimary,
@@ -85,9 +87,9 @@ private fun ClientActionHome(
 
         item {
             ActionEntryCard(
-                title = "Transfert P2P",
-                message = "Envoyez de l’argent à un proche en quelques étapes simples.",
-                cta = "Commencer",
+                title = stringResource(R.string.action_client_transfer_title),
+                message = stringResource(R.string.action_client_transfer_message),
+                cta = stringResource(R.string.action_start),
                 onClick = onOpenClientTransfer,
             )
         }
@@ -106,7 +108,7 @@ private fun MerchantActionHome(
     ) {
         item {
             Text(
-                text = "Transférer",
+                text = stringResource(R.string.action_merchant_home_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = KoriPrimary,
@@ -115,9 +117,9 @@ private fun MerchantActionHome(
 
         item {
             ActionEntryCard(
-                title = "Transfert marchand",
-                message = "Transférez des fonds vers un autre marchand de manière simple et sécurisée.",
-                cta = "Commencer",
+                title = stringResource(R.string.action_merchant_transfer_title),
+                message = stringResource(R.string.action_merchant_transfer_message),
+                cta = stringResource(R.string.action_start),
                 onClick = onOpenMerchantTransfer,
             )
         }
@@ -141,7 +143,7 @@ private fun AgentActionHome(
     ) {
         item {
             Text(
-                text = "Opérations",
+                text = stringResource(R.string.action_agent_home_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = KoriPrimary,
@@ -150,54 +152,54 @@ private fun AgentActionHome(
 
         item {
             ActionEntryCard(
-                title = "Cash-in client",
-                message = "Créditez le portefeuille d’un client à partir de son numéro de téléphone.",
-                cta = "Lancer",
+                title = stringResource(R.string.action_agent_cash_in_title),
+                message = stringResource(R.string.action_agent_cash_in_message),
+                cta = stringResource(R.string.action_start),
                 onClick = onOpenCashIn,
             )
         }
 
         item {
             ActionEntryCard(
-                title = "Retrait marchand",
-                message = "Effectuez un retrait marchand et visualisez immédiatement la commission agent.",
-                cta = "Lancer",
+                title = stringResource(R.string.action_agent_withdraw_title),
+                message = stringResource(R.string.action_agent_withdraw_message),
+                cta = stringResource(R.string.action_start),
                 onClick = onOpenMerchantWithdraw,
             )
         }
 
         item {
             ActionEntryCard(
-                title = "Enrôlement de carte",
-                message = "Associez une carte à un client en conformité avec le contrat API.",
-                cta = "Lancer",
+                title = stringResource(R.string.action_agent_card_enroll_title),
+                message = stringResource(R.string.action_agent_card_enroll_message),
+                cta = stringResource(R.string.action_start),
                 onClick = onOpenCardEnroll,
             )
         }
 
         item {
             ActionEntryCard(
-                title = "Ajout carte client",
-                message = "Ajoutez une nouvelle carte à un client déjà existant.",
-                cta = "Lancer",
+                title = stringResource(R.string.action_agent_card_add_title),
+                message = stringResource(R.string.action_agent_card_add_message),
+                cta = stringResource(R.string.action_start),
                 onClick = onOpenCardAdd,
             )
         }
 
         item {
             ActionEntryCard(
-                title = "Modification statut carte",
-                message = "Passez une carte existante en statut BLOCKED ou LOST.",
-                cta = "Lancer",
+                title = stringResource(R.string.action_agent_card_status_title),
+                message = stringResource(R.string.action_agent_card_status_message),
+                cta = stringResource(R.string.action_start),
                 onClick = onOpenCardStatusUpdate,
             )
         }
 
         item {
             ActionEntryCard(
-                title = "Recherche agent",
-                message = "Recherchez rapidement un client, une carte ou un terminal.",
-                cta = "Rechercher",
+                title = stringResource(R.string.action_agent_search_title),
+                message = stringResource(R.string.action_agent_search_message),
+                cta = stringResource(R.string.action_open_search),
                 onClick = onOpenAgentSearch,
             )
         }

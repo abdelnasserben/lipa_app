@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import net.openid.appauth.AuthState as AppAuthState
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
 import net.openid.appauth.AuthorizationResponse
@@ -33,6 +32,7 @@ import org.json.JSONObject
 import java.time.Duration
 import java.time.Instant
 import kotlin.coroutines.resume
+import net.openid.appauth.AuthState as AppAuthState
 
 class OidcAuthDataSource(
     private val context: Context,

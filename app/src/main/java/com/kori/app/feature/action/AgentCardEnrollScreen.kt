@@ -13,12 +13,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
-import com.kori.app.core.designsystem.component.DebugPanel
 import com.kori.app.core.designsystem.component.DetailRow
 import com.kori.app.core.designsystem.component.ScreenHeader
 import com.kori.app.core.designsystem.component.SectionCard
@@ -43,51 +44,42 @@ fun AgentCardEnrollScreen(
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            item { ScreenHeader(stringResource(R.string.card_enroll_form_title), stringResource(R.string.card_enroll_form_subtitle)) }
             item {
-                ScreenHeader(
-                    title = "Enrôlement de carte",
-                    subtitle = "Associez une carte à un client existant ou créez un nouveau client.",
-                )
-            }
-
-            item {
-                SectionCard(title = "Informations carte") {
+                SectionCard(title = stringResource(R.string.card_enroll_section)) {
                     OutlinedTextField(
                         value = uiState.draft.phoneNumber,
                         onValueChange = onPhoneChanged,
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Numéro client (optionnel)") },
-                        placeholder = { Text("+269 3XX XX XX") },
+                        label = { Text(stringResource(R.string.card_enroll_phone_label)) },
+                        placeholder = { Text(stringResource(R.string.client_transfer_recipient_placeholder)) },
                         singleLine = true,
                         isError = uiState.errors.phoneNumber != null,
                         supportingText = { uiState.errors.phoneNumber?.let { Text(it) } },
                     )
-
                     OutlinedTextField(
                         value = uiState.draft.displayName,
                         onValueChange = onDisplayNameChanged,
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("Nom client") },
+                        label = { Text(stringResource(R.string.card_enroll_name_label)) },
                         singleLine = true,
                         isError = uiState.errors.displayName != null,
                         supportingText = { uiState.errors.displayName?.let { Text(it) } },
                     )
-
                     OutlinedTextField(
                         value = uiState.draft.cardUid,
                         onValueChange = onCardUidChanged,
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("UID carte") },
+                        label = { Text(stringResource(R.string.card_enroll_card_label)) },
                         singleLine = true,
                         isError = uiState.errors.cardUid != null,
                         supportingText = { uiState.errors.cardUid?.let { Text(it) } },
                     )
-
                     OutlinedTextField(
                         value = uiState.draft.pin,
                         onValueChange = onPinChanged,
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text("PIN") },
+                        label = { Text(stringResource(R.string.card_enroll_pin_label)) },
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
@@ -96,20 +88,9 @@ fun AgentCardEnrollScreen(
                     )
                 }
             }
-
             item {
-                DebugPanel(lines = listOf("API cible: POST /api/v1/cards/enroll"))
-            }
-
-            item {
-                Button(
-                    onClick = onSubmit,
-                    enabled = !uiState.isSubmitting,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
-                ) {
-                    if (uiState.isSubmitting) CircularProgressIndicator(strokeWidth = 2.dp) else Text("Valider")
+                Button(onClick = onSubmit, enabled = !uiState.isSubmitting, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary)) {
+                    if (uiState.isSubmitting) CircularProgressIndicator(strokeWidth = 2.dp) else Text(stringResource(R.string.common_submit))
                 }
             }
         }
@@ -119,37 +100,34 @@ fun AgentCardEnrollScreen(
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { ScreenHeader(title = "Carte enrôlée", subtitle = "L’opération a été finalisée avec succès.") }
+            item { ScreenHeader(stringResource(R.string.card_enroll_success_title), stringResource(R.string.card_enroll_success_subtitle)) }
             item {
                 SuccessReceiptSheet(
-                    title = "Reçu d’enrôlement",
+                    title = stringResource(R.string.card_enroll_receipt_title),
                     lines = listOf(
-                        "Transaction" to uiState.receipt.transactionId,
-                        "Client" to uiState.receipt.clientCode,
-                        "Téléphone" to FinancialInputRules.formatComorosPhoneForDisplay(uiState.receipt.clientPhoneNumber),
-                        "Carte" to uiState.receipt.cardUid,
-                        "Prix carte" to formatKmf(uiState.receipt.cardPrice),
-                        "Commission" to formatKmf(uiState.receipt.agentCommission),
+                        stringResource(R.string.card_enroll_transaction) to uiState.receipt.transactionId,
+                        stringResource(R.string.card_enroll_client) to uiState.receipt.clientCode,
+                        stringResource(R.string.card_enroll_phone) to FinancialInputRules.formatComorosPhoneForDisplay(uiState.receipt.clientPhoneNumber),
+                        stringResource(R.string.card_enroll_card) to uiState.receipt.cardUid,
+                        stringResource(R.string.card_enroll_price) to formatKmf(uiState.receipt.cardPrice),
+                        stringResource(R.string.common_commission) to formatKmf(uiState.receipt.agentCommission),
                     ),
                 )
             }
             item {
-                SectionCard(title = "Statut") {
-                    DetailRow(label = "Client créé", value = if (uiState.receipt.clientCreated) "Oui" else "Non")
+                SectionCard(title = stringResource(R.string.card_enroll_status_title)) {
+                    DetailRow(label = stringResource(R.string.card_enroll_client_created), value = if (uiState.receipt.clientCreated) stringResource(R.string.common_yes) else stringResource(R.string.common_no))
                     DetailRow(
-                        label = "Profil créé",
-                        value = if (uiState.receipt.clientAccountProfileCreated) "Oui" else "Non",
+                        label = stringResource(R.string.card_enroll_profile_created),
+                        value = if (uiState.receipt.clientAccountProfileCreated) stringResource(R.string.common_yes) else stringResource(R.string.common_no),
                         showDivider = false,
                     )
                 }
             }
             item {
-                Button(
-                    onClick = onRestart,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
-                ) { Text("Nouvel enrôlement") }
+                Button(onClick = onRestart, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary)) {
+                    Text(stringResource(R.string.card_enroll_restart))
+                }
             }
         }
 
@@ -158,20 +136,16 @@ fun AgentCardEnrollScreen(
             contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { ScreenHeader(title = "Échec enrôlement", subtitle = "La carte n’a pas pu être enrôlée.") }
+            item { ScreenHeader(stringResource(R.string.card_enroll_failure_title), stringResource(R.string.card_enroll_failure_subtitle)) }
             item {
-                SectionCard(title = "Détails") {
-                    DetailRow(label = "Code", value = uiState.code)
-                    DetailRow(label = "Message", value = uiState.userMessage, showDivider = false)
+                SectionCard(title = stringResource(R.string.common_details)) {
+                    DetailRow(label = stringResource(R.string.common_message), value = uiState.userMessage, showDivider = false)
                 }
             }
             item {
-                Button(
-                    onClick = onRestart,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(999.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
-                ) { Text("Réessayer") }
+                Button(onClick = onRestart, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(999.dp), colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary)) {
+                    Text(stringResource(R.string.common_retry))
+                }
             }
         }
     }

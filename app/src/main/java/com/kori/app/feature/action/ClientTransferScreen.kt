@@ -13,11 +13,12 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.component.ConfirmModal
-import com.kori.app.core.designsystem.component.DebugPanel
 import com.kori.app.core.designsystem.component.DetailRow
 import com.kori.app.core.designsystem.component.ScreenHeader
 import com.kori.app.core.designsystem.component.SectionCard
@@ -89,58 +90,40 @@ private fun ClientTransferFormContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             ScreenHeader(
-                title = "Envoyer à un proche",
-                subtitle = "Saisissez le numéro du bénéficiaire et le montant à transférer.",
+                title = stringResource(R.string.client_transfer_form_title),
+                subtitle = stringResource(R.string.client_transfer_form_subtitle),
             )
         }
 
         item {
-            SectionCard(title = "Informations de transfert") {
+            SectionCard(title = stringResource(R.string.client_transfer_section)) {
                 OutlinedTextField(
                     value = state.draft.recipientPhoneNumber,
                     onValueChange = onRecipientChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Numéro du bénéficiaire") },
-                    placeholder = { Text("+269 3XX XX XX") },
+                    label = { Text(stringResource(R.string.client_transfer_recipient_label)) },
+                    placeholder = { Text(stringResource(R.string.client_transfer_recipient_placeholder)) },
                     singleLine = true,
                     isError = state.errors.recipientPhoneNumber != null,
-                    supportingText = {
-                        state.errors.recipientPhoneNumber?.let { Text(it) }
-                    },
+                    supportingText = { state.errors.recipientPhoneNumber?.let { Text(it) } },
                 )
 
                 OutlinedTextField(
                     value = state.draft.amountInput,
                     onValueChange = onAmountChanged,
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Montant") },
-                    placeholder = { Text("Ex. 15000") },
+                    label = { Text(stringResource(R.string.common_amount)) },
+                    placeholder = { Text(stringResource(R.string.client_transfer_amount_placeholder)) },
                     singleLine = true,
                     isError = state.errors.amount != null,
-                    supportingText = {
-                        state.errors.amount?.let { Text(it) }
-                    },
+                    supportingText = { state.errors.amount?.let { Text(it) } },
                 )
             }
-        }
-
-        item {
-            DebugPanel(
-                lines = listOf(
-                    "Le quote générera une Idempotency-Key avant confirmation.",
-                    if (state.isLoading) "Réseau mock: préparation en cours" else "Réseau mock: prêt",
-                ),
-            )
         }
 
         item {
@@ -149,17 +132,12 @@ private fun ClientTransferFormContent(
                 enabled = !state.isLoading,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
             ) {
                 if (state.isLoading) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                    )
+                    CircularProgressIndicator(strokeWidth = 2.dp)
                 } else {
-                    Text("Continuer")
+                    Text(stringResource(R.string.common_continue))
                 }
             }
         }
@@ -177,42 +155,30 @@ private fun ClientTransferConfirmationContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             ScreenHeader(
-                title = "Confirmer le transfert",
-                subtitle = "Vérifiez les informations avant d’exécuter l’opération.",
+                title = stringResource(R.string.client_transfer_confirm_title),
+                subtitle = stringResource(R.string.client_transfer_confirm_subtitle),
             )
         }
 
         item {
-            SectionCard(title = "Récapitulatif") {
-                DetailRow(label = "Bénéficiaire", value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.recipientPhoneNumber))
-                DetailRow(label = "Montant", value = formatKmf(state.model.quote.amount))
-                DetailRow(label = "Frais", value = formatKmf(state.model.quote.fee))
+            SectionCard(title = stringResource(R.string.common_details)) {
                 DetailRow(
-                    label = "Total débité",
+                    label = stringResource(R.string.client_transfer_recipient),
+                    value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.recipientPhoneNumber),
+                )
+                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(state.model.quote.amount))
+                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(state.model.quote.fee))
+                DetailRow(
+                    label = stringResource(R.string.client_transfer_total),
                     value = formatKmf(state.model.quote.totalDebited),
                     showDivider = false,
                 )
             }
-        }
-
-        item {
-            DebugPanel(
-                lines = listOf(
-                    "Idempotency-Key",
-                    state.model.quote.idempotencyKey,
-                    if (state.model.isSubmitting) "Réseau mock: soumission en cours" else "Réseau mock: en attente de confirmation",
-                ),
-            )
         }
 
         item {
@@ -222,7 +188,7 @@ private fun ClientTransferConfirmationContent(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
             ) {
-                Text("Modifier")
+                Text(stringResource(R.string.common_edit))
             }
         }
 
@@ -232,17 +198,12 @@ private fun ClientTransferConfirmationContent(
                 enabled = !state.model.isSubmitting,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
             ) {
                 if (state.model.isSubmitting) {
-                    CircularProgressIndicator(
-                        strokeWidth = 2.dp,
-                    )
+                    CircularProgressIndicator(strokeWidth = 2.dp)
                 } else {
-                    Text("Confirmer le transfert")
+                    Text(stringResource(R.string.client_transfer_confirm_button))
                 }
             }
         }
@@ -250,10 +211,10 @@ private fun ClientTransferConfirmationContent(
 
     if (state.model.isConfirmDialogVisible) {
         ConfirmModal(
-            title = "Dernière vérification",
-            message = "Cette opération financière va débiter votre solde principal. Assurez-vous que le numéro et le montant sont corrects.",
-            confirmLabel = "Je confirme",
-            dismissLabel = "Annuler",
+            title = stringResource(R.string.flow_check_title),
+            message = stringResource(R.string.client_transfer_confirm_message),
+            confirmLabel = stringResource(R.string.flow_check_confirm),
+            dismissLabel = stringResource(R.string.common_cancel),
             onConfirm = onConfirm,
             onDismiss = onDismissConfirmDialog,
         )
@@ -268,40 +229,26 @@ private fun ClientTransferSuccessContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             ScreenHeader(
-                title = "Transfert envoyé",
-                subtitle = "L’opération a été enregistrée avec succès.",
+                title = stringResource(R.string.client_transfer_success_title),
+                subtitle = stringResource(R.string.client_transfer_success_subtitle),
             )
         }
 
         item {
             SuccessReceiptSheet(
-                title = "Reçu de transfert",
+                title = stringResource(R.string.client_transfer_receipt_title),
                 lines = listOf(
-                    "Référence" to state.model.receipt.transactionRef,
-                    "Bénéficiaire" to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.recipientPhoneNumber),
-                    "Montant" to formatKmf(state.model.receipt.amount),
-                    "Frais" to formatKmf(state.model.receipt.fee),
-                    "Total débité" to formatKmf(state.model.receipt.totalDebited),
-                    "Date" to formatIsoToDisplay(state.model.receipt.createdAt),
-                ),
-            )
-        }
-
-        item {
-            DebugPanel(
-                lines = listOf(
-                    "Idempotency-Key",
-                    state.model.idempotencyKey,
+                    stringResource(R.string.common_reference) to state.model.receipt.transactionRef,
+                    stringResource(R.string.client_transfer_recipient) to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.recipientPhoneNumber),
+                    stringResource(R.string.common_amount) to formatKmf(state.model.receipt.amount),
+                    stringResource(R.string.common_fees) to formatKmf(state.model.receipt.fee),
+                    stringResource(R.string.client_transfer_total) to formatKmf(state.model.receipt.totalDebited),
+                    stringResource(R.string.common_date) to formatIsoToDisplay(state.model.receipt.createdAt),
                 ),
             )
         }
@@ -311,12 +258,9 @@ private fun ClientTransferSuccessContent(
                 onClick = onRestart,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
             ) {
-                Text("Nouveau transfert")
+                Text(stringResource(R.string.client_transfer_restart))
             }
         }
     }
@@ -330,35 +274,20 @@ private fun ClientTransferFailureContent(
 ) {
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(
-            start = 20.dp,
-            end = 20.dp,
-            top = 92.dp,
-            bottom = 20.dp
-        ),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
             ScreenHeader(
-                title = "Transfert non abouti",
-                subtitle = "L’opération n’a pas pu être finalisée.",
+                title = stringResource(R.string.client_transfer_failure_title),
+                subtitle = stringResource(R.string.client_transfer_failure_subtitle),
             )
         }
 
         item {
-            SectionCard(title = "Détails") {
-                DetailRow(label = "Code erreur", value = state.model.code.name)
-                DetailRow(label = "Message", value = state.model.userMessage, showDivider = false)
+            SectionCard(title = stringResource(R.string.common_details)) {
+                DetailRow(label = stringResource(R.string.common_message), value = state.model.userMessage, showDivider = false)
             }
-        }
-
-        item {
-            DebugPanel(
-                lines = listOf(
-                    "Idempotency-Key",
-                    state.model.idempotencyKey,
-                ),
-            )
         }
 
         item {
@@ -366,12 +295,9 @@ private fun ClientTransferFailureContent(
                 onClick = onRestart,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = KoriAccent, contentColor = KoriPrimary),
             ) {
-                Text("Réessayer")
+                Text(stringResource(R.string.common_retry))
             }
         }
     }

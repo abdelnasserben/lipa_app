@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -28,6 +29,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.kori.app.R
 import com.kori.app.app.KoriAppState
 import com.kori.app.app.OidcIntentBus
 import com.kori.app.core.designsystem.component.KoriBottomBar
@@ -225,8 +227,7 @@ fun KoriNavHost(
                 bottomBar = {
                     KoriBottomBar(
                         currentRoute = KoriDestination.Dashboard.route,
-                        activityLabel = role.historyLabel,
-                        actionLabel = role.actionLabel,
+                        role = role,
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
@@ -259,8 +260,7 @@ fun KoriNavHost(
                 bottomBar = {
                     KoriBottomBar(
                         currentRoute = KoriDestination.Transactions.route,
-                        activityLabel = role.historyLabel,
-                        actionLabel = role.actionLabel,
+                        role = role,
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
@@ -292,7 +292,7 @@ fun KoriNavHost(
             val transactionRef = backStackEntry.arguments?.getString("transactionRef").orEmpty()
 
             TopBarPage(
-                title = "Détail transaction",
+                title = stringResource(R.string.nav_transaction_detail),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 TransactionDetailRoute(
@@ -309,7 +309,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Transfert client",
+                title = stringResource(R.string.nav_client_transfer),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 ClientTransferRoute(
@@ -324,7 +324,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Transfert marchand",
+                title = stringResource(R.string.nav_merchant_transfer),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 MerchantTransferRoute(
@@ -339,7 +339,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Cash-in client",
+                title = stringResource(R.string.nav_agent_cash_in),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 AgentCashInRoute(
@@ -354,7 +354,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Retrait marchand",
+                title = stringResource(R.string.nav_agent_withdraw),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 AgentMerchantWithdrawRoute(
@@ -369,7 +369,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Enrôlement de carte",
+                title = stringResource(R.string.nav_agent_card_enroll),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 AgentCardEnrollRoute(
@@ -383,7 +383,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Ajout carte client",
+                title = stringResource(R.string.nav_agent_card_add),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 AgentCardAddRoute(
@@ -397,7 +397,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Statut carte",
+                title = stringResource(R.string.nav_agent_card_status),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 AgentCardStatusUpdateRoute(
@@ -412,7 +412,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Recherche agent",
+                title = stringResource(R.string.nav_agent_search),
                 onBack = { navController.popBackStack() },
             ) { _ ->
                 AgentSearchRoute(repository = agentSearchRepository)
@@ -426,8 +426,7 @@ fun KoriNavHost(
                 bottomBar = {
                     KoriBottomBar(
                         currentRoute = KoriDestination.Action.route,
-                        activityLabel = role.historyLabel,
-                        actionLabel = role.actionLabel,
+                        role = role,
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
@@ -471,8 +470,7 @@ fun KoriNavHost(
                 bottomBar = {
                     KoriBottomBar(
                         currentRoute = KoriDestination.Activity.route,
-                        activityLabel = role.historyLabel,
-                        actionLabel = role.actionLabel,
+                        role = role,
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
@@ -491,7 +489,7 @@ fun KoriNavHost(
             if (authState !is AuthState.Authenticated) return@composable
 
             TopBarPage(
-                title = "Mes cartes",
+                title = stringResource(R.string.nav_client_cards),
                 onBack = { navController.popBackStack() },
             ) { contentModifier ->
                 ClientCardsRoute(
@@ -509,8 +507,7 @@ fun KoriNavHost(
                 bottomBar = {
                     KoriBottomBar(
                         currentRoute = KoriDestination.Profile.route,
-                        activityLabel = role.historyLabel,
-                        actionLabel = role.actionLabel,
+                        role = role,
                         onNavigate = { route -> navController.navigateToTopLevel(route) },
                     )
                 },
@@ -583,7 +580,7 @@ private fun TopBarPage(
                     IconButton(onClick = onBack) {
                         Icon(
                             imageVector = Icons.Outlined.ArrowBack,
-                            contentDescription = "Retour",
+                            contentDescription = stringResource(R.string.common_back),
                         )
                     }
                 },

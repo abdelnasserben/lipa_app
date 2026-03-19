@@ -18,23 +18,27 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
+import com.kori.app.core.model.UserRole
+import com.kori.app.core.ui.actionLabelResId
+import com.kori.app.core.ui.historyLabelResId
 import com.kori.app.navigation.KoriDestination
 
 @Composable
 fun KoriBottomBar(
     currentRoute: String?,
-    activityLabel: String,
-    actionLabel: String,
+    role: UserRole,
     onNavigate: (String) -> Unit,
 ) {
     val items = listOf(
-        Triple(KoriDestination.Dashboard.route, "Accueil", Icons.Outlined.Dashboard),
-        Triple(KoriDestination.Transactions.route, "Transac.", Icons.Outlined.Wallet),
-        Triple(KoriDestination.Action.route, actionLabel, Icons.Outlined.SwapHoriz),
-        Triple(KoriDestination.Activity.route, activityLabel, Icons.Outlined.History),
-        Triple(KoriDestination.Profile.route, "Profil", Icons.Outlined.AccountCircle),
+        Triple(KoriDestination.Dashboard.route, stringResource(R.string.nav_home), Icons.Outlined.Dashboard),
+        Triple(KoriDestination.Transactions.route, stringResource(R.string.nav_transactions), Icons.Outlined.Wallet),
+        Triple(KoriDestination.Action.route, stringResource(role.actionLabelResId()), Icons.Outlined.SwapHoriz),
+        Triple(KoriDestination.Activity.route, stringResource(role.historyLabelResId()), Icons.Outlined.History),
+        Triple(KoriDestination.Profile.route, stringResource(R.string.nav_profile), Icons.Outlined.AccountCircle),
     )
 
     NavigationBar(
