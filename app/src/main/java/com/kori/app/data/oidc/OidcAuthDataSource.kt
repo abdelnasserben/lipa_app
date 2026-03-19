@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.util.Base64
 import android.util.Log
 import com.kori.app.MainActivity
 import com.kori.app.core.model.auth.AuthSession
@@ -312,53 +311,69 @@ class OidcAuthDataSource(
     }
 
     private fun persistCurrentState() {
-        val session = createSessionFromStateOrNull(appAuthState)
-        if (session == null) {
-            Log.w(TAG, "Refusing to persist unauthorized or incomplete auth state")
-            invalidateSession("OIDC token response does not contain a valid access token")
-            return
-        }
+        when (val sessionResult = createSessionFromState(appAuthState)) {
+            is SessionCreationResult.Failure -> {
+                Log.w(TAG, sessionResult.message)
+                clearSession()
+                _authState.value = AuthState.Error(sessionResult.message)
+            }
 
-        localStorage.setOidcAuthStateJson(null)
-        localStorage.setAuthSession(session)
-        _authState.value = AuthState.Authenticated(session)
-        scheduleSessionExpiration(session)
-        Log.i(TAG, "Persisted access-token-only session for subject=${session.subject}")
+            is SessionCreationResult.Success -> {
+                localStorage.setOidcAuthStateJson(null)
+                localStorage.setAuthSession(sessionResult.session)
+                _authState.value = AuthState.Authenticated(sessionResult.session)
+                scheduleSessionExpiration(sessionResult.session)
+                Log.i(TAG, "Persisted access-token-only session for subject=${sessionResult.session.subject}")
+            }
+        }
     }
 
-    private fun createSessionFromStateOrNull(state: AppAuthState): AuthSession? {
-        if (!state.isAuthorized) return null
+    private fun createSessionFromState(state: AppAuthState): SessionCreationResult {
+        if (!state.isAuthorized) {
+            return SessionCreationResult.Failure(
+                "Session OIDC invalide : état d'autorisation incomplet.",
+            )
+        }
 
-        val accessToken = state.accessToken ?: return null
-        val expiresAt = resolveExpiration(state, accessToken, state.idToken) ?: return null
+        val accessToken = state.accessToken ?: return SessionCreationResult.Failure(
+            "Session OIDC invalide : access token absent.",
+        )
+        val expiresAt = resolveExpiration(state, accessToken, state.idToken)
+            ?: return SessionCreationResult.Failure(
+                "Session OIDC invalide : expiration du token introuvable.",
+            )
 
         if (!Instant.now().isBefore(expiresAt)) {
             Log.w(TAG, "Ignoring already expired access token during session creation")
-            return null
+            return SessionCreationResult.Failure(
+                "Session OIDC invalide : access token expiré.",
+            )
         }
 
-        val idTokenClaims = state.idToken
-            ?.takeIf { it.isNotBlank() }
-            ?.let(::decodeJwtPayload)
-            ?.let(::parseJsonObject)
-        val accessTokenClaims = accessToken
-            .takeIf { it.isNotBlank() }
-            ?.let(::decodeJwtPayload)
-            ?.let(::parseJsonObject)
+        return when (val parseResult = KeycloakAccessTokenParser.parse(accessToken)) {
+            is KeycloakAccessTokenParseResult.Failure -> SessionCreationResult.Failure(parseResult.message)
 
-        val subject = idTokenClaims?.optString("sub")?.takeIf { it.isNotBlank() }
-            ?: accessTokenClaims?.optString("sub")?.takeIf { it.isNotBlank() }
-            ?: "unknown"
-        val issuer = idTokenClaims?.optString("iss")?.takeIf { it.isNotBlank() }
-            ?: accessTokenClaims?.optString("iss")?.takeIf { it.isNotBlank() }
-            ?: oidcConfig.issuer.toString()
+            is KeycloakAccessTokenParseResult.Success -> SessionCreationResult.Success(
+                AuthSession(
+                    accessToken = accessToken,
+                    expiresAtIso = expiresAt.toString(),
+                    subject = parseResult.token.subject,
+                    issuer = parseResult.token.issuer.takeUnless { it == "unknown" } ?: oidcConfig.issuer.toString(),
+                    userRole = parseResult.token.userRole,
+                    actorRef = parseResult.token.actorRef,
+                ),
+            )
+        }
+    }
 
-        return AuthSession(
-            accessToken = accessToken,
-            expiresAtIso = expiresAt.toString(),
-            subject = subject,
-            issuer = issuer,
-        )
+    private sealed interface SessionCreationResult {
+        data class Success(
+            val session: AuthSession,
+        ) : SessionCreationResult
+
+        data class Failure(
+            val message: String,
+        ) : SessionCreationResult
     }
 
     private fun resolveExpiration(
@@ -457,7 +472,8 @@ class OidcAuthDataSource(
         val chunks = jwt.split('.')
         if (chunks.size < 2) return "{}"
         return runCatching {
-            String(Base64.decode(chunks[1], Base64.URL_SAFE or Base64.NO_WRAP))
+            val decoded = java.util.Base64.getUrlDecoder().decode(chunks[1])
+            String(decoded, Charsets.UTF_8)
         }.getOrElse {
             Log.w(TAG, "Unable to decode JWT payload", it)
             "{}"

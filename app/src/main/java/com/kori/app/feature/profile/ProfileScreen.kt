@@ -183,12 +183,6 @@ private fun ProfileContent(
             )
         }
 
-        item {
-            DevMenuCard(
-                activeRole = state.role,
-                onSelectRole = onSelectRole,
-            )
-        }
     }
 }
 

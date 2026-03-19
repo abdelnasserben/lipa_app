@@ -17,7 +17,6 @@ import com.kori.app.data.mock.MockMerchantTransferDataSource
 import com.kori.app.data.mock.MockMerchantTransferRepository
 import com.kori.app.data.mock.MockProfileDataSource
 import com.kori.app.data.mock.MockProfileRepository
-import com.kori.app.data.mock.MockSessionRepository
 import com.kori.app.data.mock.MockTransactionDataSource
 import com.kori.app.data.mock.MockTransactionRepository
 import com.kori.app.data.oidc.OidcAuthDataSource
@@ -35,6 +34,7 @@ import com.kori.app.data.repository.SessionRepository
 import com.kori.app.data.repository.TransactionRepository
 import com.kori.app.data.repository.impl.AgentActionRepositoryImpl
 import com.kori.app.data.repository.impl.AuthServiceImpl
+import com.kori.app.data.repository.impl.SessionRepositoryImpl
 import com.kori.app.data.repository.impl.ClientTransferRepositoryImpl
 import com.kori.app.data.repository.impl.DashboardRepositoryImpl
 import com.kori.app.data.repository.impl.MerchantTransferRepositoryImpl
@@ -71,7 +71,6 @@ enum class RepositoryBindingMode {
 
 private class MockKoriAppContainer(context: Context) : KoriAppContainer {
     override val localStorage: LocalStorage = SharedPrefsLocalStorage(context)
-    override val sessionRepository: SessionRepository = MockSessionRepository(localStorage)
 
     private val mockDashboardRepository = MockDashboardRepository()
     private val mockTransactionRepository = MockTransactionRepository()
@@ -91,6 +90,10 @@ private class MockKoriAppContainer(context: Context) : KoriAppContainer {
             localStorage = localStorage,
             oidcConfig = OidcConfig.fromBuildConfig(),
         ),
+    )
+    override val sessionRepository: SessionRepository = SessionRepositoryImpl(
+        localStorage = localStorage,
+        authService = authService,
     )
     override val activityRepository: ActivityRepository = MockActivityRepository()
     override val clientTransferRepository: ClientTransferRepository =

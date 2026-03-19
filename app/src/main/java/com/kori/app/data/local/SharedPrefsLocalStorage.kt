@@ -63,12 +63,17 @@ class SharedPrefsLocalStorage(
         val expiresAtIso = sharedPreferences.getString(KEY_EXPIRES_AT_ISO, null) ?: return null
         val subject = sharedPreferences.getString(KEY_SUBJECT, null) ?: return null
         val issuer = sharedPreferences.getString(KEY_ISSUER, null) ?: return null
+        val userRoleValue = sharedPreferences.getString(KEY_USER_ROLE, null) ?: return null
+        val actorRef = sharedPreferences.getString(KEY_ACTOR_REF, null) ?: return null
+        val userRole = UserRole.entries.firstOrNull { it.name == userRoleValue } ?: return null
 
         return AuthSession(
             accessToken = accessToken,
             expiresAtIso = expiresAtIso,
             subject = subject,
             issuer = issuer,
+            userRole = userRole,
+            actorRef = actorRef,
         )
     }
 
@@ -80,12 +85,16 @@ class SharedPrefsLocalStorage(
                 remove(KEY_EXPIRES_AT_ISO)
                 remove(KEY_SUBJECT)
                 remove(KEY_ISSUER)
+                remove(KEY_USER_ROLE)
+                remove(KEY_ACTOR_REF)
             } else {
                 putString(KEY_ACCESS_TOKEN, session.accessToken)
                 remove(KEY_REFRESH_TOKEN)
                 putString(KEY_EXPIRES_AT_ISO, session.expiresAtIso)
                 putString(KEY_SUBJECT, session.subject)
                 putString(KEY_ISSUER, session.issuer)
+                putString(KEY_USER_ROLE, session.userRole.name)
+                putString(KEY_ACTOR_REF, session.actorRef)
             }
         }.apply()
     }
@@ -114,6 +123,8 @@ class SharedPrefsLocalStorage(
         const val KEY_EXPIRES_AT_ISO = "auth_expires_at_iso"
         const val KEY_SUBJECT = "auth_subject"
         const val KEY_ISSUER = "auth_issuer"
+        const val KEY_USER_ROLE = "auth_user_role"
+        const val KEY_ACTOR_REF = "auth_actor_ref"
         const val KEY_OIDC_AUTH_STATE_JSON = "oidc_auth_state_json"
 
         const val DEFAULT_LANGUAGE_CODE = "FR"

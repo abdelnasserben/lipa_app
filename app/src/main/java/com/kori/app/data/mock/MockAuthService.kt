@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.Base64
 import java.util.UUID
 
 class MockAuthService(
@@ -43,10 +44,12 @@ class MockAuthService(
         delay(1200)
 
         val session = AuthSession(
-            accessToken = "atk_${UUID.randomUUID()}_${UUID.randomUUID()}",
+            accessToken = buildMockAccessToken(actorRef = "AGT-0001", role = "AGENT"),
             expiresAtIso = Instant.now().plus(55, ChronoUnit.MINUTES).toString(),
             subject = "mock-user-kori",
             issuer = "https://mock.keycloak.kori.local/realms/kori",
+            userRole = com.kori.app.core.model.UserRole.AGENT,
+            actorRef = "AGT-0001",
         )
 
         localStorage.setAuthSession(session)
@@ -91,6 +94,16 @@ class MockAuthService(
         _authState.value = AuthState.Authenticated(session)
         scheduleSessionExpiration(session)
     }
+
+
+    private fun buildMockAccessToken(actorRef: String, role: String): String {
+        val header = "{\"alg\":\"none\",\"typ\":\"JWT\"}"
+        val payload = """{"sub":"mock-user-kori","iss":"https://mock.keycloak.kori.local/realms/kori","aud":["account","kori-api"],"actorRef":"$actorRef","resource_access":{"kori-api":{"roles":["$role"]}}}"""
+        return "${encodeJwtPart(header)}.${encodeJwtPart(payload)}.${UUID.randomUUID()}"
+    }
+
+    private fun encodeJwtPart(value: String): String =
+        Base64.getUrlEncoder().withoutPadding().encodeToString(value.toByteArray(Charsets.UTF_8))
 
     private fun scheduleSessionExpiration(session: AuthSession) {
         expirationJob?.cancel()

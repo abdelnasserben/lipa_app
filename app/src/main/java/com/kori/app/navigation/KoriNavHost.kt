@@ -147,15 +147,18 @@ fun KoriNavHost(
         composable(KoriDestination.RolePicker.route) {
             RolePickerScreen(
                 onRoleSelected = { selectedRole ->
-                    appState.selectRole(selectedRole)
-                    val nextRoute = when (authState) {
-                        is AuthState.Authenticated -> KoriDestination.Dashboard.route
-                        else -> KoriDestination.AuthWelcome.route
-                    }
-
-                    navController.navigate(nextRoute) {
-                        popUpTo(KoriDestination.RolePicker.route) {
-                            inclusive = true
+                    if (authState is AuthState.Authenticated) {
+                        navController.navigate(KoriDestination.Dashboard.route) {
+                            popUpTo(KoriDestination.RolePicker.route) {
+                                inclusive = true
+                            }
+                        }
+                    } else {
+                        appState.selectRole(selectedRole)
+                        navController.navigate(KoriDestination.AuthWelcome.route) {
+                            popUpTo(KoriDestination.RolePicker.route) {
+                                inclusive = true
+                            }
                         }
                     }
                 },
