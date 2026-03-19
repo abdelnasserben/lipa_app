@@ -37,7 +37,7 @@ import com.kori.app.core.ui.formatIsoToDisplay
 fun ProfileScreen(
     uiState: ProfileUiState,
     onRetry: () -> Unit,
-    onOpenSession: () -> Unit,
+    onLogout: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onNotificationsChanged: (Boolean) -> Unit,
     onSelectRole: (UserRole) -> Unit,
@@ -50,6 +50,7 @@ fun ProfileScreen(
                 message = uiState.message,
                 settings = uiState.settings,
                 onRetry = onRetry,
+                onLogout = onLogout,
                 onLanguageSelected = onLanguageSelected,
                 onNotificationsChanged = onNotificationsChanged,
                 modifier = modifier,
@@ -59,7 +60,7 @@ fun ProfileScreen(
         is ProfileUiState.Content -> {
             ProfileContent(
                 state = uiState,
-                onOpenSession = onOpenSession,
+                onLogout = onLogout,
                 onLanguageSelected = onLanguageSelected,
                 onNotificationsChanged = onNotificationsChanged,
                 onSelectRole = onSelectRole,
@@ -101,6 +102,7 @@ private fun ErrorContent(
     message: String,
     settings: ProfileSettingsUiModel,
     onRetry: () -> Unit,
+    onLogout: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onNotificationsChanged: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -133,13 +135,19 @@ private fun ErrorContent(
                 onNotificationsChanged = onNotificationsChanged,
             )
         }
+
+        item {
+            LogoutButton(
+                onLogout = onLogout,
+            )
+        }
     }
 }
 
 @Composable
 private fun ProfileContent(
     state: ProfileUiState.Content,
-    onOpenSession: () -> Unit,
+    onLogout: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onNotificationsChanged: (Boolean) -> Unit,
     onSelectRole: (UserRole) -> Unit,
@@ -159,17 +167,16 @@ private fun ProfileContent(
         }
 
         item {
-            SessionCard(
-                session = state.session,
-                onOpenSession = onOpenSession,
-            )
-        }
-
-        item {
             SettingsCard(
                 settings = state.settings,
                 onLanguageSelected = onLanguageSelected,
                 onNotificationsChanged = onNotificationsChanged,
+            )
+        }
+
+        item {
+            LogoutButton(
+                onLogout = onLogout,
             )
         }
 
@@ -196,7 +203,7 @@ private fun Header(
             color = KoriPrimary,
         )
         Text(
-            text = "Espace ${role.label.lowercase()} • paramètres, session et outils de prévisualisation.",
+            text = "Espace ${role.label.lowercase()} • paramètres et outils de prévisualisation.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -227,53 +234,24 @@ private fun ProfileCard(
             ProfileLine("Créé le", formatIsoToDisplay(profile.createdAt))
 
             profile.phone?.let { ProfileLine("Téléphone", it) }
-            profile.sessionSubject?.let { ProfileLine("Sujet session", it) }
         }
     }
 }
 
 @Composable
-private fun SessionCard(
-    session: SessionSummaryUiModel,
-    onOpenSession: () -> Unit,
+private fun LogoutButton(
+    onLogout: () -> Unit,
 ) {
-    Card(
+    Button(
+        onClick = onLogout,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = KoriSurface),
+        shape = RoundedCornerShape(999.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = KoriAccent,
+            contentColor = KoriPrimary,
+        ),
     ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Text(
-                text = "Session",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-
-            ProfileLine("État", session.connectionState.label)
-            session.issuer?.let { ProfileLine("Issuer", it) }
-            session.subject?.let { ProfileLine("Subject", it) }
-            session.expiration?.let { ProfileLine("Expiration", formatIsoToDisplay(it)) }
-
-            Text(
-                text = "Switch role conserve la session OIDC. Se déconnecter supprime la session et le rôle actif.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Button(
-                onClick = onOpenSession,
-                shape = RoundedCornerShape(999.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = KoriAccent,
-                    contentColor = KoriPrimary,
-                ),
-            ) {
-                Text(if (session.isConnected) "Ouvrir la session OIDC" else "Ouvrir l'écran session")
-            }
-        }
+        Text("Déconnexion")
     }
 }
 

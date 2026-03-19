@@ -63,7 +63,6 @@ import com.kori.app.feature.auth.AuthWelcomeScreen
 import com.kori.app.feature.cards.ClientCardsRoute
 import com.kori.app.feature.dashboard.DashboardRoute
 import com.kori.app.feature.profile.ProfileRoute
-import com.kori.app.feature.profile.SessionScreen
 import com.kori.app.feature.rolepicker.RolePickerScreen
 import com.kori.app.feature.transactions.TransactionDetailRoute
 import com.kori.app.feature.transactions.TransactionsRoute
@@ -518,11 +517,10 @@ fun KoriNavHost(
             ) { contentModifier ->
                 ProfileRoute(
                     role = role,
-                    authState = authState,
                     repository = profileRepository,
                     localStorage = localStorage,
-                    onOpenSession = {
-                        navController.navigate(KoriDestination.Session.route)
+                    onLogout = {
+                        authService.logout(context as android.app.Activity)
                     },
                     onSelectRole = { selectedRole ->
                         appState.switchRole(selectedRole)
@@ -540,25 +538,6 @@ fun KoriNavHost(
             }
         }
 
-        composable(KoriDestination.Session.route) {
-            val currentState by authService.authState.collectAsState()
-
-            if (currentState !is AuthState.Authenticated) return@composable
-
-            TopBarPage(
-                title = "Session OIDC",
-                onBack = { navController.popBackStack() },
-            ) { contentModifier ->
-                SessionScreen(
-                    authState = currentState,
-                    session = (currentState as AuthState.Authenticated).session,
-                    onLogout = {
-                        authService.logout(context as android.app.Activity)
-                    },
-                    modifier = contentModifier,
-                )
-            }
-        }
     }
 }
 
@@ -576,7 +555,6 @@ private val protectedRoutes = setOf(
     KoriDestination.Activity.route,
     KoriDestination.Profile.route,
     KoriDestination.ClientCards.route,
-    KoriDestination.Session.route,
     KoriDestination.ClientTransfer.route,
     KoriDestination.MerchantTransfer.route,
     KoriDestination.AgentCashIn.route,

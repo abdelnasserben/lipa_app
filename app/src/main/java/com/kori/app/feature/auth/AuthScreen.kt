@@ -1,5 +1,6 @@
 package com.kori.app.feature.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,14 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,11 +27,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
-import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.auth.AuthState
 
@@ -51,44 +53,27 @@ fun AuthWelcomeScreen(
                 .fillMaxSize()
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Image(
+                painter = painterResource(id = R.drawable.lipa_wordmark),
+                contentDescription = "Logo Kori",
+                modifier = Modifier.width(200.dp).padding(bottom = 24.dp),
+            )
+
             Text(
                 text = "Connexion sécurisée",
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = KoriPrimary,
             )
 
-            Text(
-                text = "Vous entrez dans l’espace ${role.label.lowercase()}. L’authentification finale utilisera OIDC Authorization Code Flow avec PKCE.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Icon(
+                imageVector = Icons.Outlined.Lock,
+                contentDescription = "Sécurité",
+                modifier = Modifier.size(64.dp).padding(bottom = 24.dp),
+                tint = KoriAccent,
             )
-
-            Text(
-                text = "État actuel : déconnecté",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Card(
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(containerColor = KoriSurface),
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    FeatureLine(
-                        icon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
-                        text = "Session sécurisée par Keycloak",
-                    )
-                    FeatureLine(
-                        icon = { Icon(Icons.Outlined.CheckCircle, contentDescription = null) },
-                        text = "Authorization Code Flow + PKCE",
-                    )
-                }
-            }
 
             Button(
                 onClick = onLoginClick,
