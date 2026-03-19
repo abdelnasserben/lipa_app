@@ -39,9 +39,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.component.CollapsibleFiltersCard
@@ -111,7 +114,7 @@ private fun TransactionsLoading(
         TransactionsTopHeader(role = null, count = null)
         CircularProgressIndicator()
         Text(
-            text = "Chargement de vos opérations…",
+            text = stringResource(R.string.transactions_loading),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -133,16 +136,16 @@ private fun TransactionsEmpty(
 
         EmptyState(
             title = if (filters.hasActiveFilters) {
-                "Aucun résultat pour ces filtres"
+                stringResource(R.string.transactions_empty_filtered_title)
             } else {
-                "Aucune transaction"
+                stringResource(R.string.transactions_empty_title)
             },
             message = if (filters.hasActiveFilters) {
-                "Essayez d’élargir la période, le montant ou le type d’opération."
+                stringResource(R.string.transactions_empty_filtered_message)
             } else {
-                "Les opérations récentes apparaîtront ici dès qu’elles seront disponibles."
+                stringResource(R.string.transactions_empty_message)
             },
-            actionLabel = if (filters.hasActiveFilters) "Effacer les filtres" else null,
+            actionLabel = if (filters.hasActiveFilters) stringResource(R.string.common_clear_filters) else null,
             onActionClick = if (filters.hasActiveFilters) onClearFilters else null,
         )
     }
@@ -160,7 +163,7 @@ private fun TransactionsError(
     ) {
         TransactionsTopHeader(role = null, count = null)
         ErrorState(
-            title = "Chargement indisponible",
+            title = stringResource(R.string.common_loading_unavailable),
             message = message,
             onRetry = onRetry,
         )
@@ -230,7 +233,7 @@ private fun TransactionsContent(
                             strokeWidth = 2.dp,
                         )
                     } else {
-                        Text("Charger plus")
+                        Text(stringResource(R.string.transactions_load_more))
                     }
                 }
             }
@@ -252,17 +255,17 @@ private fun TransactionsTopHeader(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = "Transactions",
+                text = stringResource(R.string.transactions_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
 
             Text(
                 text = when (role) {
-                    UserRole.CLIENT -> "Suivez simplement vos paiements, transferts et mouvements récents."
-                    UserRole.MERCHANT -> "Retrouvez les encaissements et opérations marchandes les plus récentes."
-                    UserRole.AGENT -> "Consultez rapidement les opérations terrain et dépôts récents."
-                    null -> "Consultez vos opérations récentes en un seul endroit."
+                    UserRole.CLIENT -> stringResource(R.string.transactions_subtitle_client)
+                    UserRole.MERCHANT -> stringResource(R.string.transactions_subtitle_merchant)
+                    UserRole.AGENT -> stringResource(R.string.transactions_subtitle_agent)
+                    null -> stringResource(R.string.transactions_subtitle_default)
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -274,10 +277,10 @@ private fun TransactionsTopHeader(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CountPill(
-                        text = if (count <= 1) "$count élément" else "$count éléments",
+                        text = pluralStringResource(R.plurals.common_count_elements, count, count),
                     )
                     Text(
-                        text = "triés selon vos filtres actifs",
+                        text = stringResource(R.string.transactions_count_sorted),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -357,7 +360,7 @@ private fun FiltersSection(
     }
 
     CollapsibleFiltersCard(
-        title = "Filtres",
+        title = stringResource(R.string.common_filters),
         activeCount = activeFiltersCount,
         expanded = isExpanded,
         onToggleExpanded = { isExpanded = !isExpanded },
@@ -377,7 +380,7 @@ private fun FiltersSection(
         },
     ) {
         Text(
-            text = "Filtres rapides",
+            text = stringResource(R.string.common_quick_filters),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
@@ -397,9 +400,9 @@ private fun FiltersSection(
                     label = {
                         Text(
                             if (hasPeriod) {
-                                "Période active"
+                                stringResource(R.string.common_period_active)
                             } else {
-                                "Toutes périodes"
+                                stringResource(R.string.common_period_all)
                             },
                         )
                     },
@@ -424,9 +427,9 @@ private fun FiltersSection(
                     label = {
                         Text(
                             if (hasAmount) {
-                                "Montant actif"
+                                stringResource(R.string.transactions_quick_amount_active)
                             } else {
-                                "Tous montants"
+                                stringResource(R.string.transactions_quick_amount_all)
                             },
                         )
                     },
@@ -441,19 +444,19 @@ private fun FiltersSection(
         }
 
         Text(
-            text = "Type",
+            text = stringResource(R.string.common_type),
             style = MaterialTheme.typography.labelLarge,
         )
 
         val typeOptions = listOf(
-            FilterOption(value = "Tous", label = "Tous"),
+            FilterOption(value = stringResource(R.string.common_all), label = stringResource(R.string.common_all)),
         ) + TransactionType.entries.map { type ->
             FilterOption(value = type.name, label = type.displayLabel())
         }
 
         FilterChipRow(
             items = typeOptions,
-            selectedItem = selectedType ?: "Tous",
+            selectedItem = selectedType ?: stringResource(R.string.common_all),
             onSelected = { selected ->
                 selectedType = selected.takeUnless { it == "Tous" }
                 onApplyFilters(
@@ -471,19 +474,19 @@ private fun FiltersSection(
         )
 
         Text(
-            text = "Statut",
+            text = stringResource(R.string.common_status),
             style = MaterialTheme.typography.labelLarge,
         )
 
         val statusOptions = listOf(
-            FilterOption(value = "Tous", label = "Tous"),
+            FilterOption(value = stringResource(R.string.common_all), label = stringResource(R.string.common_all)),
         ) + TransactionStatus.entries.map { status ->
             FilterOption(value = status.name, label = status.displayLabel())
         }
 
         FilterChipRow(
             items = statusOptions,
-            selectedItem = selectedStatus ?: "Tous",
+            selectedItem = selectedStatus ?: stringResource(R.string.common_all),
             onSelected = { selected ->
                 selectedStatus = selected.takeUnless { it == "Tous" }
                 onApplyFilters(
@@ -501,14 +504,14 @@ private fun FiltersSection(
         )
 
         Text(
-            text = "Période",
+            text = stringResource(R.string.common_period),
             style = MaterialTheme.typography.labelLarge,
         )
 
         NativeDateField(
-            label = "Du",
+            label = stringResource(R.string.common_from),
             value = formatIsoDateForInput(fromIso),
-            placeholder = "Sélectionner une date",
+            placeholder = stringResource(R.string.common_choose_date),
             initialIso = fromIso,
             onDateSelected = { localDateIsoUtcStart ->
                 fromIso = localDateIsoUtcStart
@@ -526,9 +529,9 @@ private fun FiltersSection(
         )
 
         NativeDateField(
-            label = "Au",
+            label = stringResource(R.string.common_to),
             value = formatIsoDateForInput(toIso),
-            placeholder = "Sélectionner une date",
+            placeholder = stringResource(R.string.common_choose_date),
             initialIso = toIso,
             onDateSelected = { localDateIsoUtcEnd ->
                 toIso = localDateIsoUtcEnd
@@ -546,7 +549,7 @@ private fun FiltersSection(
         )
 
         Text(
-            text = "Montant",
+            text = stringResource(R.string.transactions_amount),
             style = MaterialTheme.typography.labelLarge,
         )
 
@@ -555,8 +558,8 @@ private fun FiltersSection(
             onValueChange = { minAmount = it.filter { ch -> ch.isDigit() } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            label = { Text("Minimum") },
-            placeholder = { Text("Ex. 5000") },
+            label = { Text(stringResource(R.string.transactions_minimum)) },
+            placeholder = { Text(stringResource(R.string.transactions_minimum_placeholder)) },
         )
 
         OutlinedTextField(
@@ -564,12 +567,12 @@ private fun FiltersSection(
             onValueChange = { maxAmount = it.filter { ch -> ch.isDigit() } },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
-            label = { Text("Maximum") },
-            placeholder = { Text("Ex. 100000") },
+            label = { Text(stringResource(R.string.transactions_maximum)) },
+            placeholder = { Text(stringResource(R.string.transactions_maximum_placeholder)) },
         )
 
         Text(
-            text = "Tri",
+            text = stringResource(R.string.common_sort),
             style = MaterialTheme.typography.labelLarge,
         )
 
@@ -631,7 +634,7 @@ private fun FiltersSection(
                         onClearFilters()
                     },
                 ) {
-                    Text("Réinitialiser")
+                    Text(stringResource(R.string.common_reset))
                 }
             }
         }
@@ -657,7 +660,7 @@ private fun FiltersSection(
                 contentColor = KoriPrimary,
             ),
         ) {
-            Text("Appliquer les filtres")
+            Text(stringResource(R.string.transactions_apply_filters))
         }
     }
 }
@@ -718,7 +721,7 @@ private fun NativeDateField(
                         calendar.get(Calendar.DAY_OF_MONTH),
                     ).show()
                 },
-                label = { Text("Choisir une date") },
+                label = { Text(stringResource(R.string.common_choose_date)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Outlined.CalendarMonth,
@@ -729,7 +732,7 @@ private fun NativeDateField(
 
             if (onClear != null) {
                 TextButton(onClick = onClear) {
-                    Text("Effacer")
+                    Text(stringResource(R.string.common_clear))
                 }
             }
         }
@@ -782,17 +785,18 @@ private fun countActiveFilters(
     return count
 }
 
+@Composable
 private fun activeFiltersSummary(filters: TransactionsFilterState): String {
     val parts = buildList {
         filters.selectedType?.let { add(TransactionType.valueOf(it).displayLabel()) }
         filters.selectedStatus?.let { add(TransactionStatus.valueOf(it).displayLabel()) }
 
         if (filters.from.isNotBlank() || filters.to.isNotBlank()) {
-            add("Période")
+            add(stringResource(R.string.common_period))
         }
 
         if (filters.minAmount.isNotBlank() || filters.maxAmount.isNotBlank()) {
-            add("Montant")
+            add(stringResource(R.string.transactions_filter_summary_amount))
         }
 
         if (filters.sort != TransactionSortOption.DATE_DESC) {

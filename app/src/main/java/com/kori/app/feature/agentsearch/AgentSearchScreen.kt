@@ -22,8 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.designsystem.component.EmptyState
 import com.kori.app.core.model.search.AgentSearchItem
@@ -43,7 +45,7 @@ fun AgentSearchScreen(
     ) {
         item {
             Text(
-                text = "Recherche agent",
+                text = stringResource(R.string.agent_search_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -56,13 +58,13 @@ fun AgentSearchScreen(
                     onValueChange = { query = it },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    label = { Text("Téléphone, carte ou terminal") },
+                    label = { Text(stringResource(R.string.agent_search_field_label)) },
                 )
                 Button(
                     onClick = { onSearch(query) },
                     enabled = query.isNotBlank(),
                 ) {
-                    Text("Rechercher")
+                    Text(stringResource(R.string.action_open_search))
                 }
             }
         }
@@ -71,8 +73,8 @@ fun AgentSearchScreen(
             AgentSearchUiState.Idle -> {
                 item {
                     EmptyState(
-                        title = "Lancez une recherche",
-                        message = "Saisissez une valeur puis appuyez sur Rechercher.",
+                        title = stringResource(R.string.agent_search_idle_title),
+                        message = stringResource(R.string.agent_search_idle_message),
                     )
                 }
             }
@@ -100,8 +102,8 @@ fun AgentSearchScreen(
             is AgentSearchUiState.Empty -> {
                 item {
                     EmptyState(
-                        title = "Aucun résultat",
-                        message = "Aucun élément ne correspond à “${uiState.query}”.",
+                        title = stringResource(R.string.agent_search_empty_title),
+                        message = stringResource(R.string.agent_search_empty_message, uiState.query),
                     )
                 }
             }
@@ -109,7 +111,7 @@ fun AgentSearchScreen(
             is AgentSearchUiState.Error -> {
                 item {
                     EmptyState(
-                        title = "Recherche indisponible",
+                        title = stringResource(R.string.agent_search_error_title),
                         message = uiState.message,
                     )
                 }

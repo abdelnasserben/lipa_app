@@ -24,14 +24,17 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.designsystem.component.ErrorState
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.ui.formatIsoToDisplay
+import com.kori.app.core.ui.labelResId
 
 @Composable
 fun ProfileScreen(
@@ -86,14 +89,14 @@ private fun LoadingContent(
     ) {
         item {
             Text(
-                text = "Profil",
+                text = stringResource(R.string.profile_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
         }
 
-        item { SkeletonCard(title = "Chargement du profil…") }
-        item { SkeletonCard(title = "Préparation des paramètres…") }
+        item { SkeletonCard(title = stringResource(R.string.profile_loading_title)) }
+        item { SkeletonCard(title = stringResource(R.string.profile_loading_settings)) }
     }
 }
 
@@ -114,7 +117,7 @@ private fun ErrorContent(
     ) {
         item {
             Text(
-                text = "Profil",
+                text = stringResource(R.string.profile_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -122,7 +125,7 @@ private fun ErrorContent(
 
         item {
             ErrorState(
-                title = "Profil indisponible",
+                title = stringResource(R.string.profile_error_title),
                 message = message,
                 onRetry = onRetry,
             )
@@ -197,13 +200,13 @@ private fun Header(
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Text(
-            text = "Profil",
+            text = stringResource(R.string.profile_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
             color = KoriPrimary,
         )
         Text(
-            text = "Espace ${role.label.lowercase()} • paramètres et outils de prévisualisation.",
+            text = stringResource(R.string.profile_header_subtitle, stringResource(role.labelResId()).lowercase()),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -229,11 +232,11 @@ private fun ProfileCard(
                 fontWeight = FontWeight.SemiBold,
             )
 
-            ProfileLine("Code", profile.code)
-            ProfileLine("Statut", profile.status)
-            ProfileLine("Créé le", formatIsoToDisplay(profile.createdAt))
+            ProfileLine(stringResource(R.string.profile_code), profile.code)
+            ProfileLine(stringResource(R.string.common_status), profile.status)
+            ProfileLine(stringResource(R.string.profile_created_at), formatIsoToDisplay(profile.createdAt))
 
-            profile.phone?.let { ProfileLine("Téléphone", it) }
+            profile.phone?.let { ProfileLine(stringResource(R.string.profile_phone), it) }
         }
     }
 }
@@ -251,7 +254,7 @@ private fun LogoutButton(
             contentColor = KoriPrimary,
         ),
     ) {
-        Text("Déconnexion")
+        Text(stringResource(R.string.profile_logout))
     }
 }
 
@@ -271,14 +274,14 @@ private fun SettingsCard(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Paramètres",
+                text = stringResource(R.string.profile_settings_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "Langue",
+                    text = stringResource(R.string.profile_language),
                     style = MaterialTheme.typography.labelLarge,
                 )
 
@@ -297,7 +300,7 @@ private fun SettingsCard(
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = "Thème",
+                    text = stringResource(R.string.profile_theme),
                     style = MaterialTheme.typography.labelLarge,
                 )
                 AssistChip(
@@ -319,11 +322,11 @@ private fun SettingsCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text = "Notifications",
+                        text = stringResource(R.string.profile_notifications),
                         style = MaterialTheme.typography.labelLarge,
                     )
                     Text(
-                        text = "Préférence locale mockée pour les alertes et rappels.",
+                        text = stringResource(R.string.profile_notifications_helper),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -353,13 +356,13 @@ private fun DevMenuCard(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = "Dev menu",
+                text = stringResource(R.string.profile_preview_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
 
             Text(
-                text = "Changez rapidement de rôle pour prévisualiser les expériences Client, Merchant et Agent. Le switch rôle conserve la session courante.",
+                text = stringResource(R.string.profile_preview_message),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -369,7 +372,7 @@ private fun DevMenuCard(
                     FilterChip(
                         selected = role == activeRole,
                         onClick = { onSelectRole(role) },
-                        label = { Text(role.label) },
+                        label = { Text(stringResource(role.labelResId())) },
                     )
                 }
             }
@@ -416,7 +419,7 @@ private fun SkeletonCard(
                 fontWeight = FontWeight.Medium,
             )
             Text(
-                text = "Veuillez patienter…",
+                text = stringResource(R.string.profile_loading_wait),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -10,8 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.component.ClientCardListItem
 import com.kori.app.core.designsystem.component.EmptyState
 import com.kori.app.core.designsystem.component.ErrorState
@@ -48,12 +50,12 @@ private fun ClientCardsLoading(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
-            text = "Mes cartes",
+            text = stringResource(R.string.client_cards_title),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = "Chargement de vos cartes...",
+            text = stringResource(R.string.client_cards_loading),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -68,8 +70,8 @@ private fun ClientCardsEmpty(
         modifier = modifier.padding(20.dp),
     ) {
         EmptyState(
-            title = "Aucune carte disponible",
-            message = "Vos cartes apparaîtront ici dès qu'elles seront enrôlées.",
+            title = stringResource(R.string.client_cards_empty_title),
+            message = stringResource(R.string.client_cards_empty_message),
         )
     }
 }
@@ -84,7 +86,7 @@ private fun ClientCardsError(
         modifier = modifier.padding(20.dp),
     ) {
         ErrorState(
-            title = "Liste des cartes indisponible",
+            title = stringResource(R.string.client_cards_error_title),
             message = message,
             onRetry = onRetry,
         )
@@ -104,12 +106,12 @@ private fun ClientCardsContent(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = "Mes cartes",
+                    text = stringResource(R.string.client_cards_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
                 )
                 Text(
-                    text = "Consultez l'état actuel de toutes vos cartes.",
+                    text = stringResource(R.string.client_cards_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

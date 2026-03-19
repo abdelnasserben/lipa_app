@@ -158,14 +158,14 @@ private fun DashboardLoading(
         item {
             RoleHintCard(
                 title = when (role) {
-                    UserRole.CLIENT -> "Préparation de votre espace client"
-                    UserRole.MERCHANT -> "Préparation du cockpit marchand"
-                    UserRole.AGENT -> "Préparation de votre poste agent"
+                    UserRole.CLIENT -> stringResource(R.string.dashboard_loading_client_title)
+                    UserRole.MERCHANT -> stringResource(R.string.dashboard_loading_merchant_title)
+                    UserRole.AGENT -> stringResource(R.string.dashboard_loading_agent_title)
                 },
                 message = when (role) {
-                    UserRole.CLIENT -> "Solde, cartes, alertes et dernières transactions arrivent."
-                    UserRole.MERCHANT -> "KPIs 7 jours, terminaux et activité récente arrivent."
-                    UserRole.AGENT -> "Cash, commission, alertes et activités récentes arrivent."
+                    UserRole.CLIENT -> stringResource(R.string.dashboard_loading_client_message)
+                    UserRole.MERCHANT -> stringResource(R.string.dashboard_loading_merchant_message)
+                    UserRole.AGENT -> stringResource(R.string.dashboard_loading_agent_message)
                 },
             )
         }
@@ -193,36 +193,36 @@ private fun DashboardEmpty(
         when (role) {
             UserRole.CLIENT -> {
                 EmptyState(
-                    title = "Votre espace client est prêt",
-                    message = "Dès vos premiers mouvements, vous verrez ici vos cartes, alertes et transactions récentes.",
-                    actionLabel = "Voir mon profil",
+                    title = stringResource(R.string.dashboard_empty_client_title),
+                    message = stringResource(R.string.dashboard_empty_client_message),
+                    actionLabel = stringResource(R.string.dashboard_empty_client_action),
                     onActionClick = onOpenProfile,
                 )
             }
 
             UserRole.MERCHANT -> {
                 EmptyState(
-                    title = "Aucune activité marchande récente",
-                    message = "Les indicateurs 7 jours et le résumé des terminaux apparaîtront dès les premières transactions.",
-                    actionLabel = "Voir l'historique",
+                    title = stringResource(R.string.dashboard_empty_merchant_title),
+                    message = stringResource(R.string.dashboard_empty_merchant_message),
+                    actionLabel = stringResource(R.string.dashboard_empty_merchant_action),
                     onActionClick = onOpenTransactions,
                 )
             }
 
             UserRole.AGENT -> {
                 EmptyState(
-                    title = "Aucune activité agent pour le moment",
-                    message = "Votre position cash, votre commission et vos dernières opérations apparaîtront ici après vos premiers mouvements.",
-                    actionLabel = "Démarrer une opération",
+                    title = stringResource(R.string.dashboard_empty_agent_title),
+                    message = stringResource(R.string.dashboard_empty_agent_message),
+                    actionLabel = stringResource(R.string.dashboard_empty_agent_action),
                     onActionClick = onOpenAction,
                 )
             }
 
             else -> {
                 EmptyState(
-                    title = "Aucune donnée disponible",
-                    message = "Votre dashboard se remplira dès les premières activités.",
-                    actionLabel = "Voir le profil",
+                    title = stringResource(R.string.dashboard_empty_default_title),
+                    message = stringResource(R.string.dashboard_empty_default_message),
+                    actionLabel = stringResource(R.string.dashboard_empty_default_action),
                     onActionClick = onOpenProfile,
                 )
             }
@@ -245,10 +245,10 @@ private fun DashboardError(
 
         ErrorState(
             title = when (role) {
-                UserRole.CLIENT -> "Dashboard client indisponible"
-                UserRole.MERCHANT -> "Dashboard marchand indisponible"
-                UserRole.AGENT -> "Dashboard agent indisponible"
-                else -> "Dashboard indisponible"
+                UserRole.CLIENT -> stringResource(R.string.dashboard_error_client)
+                UserRole.MERCHANT -> stringResource(R.string.dashboard_error_merchant)
+                UserRole.AGENT -> stringResource(R.string.dashboard_error_agent)
+                else -> stringResource(R.string.dashboard_error_default)
             },
             message = message,
             onRetry = onRetry,
@@ -280,31 +280,31 @@ private fun ClientDashboardContent(
 
         item {
             BalanceCard(
-                title = "Solde principal",
+                title = stringResource(R.string.dashboard_client_balance),
                 balance = state.data.balance,
             )
         }
 
         item {
             SectionBlock(
-                eyebrow = "Actions rapides",
-                title = "Accès direct à l'essentiel",
-                subtitle = "Vos actions client les plus utiles en un coup d'œil.",
+                eyebrow = stringResource(R.string.dashboard_section_quick_actions),
+                title = stringResource(R.string.dashboard_client_actions_title),
+                subtitle = stringResource(R.string.dashboard_client_actions_subtitle),
             ) {
                 QuickActionGrid(
                     items = listOf(
                         QuickActionItem(
-                            title = "Envoyer",
+                            title = stringResource(R.string.role_client_action),
                             icon = QuickActionIcon.SEND,
                             onClick = onOpenAction,
                         ),
                         QuickActionItem(
-                            title = "Historique",
+                            title = stringResource(R.string.role_client_history),
                             icon = QuickActionIcon.HISTORY,
                             onClick = onOpenTransactions,
                         ),
                         QuickActionItem(
-                            title = "Cartes",
+                            title = stringResource(R.string.dashboard_cards_eyebrow),
                             icon = QuickActionIcon.CARD,
                             onClick = onOpenCards,
                         ),
@@ -316,8 +316,8 @@ private fun ClientDashboardContent(
         if (state.data.alerts.isNotEmpty()) {
             item {
                 AlertsSection(
-                    title = "Alertes importantes",
-                    subtitle = "Points d'attention à traiter rapidement.",
+                    title = stringResource(R.string.dashboard_client_alerts_title),
+                    subtitle = stringResource(R.string.dashboard_client_alerts_subtitle),
                     alerts = state.data.alerts,
                 )
             }
@@ -334,8 +334,8 @@ private fun ClientDashboardContent(
 
         item {
             TransactionsSection(
-                title = "Transactions récentes",
-                subtitle = "Vos derniers mouvements visibles immédiatement.",
+                title = stringResource(R.string.dashboard_transactions_title),
+                subtitle = stringResource(R.string.dashboard_client_transactions_subtitle),
                 transactions = state.data.recentTransactions,
             )
         }
@@ -349,7 +349,7 @@ private fun ClientDashboardContent(
                     contentColor = KoriPrimary,
                 ),
             ) {
-                Text("Voir mon profil")
+                Text(stringResource(R.string.dashboard_empty_client_action))
             }
         }
     }
@@ -377,7 +377,7 @@ private fun MerchantDashboardContent(
 
         item {
             BalanceCard(
-                title = "Trésorerie disponible",
+                title = stringResource(R.string.dashboard_merchant_balance),
                 balance = state.data.balance,
             )
         }
@@ -388,24 +388,24 @@ private fun MerchantDashboardContent(
 
         item {
             SectionBlock(
-                eyebrow = "Actions rapides",
-                title = "Gérer votre activité",
-                subtitle = "Accédez vite aux actions marchandes les plus fréquentes.",
+                eyebrow = stringResource(R.string.dashboard_section_quick_actions),
+                title = stringResource(R.string.dashboard_merchant_actions_title),
+                subtitle = stringResource(R.string.dashboard_merchant_actions_subtitle),
             ) {
                 QuickActionGrid(
                     items = listOf(
                         QuickActionItem(
-                            title = "Transférer",
+                            title = stringResource(R.string.role_merchant_action),
                             icon = QuickActionIcon.TRANSFER,
                             onClick = onOpenAction,
                         ),
                         QuickActionItem(
-                            title = "Historique",
+                            title = stringResource(R.string.role_client_history),
                             icon = QuickActionIcon.HISTORY,
                             onClick = onOpenTransactions,
                         ),
                         QuickActionItem(
-                            title = "Solde",
+                            title = stringResource(R.string.dashboard_balance_action),
                             icon = QuickActionIcon.WALLET,
                             onClick = onOpenTransactions,
                         ),
@@ -420,8 +420,8 @@ private fun MerchantDashboardContent(
 
         item {
             TransactionsSection(
-                title = "Transactions récentes",
-                subtitle = "Lecture plus claire de votre activité la plus récente.",
+                title = stringResource(R.string.dashboard_transactions_title),
+                subtitle = stringResource(R.string.dashboard_merchant_transactions_subtitle),
                 transactions = state.data.recentTransactions,
             )
         }
@@ -454,7 +454,7 @@ private fun AgentDashboardContent(
 
         item {
             KPIWidget(
-                title = "Activité sur 7 jours",
+                title = stringResource(R.string.dashboard_agent_kpi_title),
                 txCount = state.data.kpis7d.txCount,
                 txVolume = state.data.kpis7d.txVolume,
                 failedCount = state.data.kpis7d.failedCount,
@@ -464,24 +464,24 @@ private fun AgentDashboardContent(
 
         item {
             SectionBlock(
-                eyebrow = "Actions rapides",
-                title = "Opérations agent",
-                subtitle = "Démarrez vos opérations fréquentes sans détour.",
+                eyebrow = stringResource(R.string.dashboard_section_quick_actions),
+                title = stringResource(R.string.dashboard_agent_actions_title),
+                subtitle = stringResource(R.string.dashboard_agent_actions_subtitle),
             ) {
                 QuickActionGrid(
                     items = listOf(
                         QuickActionItem(
-                            title = "Cash-in",
+                            title = stringResource(R.string.dashboard_cash_in_action),
                             icon = QuickActionIcon.WALLET,
                             onClick = onOpenAction,
                         ),
                         QuickActionItem(
-                            title = "Retraits",
+                            title = stringResource(R.string.dashboard_withdrawals_action),
                             icon = QuickActionIcon.TRANSFER,
                             onClick = onOpenAction,
                         ),
                         QuickActionItem(
-                            title = "Historique",
+                            title = stringResource(R.string.role_client_history),
                             icon = QuickActionIcon.HISTORY,
                             onClick = onOpenTransactions,
                         ),
@@ -493,8 +493,8 @@ private fun AgentDashboardContent(
         if (state.data.alerts.isNotEmpty()) {
             item {
                 AlertsSection(
-                    title = "Alertes opérationnelles",
-                    subtitle = "À surveiller avant vos prochains mouvements.",
+                    title = stringResource(R.string.dashboard_agent_alerts_title),
+                    subtitle = stringResource(R.string.dashboard_agent_alerts_subtitle),
                     alerts = state.data.alerts,
                 )
             }
@@ -502,8 +502,8 @@ private fun AgentDashboardContent(
 
         item {
             TransactionsSection(
-                title = "Transactions récentes",
-                subtitle = "Vos derniers encaissements, retraits et mouvements.",
+                title = stringResource(R.string.dashboard_transactions_title),
+                subtitle = stringResource(R.string.dashboard_agent_transactions_subtitle),
                 transactions = state.data.recentTransactions,
             )
         }
@@ -630,7 +630,7 @@ private fun AlertsSection(
     alerts: List<AlertItem>,
 ) {
     SectionBlock(
-        eyebrow = "Alertes",
+        eyebrow = stringResource(R.string.dashboard_alerts_eyebrow),
         title = title,
         subtitle = subtitle,
     ) {
@@ -638,10 +638,10 @@ private fun AlertsSection(
             alerts.forEachIndexed { index, item ->
                 AlertMessageCard(
                     title = when {
-                        item.code.contains("SUSPEND", ignoreCase = true) -> "Action requise"
-                        item.code.contains("LIMIT", ignoreCase = true) -> "Seuil à surveiller"
-                        item.code.contains("FAIL", ignoreCase = true) -> "Incident récent"
-                        else -> "Information utile"
+                        item.code.contains("SUSPEND", ignoreCase = true) -> stringResource(R.string.dashboard_alert_action_required)
+                        item.code.contains("LIMIT", ignoreCase = true) -> stringResource(R.string.dashboard_alert_threshold)
+                        item.code.contains("FAIL", ignoreCase = true) -> stringResource(R.string.dashboard_alert_incident)
+                        else -> stringResource(R.string.dashboard_alert_information)
                     },
                     message = item.message,
                     severe = index == 0,
@@ -714,9 +714,9 @@ private fun CardsPreviewSection(
     onOpenCards: () -> Unit,
 ) {
     SectionBlock(
-        eyebrow = "Cartes",
-        title = "Aperçu de vos cartes",
-        subtitle = "Les cartes les plus récentes et leur état actuel.",
+        eyebrow = stringResource(R.string.dashboard_cards_eyebrow),
+        title = stringResource(R.string.dashboard_cards_title),
+        subtitle = stringResource(R.string.dashboard_cards_subtitle),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             cards.forEachIndexed { index, card ->
@@ -732,7 +732,7 @@ private fun CardsPreviewSection(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
             ) {
-                Text("Voir toutes mes cartes")
+                Text(stringResource(R.string.dashboard_cards_action))
             }
         }
     }
@@ -752,12 +752,12 @@ private fun MerchantKpiSection(
     kpis: Kpis7dResponse,
 ) {
     SectionBlock(
-        eyebrow = "Performance 7 jours",
-        title = "KPIs marchands",
-        subtitle = "Volume, nombre d'opérations et incidents récents.",
+        eyebrow = stringResource(R.string.dashboard_kpi_eyebrow),
+        title = stringResource(R.string.dashboard_kpi_title),
+        subtitle = stringResource(R.string.dashboard_kpi_subtitle),
     ) {
         KPIWidget(
-            title = "Synthèse glissante",
+            title = stringResource(R.string.dashboard_kpi_widget_title),
             txCount = kpis.txCount,
             txVolume = kpis.txVolume,
             failedCount = kpis.failedCount,
@@ -769,7 +769,7 @@ private fun MerchantKpiSection(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             HighlightStatCard(
-                title = "Taux de réussite",
+                title = stringResource(R.string.dashboard_success_rate),
                 value = if (kpis.txCount > 0) {
                     "${(((kpis.txCount - kpis.failedCount).toFloat() / kpis.txCount.toFloat()) * 100f).toInt()}%"
                 } else {
@@ -780,7 +780,7 @@ private fun MerchantKpiSection(
             )
 
             HighlightStatCard(
-                title = "Transactions / jour",
+                title = stringResource(R.string.dashboard_transactions_per_day),
                 value = if (kpis.txCount > 0) {
                     "${(kpis.txCount / 7.0).toInt()}"
                 } else {
@@ -798,22 +798,22 @@ private fun TerminalSummarySection(
     summary: TerminalsSummaryResponse,
 ) {
     SectionBlock(
-        eyebrow = "Terminaux",
-        title = "État du parc",
-        subtitle = "Lecture rapide du volume total et des statuts dominants.",
+        eyebrow = stringResource(R.string.dashboard_terminals_eyebrow),
+        title = stringResource(R.string.dashboard_terminals_title),
+        subtitle = stringResource(R.string.dashboard_terminals_subtitle),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             HighlightStatCard(
-                title = "Total",
+                title = stringResource(R.string.common_total),
                 value = summary.total.toString(),
                 icon = Icons.Outlined.Storefront,
                 modifier = Modifier.weight(1f),
             )
             HighlightStatCard(
-                title = "Hors ligne",
+                title = stringResource(R.string.dashboard_offline),
                 value = summary.staleTerminals.toString(),
                 icon = Icons.Outlined.ErrorOutline,
                 modifier = Modifier.weight(1f),
@@ -877,13 +877,13 @@ private fun AgentPositionHighlight(
 
                 Column {
                     Text(
-                        text = "Position agent",
+                        text = stringResource(R.string.dashboard_agent_position_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = KoriPrimary,
                     )
                     Text(
-                        text = "Cash disponible + commission cumulée",
+                        text = stringResource(R.string.dashboard_agent_position_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -892,7 +892,7 @@ private fun AgentPositionHighlight(
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    text = "Total mobilisable",
+                    text = stringResource(R.string.dashboard_agent_position_total),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -909,12 +909,12 @@ private fun AgentPositionHighlight(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 BalanceDetailCard(
-                    label = "Cash",
+                    label = stringResource(R.string.dashboard_agent_cash),
                     amount = formatKmf(cash),
                     modifier = Modifier.weight(1f),
                 )
                 BalanceDetailCard(
-                    label = "Commission",
+                    label = stringResource(R.string.common_commission),
                     amount = formatKmf(commission),
                     modifier = Modifier.weight(1f),
                 )
@@ -959,13 +959,13 @@ private fun TransactionsSection(
     transactions: List<TransactionItemResponse>,
 ) {
     SectionBlock(
-        eyebrow = "Transactions",
+        eyebrow = stringResource(R.string.dashboard_transactions_eyebrow),
         title = title,
         subtitle = subtitle,
     ) {
         if (transactions.isEmpty()) {
             Text(
-                text = "Aucune transaction récente à afficher.",
+                text = stringResource(R.string.dashboard_transactions_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1010,7 +1010,7 @@ private fun FeaturedTransactionCard(
                     verticalAlignment = Alignment.Top,
                 ) {
                     Text(
-                        text = "Dernière opération",
+                        text = stringResource(R.string.dashboard_featured_transaction),
                         style = MaterialTheme.typography.labelMedium,
                         color = KoriPrimary.copy(alpha = 0.72f),
                         fontWeight = FontWeight.SemiBold,
@@ -1071,13 +1071,13 @@ private fun RecentActivitiesSection(
     activities: List<ActivityItem>,
 ) {
     SectionBlock(
-        eyebrow = "Activités",
-        title = "Activités récentes",
-        subtitle = "Chronologie récente de vos actions et événements utiles.",
+        eyebrow = stringResource(R.string.dashboard_activities_eyebrow),
+        title = stringResource(R.string.dashboard_activities_title),
+        subtitle = stringResource(R.string.dashboard_activities_subtitle),
     ) {
         if (activities.isEmpty()) {
             Text(
-                text = "Aucune activité récente à afficher.",
+                text = stringResource(R.string.dashboard_activities_empty),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -1132,7 +1132,7 @@ private fun AgentActivityCard(
                     color = KoriPrimary,
                 )
                 Text(
-                    text = "${activity.resourceType} • ${activity.resourceRef}",
+                    text = stringResource(R.string.common_label_with_value, activity.resourceType, activity.resourceRef),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

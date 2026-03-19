@@ -45,9 +45,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.component.CollapsibleFiltersCard
 import com.kori.app.core.designsystem.component.CountPill
 import com.kori.app.core.designsystem.component.EmptyState
@@ -93,7 +96,7 @@ private fun ActivityLoading(modifier: Modifier = Modifier) {
         ActivityTopHeader(role = null, count = null)
         CircularProgressIndicator()
         Text(
-            text = "Chargement de l’historique…",
+            text = stringResource(R.string.activity_loading),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -112,7 +115,7 @@ private fun ActivityError(
     ) {
         ActivityTopHeader(role = null, count = null)
         ErrorState(
-            title = "Chargement indisponible",
+            title = stringResource(R.string.common_loading_unavailable),
             message = message,
             onRetry = onRetry,
         )
@@ -132,13 +135,13 @@ private fun ActivityEmpty(
     ) {
         ActivityTopHeader(role = role, count = 0)
         EmptyState(
-            title = if (filters.hasActiveFilters) "Aucun résultat" else "Aucune activité",
+            title = if (filters.hasActiveFilters) stringResource(R.string.activity_empty_filtered_title) else stringResource(R.string.activity_empty_title),
             message = if (filters.hasActiveFilters) {
-                "Essayez d’élargir les filtres appliqués."
+                stringResource(R.string.activity_empty_filtered_message)
             } else {
-                "Vos événements récents apparaîtront ici."
+                stringResource(R.string.activity_empty_message)
             },
-            actionLabel = if (filters.hasActiveFilters) "Effacer les filtres" else null,
+            actionLabel = if (filters.hasActiveFilters) stringResource(R.string.common_clear_filters) else null,
             onActionClick = if (filters.hasActiveFilters) onClearFilters else null,
         )
     }
@@ -205,17 +208,17 @@ private fun ActivityTopHeader(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
-                text = "Activité",
+                text = stringResource(R.string.activity_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
             )
 
             Text(
                 text = when (role) {
-                    UserRole.CLIENT -> "Retrouvez vos paiements, transferts et événements liés à votre carte."
-                    UserRole.MERCHANT -> "Suivez vos encaissements, transferts et la santé de vos terminaux."
-                    UserRole.AGENT -> "Gardez une vue claire sur les cash-in, retraits marchands et opérations terrain."
-                    null -> "Consultez vos événements récents en un seul endroit."
+                    UserRole.CLIENT -> stringResource(R.string.activity_subtitle_client)
+                    UserRole.MERCHANT -> stringResource(R.string.activity_subtitle_merchant)
+                    UserRole.AGENT -> stringResource(R.string.activity_subtitle_agent)
+                    null -> stringResource(R.string.activity_subtitle_default)
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -227,10 +230,10 @@ private fun ActivityTopHeader(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CountPill(
-                        text = if (count <= 1) "$count élément" else "$count éléments",
+                        text = pluralStringResource(R.plurals.common_count_elements, count, count),
                     )
                     Text(
-                        text = "triés du plus récent au plus ancien",
+                        text = stringResource(R.string.activity_count_sorted),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -299,7 +302,7 @@ private fun ActivityFiltersBar(
     }
 
     CollapsibleFiltersCard(
-        title = "Filtres",
+        title = stringResource(R.string.common_filters),
         activeCount = activeFiltersCount,
         expanded = isExpanded,
         onToggleExpanded = { isExpanded = !isExpanded },
@@ -317,7 +320,7 @@ private fun ActivityFiltersBar(
         },
     ) {
         Text(
-            text = "Filtres rapides",
+            text = stringResource(R.string.common_quick_filters),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
         )
@@ -353,9 +356,9 @@ private fun ActivityFiltersBar(
                     label = {
                         Text(
                             if (from.isBlank() && to.isBlank()) {
-                                "Toutes périodes"
+                                stringResource(R.string.common_period_all)
                             } else {
-                                "Période active"
+                                stringResource(R.string.common_period_active)
                             },
                         )
                     },
@@ -472,7 +475,7 @@ private fun ActivityFiltersBar(
                         onClearFilters()
                     },
                 ) {
-                    Text("Réinitialiser")
+                    Text(stringResource(R.string.common_reset))
                 }
             }
         }
@@ -495,7 +498,7 @@ private fun ActivitySectionHeader(
             fontWeight = FontWeight.SemiBold,
         )
         Text(
-            text = if (count <= 1) "$count activité" else "$count activités",
+            text = pluralStringResource(R.plurals.activity_count_label, count, count),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -629,7 +632,7 @@ private fun ActivityCard(
                 }
 
                 Text(
-                    text = "${formatIsoToDisplay(item.occurredAt)} • ${item.eventRef}",
+                    text = stringResource(R.string.common_date_with_reference, formatIsoToDisplay(item.occurredAt), item.eventRef),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -649,7 +652,7 @@ private fun StatusBadge(status: ActivityStatus?) {
         null -> MaterialTheme.colorScheme.outline
     }
 
-    val label = status?.displayLabel() ?: "Info"
+    val label = status?.displayLabel() ?: stringResource(R.string.common_info)
 
     Surface(
         shape = RoundedCornerShape(999.dp),
@@ -757,13 +760,14 @@ private fun statusColor(status: ActivityStatus): Color {
     }
 }
 
+@Composable
 private fun activeFiltersSummary(filters: ActivityFilterState): String {
     val parts = buildList {
         filters.selectedType?.let { add(ActivityType.valueOf(it).displayLabel()) }
         filters.selectedStatus?.let { add(ActivityStatus.valueOf(it).displayLabel()) }
         filters.selectedCategory?.let { add(ActivityCategory.valueOf(it).displayLabel()) }
         if (filters.from.isNotBlank() || filters.to.isNotBlank()) {
-            add("Période")
+            add(stringResource(R.string.common_period))
         }
     }
     return parts.joinToString(" • ")

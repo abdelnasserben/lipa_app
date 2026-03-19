@@ -87,7 +87,7 @@ fun AgentCardStatusUpdateScreen(
                             isError = uiState.errors.reason != null,
                             supportingText = {
                                 val error = uiState.errors.reason
-                                if (error != null) Text(error) else Text("${uiState.draft.reason.length}/255")
+                                if (error != null) Text(error) else Text(stringResource(R.string.card_status_reason_counter, uiState.draft.reason.length))
                             },
                         )
                     }

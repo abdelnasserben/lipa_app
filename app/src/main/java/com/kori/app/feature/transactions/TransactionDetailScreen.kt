@@ -19,8 +19,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
@@ -61,7 +63,7 @@ fun TransactionDetailScreen(
             ) {
                 CircularProgressIndicator()
                 Text(
-                    text = "Chargement du détail de la transaction…",
+                    text = stringResource(R.string.transaction_detail_loading),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -74,7 +76,7 @@ fun TransactionDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 ErrorState(
-                    title = "Détail indisponible",
+                    title = stringResource(R.string.transaction_detail_error_title),
                     message = uiState.message,
                     onRetry = onRetry,
                 )
@@ -122,7 +124,7 @@ private fun TransactionDetailContent(
                     colors = CardDefaults.cardColors(containerColor = KoriSurface),
                 ) {
                     Text(
-                        text = "Partage de reçu mock prêt. Le connecteur natif sera branché plus tard.",
+                        text = stringResource(R.string.transaction_detail_share_message),
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -152,7 +154,7 @@ private fun TransactionDetailContent(
                     contentColor = KoriPrimary,
                 ),
             ) {
-                Text("Partager le reçu")
+                Text(stringResource(R.string.transaction_detail_share_action))
             }
         }
     }
@@ -209,7 +211,7 @@ private fun TimelineCard(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                text = "Timeline",
+                text = stringResource(R.string.transaction_detail_timeline),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -229,16 +231,16 @@ private fun TimelineCard(
 private fun DetailsCard(
     transaction: TransactionItemResponse,
 ) {
-    SectionCard(title = "Détails") {
-        DetailRow(label = "Référence", value = transaction.transactionRef)
-        DetailRow(label = "Montant", value = formatKmf(transaction.amount))
-        DetailRow(label = "Frais", value = formatKmf(transaction.fee ?: 0L))
-        DetailRow(label = "Total débité", value = formatKmf(transaction.totalDebited ?: transaction.amount))
-        DetailRow(label = "Statut", value = transaction.status.displayLabel())
-        DetailRow(label = "Type", value = transaction.type.displayLabel())
-        DetailRow(label = "Contrepartie", value = transaction.counterparty.displayName)
-        DetailRow(label = "Téléphone", value = transaction.counterparty.phone ?: "—")
-        DetailRow(label = "Code", value = transaction.counterparty.code ?: "—")
-        DetailRow(label = "Date", value = formatIsoToDisplay(transaction.createdAt), showDivider = false)
+    SectionCard(title = stringResource(R.string.common_details)) {
+        DetailRow(label = stringResource(R.string.common_reference), value = transaction.transactionRef)
+        DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(transaction.amount))
+        DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(transaction.fee ?: 0L))
+        DetailRow(label = stringResource(R.string.transaction_detail_total_charged), value = formatKmf(transaction.totalDebited ?: transaction.amount))
+        DetailRow(label = stringResource(R.string.common_status), value = transaction.status.displayLabel())
+        DetailRow(label = stringResource(R.string.common_type), value = transaction.type.displayLabel())
+        DetailRow(label = stringResource(R.string.transaction_detail_counterparty), value = transaction.counterparty.displayName)
+        DetailRow(label = stringResource(R.string.profile_phone), value = transaction.counterparty.phone ?: "—")
+        DetailRow(label = stringResource(R.string.profile_code), value = transaction.counterparty.code ?: "—")
+        DetailRow(label = stringResource(R.string.common_date), value = formatIsoToDisplay(transaction.createdAt), showDivider = false)
     }
 }
