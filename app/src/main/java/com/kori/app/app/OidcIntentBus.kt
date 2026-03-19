@@ -1,15 +1,19 @@
 package com.kori.app.app
 
 import android.content.Intent
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 object OidcIntentBus {
-    private val _intents = MutableSharedFlow<Intent>(extraBufferCapacity = 1)
-    val intents: SharedFlow<Intent> = _intents.asSharedFlow()
+    private val _intent = MutableStateFlow<Intent?>(null)
+    val intent: StateFlow<Intent?> = _intent.asStateFlow()
 
     fun publish(intent: Intent) {
-        _intents.tryEmit(intent)
+        _intent.value = intent
+    }
+
+    fun clear() {
+        _intent.value = null
     }
 }

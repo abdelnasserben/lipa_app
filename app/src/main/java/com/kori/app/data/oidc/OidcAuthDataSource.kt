@@ -64,7 +64,7 @@ class OidcAuthDataSource(
                 activity,
                 AUTH_REQUEST_CODE,
                 callbackIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
             )
 
             authService.performAuthorizationRequest(request, completeIntent)
@@ -74,37 +74,50 @@ class OidcAuthDataSource(
     override suspend fun completeAuthenticationFromIntent(intent: Intent) {
         if (intent.action != ACTION_OIDC_AUTH_COMPLETE) return
 
-        val response = AuthorizationResponse.fromIntent(intent)
-        val authException = AuthorizationException.fromIntent(intent)
+        try {
+            val response = AuthorizationResponse.fromIntent(intent)
+            val authException = AuthorizationException.fromIntent(intent)
 
-        appAuthState.update(response, authException)
-
-        if (authException != null) {
-            _authState.value = AuthState.Error(authException.errorDescription ?: "Connexion OIDC interrompue")
-            return
-        }
-
-        val authResponse = response ?: run {
-            _authState.value = AuthState.Error("Réponse d'autorisation manquante")
-            return
-        }
-
-        val tokenResponse = suspendCancellableCoroutine<Pair<net.openid.appauth.TokenResponse?, AuthorizationException?>> { cont ->
-            authService.performTokenRequest(authResponse.createTokenExchangeRequest()) { resp, ex ->
-                cont.resume(resp to ex)
+            if (response == null && authException == null) {
+                _authState.value = AuthState.Error(
+                    "Réponse OIDC invalide ou vide. Relancez la connexion si le problème persiste.",
+                )
+                return
             }
-        }
 
-        appAuthState.update(tokenResponse.first, tokenResponse.second)
+            appAuthState.update(response, authException)
 
-        if (tokenResponse.second != null || tokenResponse.first == null) {
+            if (authException != null) {
+                _authState.value = AuthState.Error(authException.errorDescription ?: "Connexion OIDC interrompue")
+                return
+            }
+
+            val authResponse = response ?: run {
+                _authState.value = AuthState.Error("Réponse d'autorisation manquante")
+                return
+            }
+
+            val tokenResponse = suspendCancellableCoroutine<Pair<net.openid.appauth.TokenResponse?, AuthorizationException?>> { cont ->
+                authService.performTokenRequest(authResponse.createTokenExchangeRequest()) { resp, ex ->
+                    cont.resume(resp to ex)
+                }
+            }
+
+            appAuthState.update(tokenResponse.first, tokenResponse.second)
+
+            if (tokenResponse.second != null || tokenResponse.first == null) {
+                _authState.value = AuthState.Error(
+                    tokenResponse.second?.errorDescription ?: "Échange de token impossible",
+                )
+                return
+            }
+
+            persistSession(tokenResponse.first!!)
+        } catch (error: Exception) {
             _authState.value = AuthState.Error(
-                tokenResponse.second?.errorDescription ?: "Échange de token impossible",
+                error.message ?: "Impossible de finaliser la session sécurisée",
             )
-            return
         }
-
-        persistSession(tokenResponse.first!!)
     }
 
     override suspend fun refreshSessionIfNeeded() {
