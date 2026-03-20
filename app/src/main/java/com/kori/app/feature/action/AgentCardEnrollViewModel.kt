@@ -1,8 +1,10 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.AgentCardEnrollResult
 import com.kori.app.core.ui.FinancialInputRules
 import com.kori.app.data.repository.AgentActionRepository
@@ -13,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class AgentCardEnrollViewModel(
     private val repository: AgentActionRepository,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AgentCardEnrollUiState>(AgentCardEnrollUiState.Form())
@@ -83,13 +86,13 @@ class AgentCardEnrollViewModel(
                     is AgentCardEnrollResult.Success -> AgentCardEnrollUiState.Success(result.receipt)
                     is AgentCardEnrollResult.Failure -> AgentCardEnrollUiState.Failure(
                         code = result.code.name,
-                        userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                        userMessage = FinancialErrorMapper.userMessageFor(resources, result.code),
                     )
                 }
             }.onFailure {
                 _uiState.value = AgentCardEnrollUiState.Failure(
                     code = "TECHNICAL_ERROR",
-                    userMessage = "Une erreur réseau est survenue. Réessayez dans un instant.",
+                    userMessage = resources.getString(R.string.error_network_retry),
                 )
             }
         }
@@ -106,29 +109,36 @@ class AgentCardEnrollViewModel(
     private fun validate(draft: com.kori.app.core.model.action.AgentCardEnrollDraft): AgentCardEnrollFormErrors {
         val phoneDigits = draft.phoneNumber.filter(Char::isDigit)
         val phoneError = if (phoneDigits.isNotBlank()) {
-            FinancialInputRules.validateComorosPhone(draft.phoneNumber, "le numéro du client")
+            FinancialInputRules.validateComorosPhone(
+                raw = draft.phoneNumber,
+                resources = resources,
+                fieldLabelResId = R.string.card_enroll_phone_label,
+            )
         } else {
             null
         }
 
         return AgentCardEnrollFormErrors(
             phoneNumber = phoneError,
-            displayName = if (draft.displayName.trim().length < 2) "Saisissez le nom du client." else null,
-            cardUid = if (draft.cardUid.isBlank()) "Saisissez l’identifiant de la carte." else null,
+            displayName = if (draft.displayName.trim().length < 2) resources.getString(R.string.validation_customer_name_required) else null,
+            cardUid = if (draft.cardUid.isBlank()) resources.getString(R.string.validation_card_reference_required) else null,
             pin = when {
-                draft.pin.isBlank() -> "Le code PIN est requis."
-                draft.pin.length != 4 -> "Le code PIN doit contenir 4 chiffres."
+                draft.pin.isBlank() -> resources.getString(R.string.validation_pin_required)
+                draft.pin.length != 4 -> resources.getString(R.string.validation_pin_length)
                 else -> null
             },
         )
     }
 
     companion object {
-        fun factory(repository: AgentActionRepository): ViewModelProvider.Factory {
+        fun factory(
+            repository: AgentActionRepository,
+            resources: Resources,
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return AgentCardEnrollViewModel(repository) as T
+                    return AgentCardEnrollViewModel(repository, resources) as T
                 }
             }
         }

@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -164,6 +165,7 @@ private fun TransactionDetailContent(
 private fun SummaryCard(
     transaction: TransactionItemResponse,
 ) {
+    val resources = LocalContext.current.resources
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -177,7 +179,7 @@ private fun SummaryCard(
             StatusBadge(status = transaction.status)
 
             Text(
-                text = formatKmf(transaction.amount),
+                text = formatKmf(resources, transaction.amount),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
             )
@@ -189,7 +191,7 @@ private fun SummaryCard(
             )
 
             Text(
-                text = formatIsoToDisplay(transaction.createdAt),
+                text = formatIsoToDisplay(resources, transaction.createdAt),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -231,16 +233,17 @@ private fun TimelineCard(
 private fun DetailsCard(
     transaction: TransactionItemResponse,
 ) {
+    val resources = LocalContext.current.resources
     SectionCard(title = stringResource(R.string.common_details)) {
         DetailRow(label = stringResource(R.string.common_reference), value = transaction.transactionRef)
-        DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(transaction.amount))
-        DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(transaction.fee ?: 0L))
-        DetailRow(label = stringResource(R.string.transaction_detail_total_charged), value = formatKmf(transaction.totalDebited ?: transaction.amount))
-        DetailRow(label = stringResource(R.string.common_status), value = transaction.status.displayLabel())
-        DetailRow(label = stringResource(R.string.common_type), value = transaction.type.displayLabel())
+        DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(resources, transaction.amount))
+        DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(resources, transaction.fee ?: 0L))
+        DetailRow(label = stringResource(R.string.transaction_detail_total_charged), value = formatKmf(resources, transaction.totalDebited ?: transaction.amount))
+        DetailRow(label = stringResource(R.string.common_status), value = transaction.status.displayLabel(resources))
+        DetailRow(label = stringResource(R.string.common_type), value = transaction.type.displayLabel(resources))
         DetailRow(label = stringResource(R.string.transaction_detail_counterparty), value = transaction.counterparty.displayName)
         DetailRow(label = stringResource(R.string.profile_phone), value = transaction.counterparty.phone ?: "—")
         DetailRow(label = stringResource(R.string.profile_code), value = transaction.counterparty.code ?: "—")
-        DetailRow(label = stringResource(R.string.common_date), value = formatIsoToDisplay(transaction.createdAt), showDivider = false)
+        DetailRow(label = stringResource(R.string.common_date), value = formatIsoToDisplay(resources, transaction.createdAt), showDivider = false)
     }
 }

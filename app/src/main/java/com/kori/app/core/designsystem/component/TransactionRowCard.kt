@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriSurface
@@ -26,6 +27,8 @@ fun TransactionRowCard(
     onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -76,7 +79,7 @@ fun TransactionRowCard(
                 }
 
                 Text(
-                    text = formatKmf(transaction.amount),
+                    text = formatKmf(resources, transaction.amount),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                 )
@@ -87,7 +90,7 @@ fun TransactionRowCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = formatIsoToDisplay(transaction.createdAt),
+                    text = formatIsoToDisplay(resources, transaction.createdAt),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kori.app.R
@@ -25,6 +26,7 @@ import com.kori.app.core.designsystem.component.SectionCard
 import com.kori.app.core.designsystem.component.SuccessReceiptSheet
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
+import androidx.compose.ui.platform.LocalResources
 
 @Composable
 fun AgentMerchantWithdrawScreen(
@@ -39,6 +41,8 @@ fun AgentMerchantWithdrawScreen(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     when (uiState) {
         is AgentMerchantWithdrawUiState.Form -> AgentMerchantWithdrawFormContent(uiState, onMerchantCodeChanged, onAmountChanged, onContinue, modifier)
         is AgentMerchantWithdrawUiState.Confirmation -> AgentMerchantWithdrawConfirmationContent(uiState, onOpenConfirmDialog, onDismissConfirmDialog, onConfirm, onEdit, modifier)
@@ -55,6 +59,7 @@ private fun AgentMerchantWithdrawFormContent(
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -102,6 +107,7 @@ private fun AgentMerchantWithdrawConfirmationContent(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -111,10 +117,10 @@ private fun AgentMerchantWithdrawConfirmationContent(
         item {
             SectionCard(title = stringResource(R.string.common_details)) {
                 DetailRow(label = stringResource(R.string.withdraw_merchant), value = state.model.quote.merchantCode)
-                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(state.model.quote.amount))
-                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(state.model.quote.fee))
-                DetailRow(label = stringResource(R.string.common_commission), value = formatKmf(state.model.quote.commission))
-                DetailRow(label = stringResource(R.string.withdraw_total), value = formatKmf(state.model.quote.totalDebitedMerchant), showDivider = false)
+                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(resources, state.model.quote.amount))
+                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(resources, state.model.quote.fee))
+                DetailRow(label = stringResource(R.string.common_commission), value = formatKmf(resources, state.model.quote.commission))
+                DetailRow(label = stringResource(R.string.withdraw_total), value = formatKmf(resources, state.model.quote.totalDebitedMerchant), showDivider = false)
             }
         }
         item {
@@ -146,6 +152,8 @@ private fun AgentMerchantWithdrawSuccessContent(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -158,11 +166,11 @@ private fun AgentMerchantWithdrawSuccessContent(
                 lines = listOf(
                     stringResource(R.string.common_reference) to state.model.receipt.transactionRef,
                     stringResource(R.string.withdraw_merchant) to state.model.receipt.merchantCode,
-                    stringResource(R.string.common_amount) to formatKmf(state.model.receipt.amount),
-                    stringResource(R.string.common_fees) to formatKmf(state.model.receipt.fee),
-                    stringResource(R.string.common_commission) to formatKmf(state.model.receipt.commission),
-                    stringResource(R.string.withdraw_total) to formatKmf(state.model.receipt.totalDebitedMerchant),
-                    stringResource(R.string.common_date) to formatIsoToDisplay(state.model.receipt.createdAt),
+                    stringResource(R.string.common_amount) to formatKmf(resources, state.model.receipt.amount),
+                    stringResource(R.string.common_fees) to formatKmf(resources, state.model.receipt.fee),
+                    stringResource(R.string.common_commission) to formatKmf(resources, state.model.receipt.commission),
+                    stringResource(R.string.withdraw_total) to formatKmf(resources, state.model.receipt.totalDebitedMerchant),
+                    stringResource(R.string.common_date) to formatIsoToDisplay(resources, state.model.receipt.createdAt),
                 ),
             )
         }

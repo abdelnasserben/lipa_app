@@ -1,8 +1,10 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.AgentCardStatusUpdateDraft
 import com.kori.app.core.model.action.AgentCardStatusUpdateResult
 import com.kori.app.core.model.action.AgentCardTargetStatus
@@ -14,6 +16,7 @@ import kotlinx.coroutines.launch
 
 class AgentCardStatusUpdateViewModel(
     private val repository: AgentActionRepository,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AgentCardStatusUpdateUiState>(AgentCardStatusUpdateUiState.Form())
@@ -82,13 +85,13 @@ class AgentCardStatusUpdateViewModel(
                     is AgentCardStatusUpdateResult.Success -> AgentCardStatusUpdateUiState.Success(result.receipt)
                     is AgentCardStatusUpdateResult.Failure -> AgentCardStatusUpdateUiState.Failure(
                         code = result.code.name,
-                        userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                        userMessage = FinancialErrorMapper.userMessageFor(resources, result.code),
                     )
                 }
             }.onFailure {
                 _uiState.value = AgentCardStatusUpdateUiState.Failure(
                     code = "TECHNICAL_ERROR",
-                    userMessage = "Une erreur réseau est survenue. Réessayez dans un instant.",
+                    userMessage = resources.getString(R.string.error_network_retry),
                 )
             }
         }
@@ -104,18 +107,21 @@ class AgentCardStatusUpdateViewModel(
 
     private fun validate(draft: AgentCardStatusUpdateDraft): AgentCardStatusUpdateFormErrors {
         return AgentCardStatusUpdateFormErrors(
-            cardUid = if (draft.cardUid.isBlank()) "Saisissez l’identifiant de la carte." else null,
-            targetStatus = if (draft.targetStatus == null) "Sélectionnez le nouveau statut." else null,
-            reason = if (draft.reason.length > 255) "La raison ne peut pas dépasser 255 caractères." else null,
+            cardUid = if (draft.cardUid.isBlank()) resources.getString(R.string.validation_card_reference_required) else null,
+            targetStatus = if (draft.targetStatus == null) resources.getString(R.string.validation_card_status_required) else null,
+            reason = if (draft.reason.length > 255) resources.getString(R.string.validation_reason_too_long) else null,
         )
     }
 
     companion object {
-        fun factory(repository: AgentActionRepository): ViewModelProvider.Factory {
+        fun factory(
+            repository: AgentActionRepository,
+            resources: Resources,
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return AgentCardStatusUpdateViewModel(repository) as T
+                    return AgentCardStatusUpdateViewModel(repository, resources) as T
                 }
             }
         }

@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriError
@@ -28,6 +29,7 @@ fun StatusBadge(
     status: TransactionStatus,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
     val background = when (status) {
         TransactionStatus.COMPLETED -> KoriSuccess.copy(alpha = 0.14f)
         TransactionStatus.PENDING -> KoriWarning.copy(alpha = 0.18f)
@@ -58,7 +60,7 @@ fun StatusBadge(
         )
 
         Text(
-            text = status.displayLabel(),
+            text = status.displayLabel(resources),
             style = MaterialTheme.typography.labelMedium,
             color = textColor,
         )

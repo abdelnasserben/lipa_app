@@ -14,7 +14,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriBorder
 import com.kori.app.core.designsystem.KoriPrimary
@@ -65,7 +67,11 @@ fun TimelineStepRow(
                 color = KoriPrimary,
             )
             Text(
-                text = if (isCompleted) "Étape validée" else "En attente",
+                text = if (isCompleted) {
+                    stringResource(R.string.timeline_step_completed)
+                } else {
+                    stringResource(R.string.timeline_step_pending)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

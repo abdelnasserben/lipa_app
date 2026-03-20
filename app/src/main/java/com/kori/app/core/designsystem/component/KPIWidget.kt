@@ -12,8 +12,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriSurface
 import com.kori.app.core.ui.formatKmf
 
@@ -26,6 +29,8 @@ fun KPIWidget(
     chartPoints: List<Float>,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -46,9 +51,9 @@ fun KPIWidget(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                KPIItem(label = "Transactions", value = txCount.toString())
-                KPIItem(label = "Volume", value = formatKmf(txVolume))
-                KPIItem(label = "Échecs", value = failedCount.toString())
+                KPIItem(label = stringResource(R.string.kpi_transactions), value = txCount.toString())
+                KPIItem(label = stringResource(R.string.kpi_volume), value = formatKmf(resources, txVolume))
+                KPIItem(label = stringResource(R.string.kpi_failures), value = failedCount.toString())
             }
 
             MiniChart(points = chartPoints)

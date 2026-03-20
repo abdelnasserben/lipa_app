@@ -24,6 +24,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,6 +48,8 @@ fun ProfileScreen(
     onSelectRole: (UserRole) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     when (uiState) {
         ProfileUiState.Loading -> LoadingContent(modifier = modifier)
         is ProfileUiState.Error -> {
@@ -211,6 +215,8 @@ private fun Header(
 private fun ProfileCard(
     profile: ProfileCardUiModel,
 ) {
+    val resources = LocalResources.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -228,7 +234,7 @@ private fun ProfileCard(
 
             ProfileLine(stringResource(R.string.profile_code), profile.code)
             ProfileLine(stringResource(R.string.common_status), profile.status)
-            ProfileLine(stringResource(R.string.profile_created_at), formatIsoToDisplay(profile.createdAt))
+            ProfileLine(stringResource(R.string.profile_created_at), formatIsoToDisplay(resources, profile.createdAt))
 
             profile.phone?.let { ProfileLine(stringResource(R.string.profile_phone), it) }
         }
@@ -284,7 +290,7 @@ private fun SettingsCard(
                         FilterChip(
                             selected = language == settings.language,
                             onClick = { onLanguageSelected(language) },
-                            label = { Text(language.label) },
+                            label = { Text(stringResource(language.labelResId)) },
                         )
                     }
                 }
@@ -299,7 +305,7 @@ private fun SettingsCard(
                 )
                 AssistChip(
                     onClick = {},
-                    label = { Text(settings.themeMode.label) },
+                    label = { Text(stringResource(settings.themeMode.labelResId)) },
                     colors = AssistChipDefaults.assistChipColors(),
                     shape = RoundedCornerShape(999.dp),
                 )

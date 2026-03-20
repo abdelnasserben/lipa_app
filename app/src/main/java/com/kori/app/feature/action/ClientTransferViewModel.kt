@@ -1,8 +1,10 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.ClientTransferDraft
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 class ClientTransferViewModel(
     private val repository: ClientTransferRepository,
     private val idempotencyManager: IdempotencyManager,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ClientTransferUiState>(ClientTransferUiState.Form())
@@ -70,7 +73,7 @@ class ClientTransferViewModel(
                 _uiState.value = current.copy(
                     isLoading = false,
                     errors = current.errors.copy(
-                        amount = "Impossible de préparer cette opération pour le moment.",
+                        amount = resources.getString(R.string.financial_quote_unavailable),
                     ),
                 )
             }
@@ -100,7 +103,8 @@ class ClientTransferViewModel(
             amount = current.model.quote.amount,
         )
 
-        submitFinancialPost(
+            submitFinancialPost(
+            resources = resources,
             idempotencyManager = idempotencyManager,
             intent = intent,
             idempotencyKey = current.model.quote.idempotencyKey,
@@ -126,7 +130,7 @@ class ClientTransferViewModel(
                         ClientTransferUiState.Failure(
                             model = FinancialFailureModel(
                                 code = result.code,
-                                userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                                userMessage = FinancialErrorMapper.userMessageFor(resources, result.code),
                                 technicalMessage = result.message,
                                 idempotencyKey = result.idempotencyKey,
                             ),
@@ -197,9 +201,11 @@ class ClientTransferViewModel(
         return ClientTransferFormErrors(
             recipientPhoneNumber = FinancialInputRules.validateComorosPhone(
                 draft.recipientPhoneNumber,
-                "le numéro du bénéficiaire",
+                resources = resources,
+                fieldLabelResId = R.string.client_transfer_recipient_label,
             ),
             amount = KmfAmountFormatters.validateAmount(
+                resources = resources,
                 rawInput = draft.amountInput,
                 min = FinancialFlowRules.CLIENT_TRANSFER_MIN_AMOUNT,
                 max = FinancialFlowRules.CLIENT_TRANSFER_MAX_AMOUNT,
@@ -211,6 +217,7 @@ class ClientTransferViewModel(
         fun factory(
             repository: ClientTransferRepository,
             idempotencyManager: IdempotencyManager,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -218,6 +225,7 @@ class ClientTransferViewModel(
                     return ClientTransferViewModel(
                         repository = repository,
                         idempotencyManager = idempotencyManager,
+                        resources = resources,
                     ) as T
                 }
             }

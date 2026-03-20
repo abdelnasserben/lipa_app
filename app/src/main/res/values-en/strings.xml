@@ -32,7 +32,7 @@
     <string name="role_shared_history">Activity</string>
 
     <string name="nav_home">Home</string>
-    <string name="nav_transactions">Activity</string>
+    <string name="nav_transactions">Transac.</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_client_transfer">Send money</string>
     <string name="nav_merchant_transfer">Merchant transfer</string>
@@ -275,7 +275,7 @@
     <string name="transactions_empty_filtered_message">Adjust the period, amount, or activity type.</string>
     <string name="transactions_empty_message">Your recent activity will appear here as soon as it is available.</string>
     <string name="transactions_load_more">Load more</string>
-    <string name="transactions_title">Activity</string>
+    <string name="transactions_title">Transactions</string>
     <string name="transactions_subtitle_client">Track your recent payments, transfers, and movements.</string>
     <string name="transactions_subtitle_merchant">View your most recent collections and merchant activity.</string>
     <string name="transactions_subtitle_agent">Quickly review field operations and recent deposits.</string>
@@ -407,5 +407,111 @@
     <string name="transaction_detail_total_charged">Total charged</string>
 
     <string name="card_status_reason_counter">%1$d/255</string>
+
+
+    <string name="destination_auth_welcome">Sign in</string>
+    <string name="destination_auth_callback">Processing</string>
+    <string name="destination_auth_success">Success</string>
+    <string name="destination_dashboard">Dashboard</string>
+    <string name="destination_client_transfer">Customer transfer</string>
+    <string name="destination_agent_cash_in">Customer deposit</string>
+    <string name="destination_agent_card_enroll">Link a card</string>
+    <string name="destination_agent_card_add">Add a card</string>
+    <string name="destination_action">Action</string>
+
+    <string name="transaction_type_card_payment">Card payment</string>
+    <string name="transaction_type_cash_in">Deposit</string>
+    <string name="transaction_type_client_transfer">Customer transfer</string>
+    <string name="transaction_type_merchant_transfer">Merchant transfer</string>
+    <string name="transaction_type_merchant_withdraw">Merchant withdrawal</string>
+    <string name="transaction_type_reversal">Reversal</string>
+    <string name="transaction_type_agent_bank_deposit">Bank deposit</string>
+    <string name="transaction_status_pending">In progress</string>
+    <string name="transaction_status_completed">Success</string>
+    <string name="transaction_status_failed">Failed</string>
+    <string name="transaction_status_reversed">Reversed</string>
+    <string name="transaction_timeline_started">Request received</string>
+    <string name="transaction_timeline_pending">Processing</string>
+    <string name="transaction_timeline_completed">Operation confirmed</string>
+    <string name="transaction_timeline_failed">Operation declined</string>
+    <string name="transaction_timeline_reversed">Operation reversed</string>
+
+    <string name="activity_type_payment">Payment</string>
+    <string name="activity_type_transfer">Transfer</string>
+    <string name="activity_type_card">Card</string>
+    <string name="activity_type_collection">Collection</string>
+    <string name="activity_type_terminal">Terminal</string>
+    <string name="activity_type_cash_in">Deposit</string>
+    <string name="activity_type_merchant_withdraw">Merchant withdrawal</string>
+    <string name="activity_type_field_operation">Field visit</string>
+    <string name="activity_status_pending">In progress</string>
+    <string name="activity_status_completed">Success</string>
+    <string name="activity_status_failed">Failed</string>
+    <string name="activity_category_payment">Payment</string>
+    <string name="activity_category_transfer">Transfer</string>
+    <string name="activity_category_card">Card</string>
+    <string name="activity_category_terminal">Terminal</string>
+    <string name="activity_category_field">Field</string>
+    <string name="activity_section_today">Today</string>
+    <string name="activity_section_yesterday">Yesterday</string>
+    <string name="activity_section_other">Other</string>
+
+    <string name="amount_kmf">%1$s KMF</string>
+    <string name="validation_required_field">Enter %1$s.</string>
+    <string name="validation_field_merchant_code">the merchant code</string>
+    <string name="validation_phone_incomplete">Number looks incomplete.</string>
+    <string name="validation_phone_start">The number must start with 3 or 4 after +269.</string>
+    <string name="validation_merchant_code_format">Expected format: M-123456.</string>
+    <string name="validation_amount_required">Enter an amount.</string>
+    <string name="validation_amount_invalid">Invalid amount.</string>
+    <string name="validation_amount_min">Minimum amount: %1$s.</string>
+    <string name="validation_amount_max">Maximum amount: %1$s.</string>
+    <string name="validation_card_reference_required">Enter the card reference.</string>
+    <string name="validation_pin_required">Enter the PIN.</string>
+    <string name="validation_pin_length">The PIN must be 4 digits.</string>
+    <string name="validation_customer_name_required">Enter the customer name.</string>
+    <string name="validation_card_status_required">Choose an action.</string>
+    <string name="validation_reason_too_long">Reason is too long.</string>
+
+    <string name="financial_error_insufficient_funds">Insufficient balance.</string>
+    <string name="financial_error_daily_limit">Limit reached for now.</string>
+    <string name="financial_error_unauthorized">Action not allowed.</string>
+    <string name="financial_error_invalid_status">Operation unavailable.</string>
+    <string name="error_network_retry">Network error. Please try again.</string>
+    <string name="financial_quote_unavailable">Operation unavailable for now.</string>
+    <string name="merchant_transfer_quote_unavailable">Transfer unavailable for now.</string>
+    <string name="transactions_error_message">Activity is unavailable for now.</string>
+    <string name="transaction_detail_not_found">This operation could not be found.</string>
+    <string name="transaction_detail_error_message">Details are unavailable for now.</string>
+    <string name="agent_search_error_message">Search is unavailable for now.</string>
+    <string name="client_cards_error_message">Your cards are unavailable for now.</string>
+    <string name="dashboard_error_message">The dashboard is unavailable for now.</string>
+    <string name="profile_error_message">The profile is unavailable for now.</string>
+    <string name="activity_error_message">Activity is unavailable for now.</string>
+
+    <string name="transactions_sort_recent">Most recent</string>
+    <string name="transactions_sort_oldest">Oldest</string>
+    <string name="kpi_transactions">Transactions</string>
+    <string name="kpi_volume">Volume</string>
+    <string name="kpi_failures">Failures</string>
+    <string name="common_title_with_count">%1$s • %2$d</string>
+    <string name="client_cards_card_index">Card %1$d</string>
+    <string name="client_cards_created_at_value">Created on %1$s</string>
+    <string name="profile_language_french">French</string>
+    <string name="profile_language_english">English</string>
+    <string name="profile_theme_light_only">Light only</string>
+
+
+    <string name="network_error_service_unavailable">The service is unavailable for now.</string>
+    <string name="network_error_unexpected_response">Unexpected response.</string>
+    <string name="network_error_connectivity">Check your connection and try again.</string>
+    <string name="network_error_timeout">Request timed out. Try again.</string>
+    <string name="network_error_unknown">An error occurred.</string>
+    <string name="timeline_step_completed">Step completed</string>
+    <string name="timeline_step_pending">Pending</string>
+    <string name="debug_panel_title">Debug</string>
+    <string name="debug_panel_subtitle">Technical data</string>
+    <string name="financial_form_amount_placeholder">0 KMF</string>
+    <string name="financial_form_amount_helper">Amount in Comorian francs</string>
 
 </resources>

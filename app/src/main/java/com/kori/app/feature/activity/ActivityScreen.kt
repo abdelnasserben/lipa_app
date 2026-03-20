@@ -45,6 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +75,8 @@ fun ActivityScreen(
     onClearFilters: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     when (uiState) {
         ActivityUiState.Loading -> ActivityLoading(modifier)
         is ActivityUiState.Error -> ActivityError(uiState.message, onRetry, modifier)
@@ -250,6 +254,8 @@ private fun ActivityFiltersBar(
     onApplyFilters: (ActivityFilterState) -> Unit,
     onClearFilters: () -> Unit,
 ) {
+    val resources = LocalResources.current
+
     val typeOptions = roleTypeOptions(role)
 
     var selectedType by rememberSaveable(filters.selectedType) {
@@ -387,7 +393,7 @@ private fun ActivityFiltersBar(
                             ),
                         )
                     },
-                    label = { Text(ActivityType.valueOf(type).displayLabel()) },
+                    label = { Text(ActivityType.valueOf(type).displayLabel(resources)) },
                     colors = FilterChipDefaults.filterChipColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
@@ -415,7 +421,7 @@ private fun ActivityFiltersBar(
                             ),
                         )
                     },
-                    label = { Text(status.displayLabel()) },
+                    label = { Text(status.displayLabel(resources)) },
                     colors = FilterChipDefaults.filterChipColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         selectedContainerColor = statusColor(status).copy(alpha = 0.14f),
@@ -444,7 +450,7 @@ private fun ActivityFiltersBar(
                                 ),
                             )
                         },
-                        label = { Text(category.displayLabel()) },
+                        label = { Text(category.displayLabel(resources)) },
                         colors = FilterChipDefaults.filterChipColors(
                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                             selectedContainerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.14f),
@@ -550,6 +556,7 @@ private fun ActivityCard(
     item: ActivityFeedItem,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
     val visuals = activityVisuals(item)
 
     Surface(
@@ -603,7 +610,7 @@ private fun ActivityCard(
 
                     if (item.amount != null) {
                         Text(
-                            text = formatKmf(item.amount),
+                            text = formatKmf(resources, item.amount),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
@@ -626,13 +633,13 @@ private fun ActivityCard(
                     StatusBadge(status = item.status)
 
                     TypePill(
-                        text = item.type.displayLabel(),
+                        text = item.type.displayLabel(resources),
                         tint = visuals.iconTint,
                     )
                 }
 
                 Text(
-                    text = stringResource(R.string.common_date_with_reference, formatIsoToDisplay(item.occurredAt), item.eventRef),
+                    text = stringResource(R.string.common_date_with_reference, formatIsoToDisplay(resources, item.occurredAt), item.eventRef),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -645,6 +652,7 @@ private fun ActivityCard(
 
 @Composable
 private fun StatusBadge(status: ActivityStatus?) {
+    val resources = LocalContext.current.resources
     val color = when (status) {
         ActivityStatus.COMPLETED -> Color(0xFF1F8F63)
         ActivityStatus.PENDING -> Color(0xFFD98F00)
@@ -652,7 +660,7 @@ private fun StatusBadge(status: ActivityStatus?) {
         null -> MaterialTheme.colorScheme.outline
     }
 
-    val label = status?.displayLabel() ?: stringResource(R.string.common_info)
+    val label = status?.displayLabel(resources) ?: stringResource(R.string.common_info)
 
     Surface(
         shape = RoundedCornerShape(999.dp),
@@ -744,11 +752,7 @@ private fun activityVisuals(item: ActivityFeedItem): ActivityVisuals {
 }
 
 private fun buildDescriptionLine(item: ActivityFeedItem): String {
-    return buildString {
-        append(item.description)
-        append(" • ")
-        append(item.status?.displayLabel() ?: item.category.displayLabel())
-    }
+    return item.description
 }
 
 @Composable
@@ -762,10 +766,11 @@ private fun statusColor(status: ActivityStatus): Color {
 
 @Composable
 private fun activeFiltersSummary(filters: ActivityFilterState): String {
+    val resources = LocalContext.current.resources
     val parts = buildList {
-        filters.selectedType?.let { add(ActivityType.valueOf(it).displayLabel()) }
-        filters.selectedStatus?.let { add(ActivityStatus.valueOf(it).displayLabel()) }
-        filters.selectedCategory?.let { add(ActivityCategory.valueOf(it).displayLabel()) }
+        filters.selectedType?.let { add(ActivityType.valueOf(it).displayLabel(resources)) }
+        filters.selectedStatus?.let { add(ActivityStatus.valueOf(it).displayLabel(resources)) }
+        filters.selectedCategory?.let { add(ActivityCategory.valueOf(it).displayLabel(resources)) }
         if (filters.from.isNotBlank() || filters.to.isNotBlank()) {
             add(stringResource(R.string.common_period))
         }

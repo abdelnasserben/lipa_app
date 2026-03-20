@@ -19,23 +19,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 
 @Composable
 fun DebugPanel(
     lines: List<String>,
     modifier: Modifier = Modifier,
-    title: String = "Debug",
-    subtitle: String? = "Données techniques",
+    title: String? = null,
+    subtitle: String? = null,
     initiallyExpanded: Boolean = false,
 ) {
     val content = lines.joinToString(separator = "\n")
+    val resolvedTitle = title ?: stringResource(R.string.debug_panel_title)
+    val resolvedSubtitle = subtitle ?: stringResource(R.string.debug_panel_subtitle)
 
     var expanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
 
     SectionCard(
-        title = title,
-        subtitle = subtitle,
+        title = resolvedTitle,
+        subtitle = resolvedSubtitle,
         modifier = modifier,
         headerTrailingContent = {
             IconButton(onClick = { expanded = !expanded }) {

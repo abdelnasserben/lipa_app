@@ -1,12 +1,14 @@
 package com.kori.app.feature.profile
 
+import androidx.annotation.StringRes
+import com.kori.app.R
 import com.kori.app.core.model.UserRole
 
 enum class AppLanguage(
-    val label: String,
+    @StringRes val labelResId: Int,
 ) {
-    FR("Français"),
-    EN("English");
+    FR(R.string.profile_language_french),
+    EN(R.string.profile_language_english);
 
     companion object {
         fun fromCode(code: String): AppLanguage {
@@ -16,9 +18,9 @@ enum class AppLanguage(
 }
 
 enum class AppThemeMode(
-    val label: String,
+    @StringRes val labelResId: Int,
 ) {
-    LIGHT_ONLY("Clair uniquement"),
+    LIGHT_ONLY(R.string.profile_theme_light_only),
 }
 
 data class ProfileCardUiModel(

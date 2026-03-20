@@ -1,8 +1,10 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.AgentCardAddDraft
 import com.kori.app.core.model.action.AgentCardAddResult
 import com.kori.app.core.ui.FinancialInputRules
@@ -14,6 +16,7 @@ import kotlinx.coroutines.launch
 
 class AgentCardAddViewModel(
     private val repository: AgentActionRepository,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AgentCardAddUiState>(AgentCardAddUiState.Form())
@@ -67,13 +70,13 @@ class AgentCardAddViewModel(
                     is AgentCardAddResult.Success -> AgentCardAddUiState.Success(result.receipt)
                     is AgentCardAddResult.Failure -> AgentCardAddUiState.Failure(
                         code = result.code.name,
-                        userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                        userMessage = FinancialErrorMapper.userMessageFor(resources, result.code),
                     )
                 }
             }.onFailure {
                 _uiState.value = AgentCardAddUiState.Failure(
                     code = "TECHNICAL_ERROR",
-                    userMessage = "Une erreur réseau est survenue. Réessayez dans un instant.",
+                    userMessage = resources.getString(R.string.error_network_retry),
                 )
             }
         }
@@ -89,22 +92,29 @@ class AgentCardAddViewModel(
 
     private fun validate(draft: AgentCardAddDraft): AgentCardAddFormErrors {
         return AgentCardAddFormErrors(
-            phoneNumber = FinancialInputRules.validateComorosPhone(draft.phoneNumber, "le numéro du client"),
-            cardUid = if (draft.cardUid.isBlank()) "Saisissez l’identifiant de la carte." else null,
+            phoneNumber = FinancialInputRules.validateComorosPhone(
+                raw = draft.phoneNumber,
+                resources = resources,
+                fieldLabelResId = R.string.card_add_phone_label,
+            ),
+            cardUid = if (draft.cardUid.isBlank()) resources.getString(R.string.validation_card_reference_required) else null,
             pin = when {
-                draft.pin.isBlank() -> "Le code PIN est requis."
-                draft.pin.length != 4 -> "Le code PIN doit contenir 4 chiffres."
+                draft.pin.isBlank() -> resources.getString(R.string.validation_pin_required)
+                draft.pin.length != 4 -> resources.getString(R.string.validation_pin_length)
                 else -> null
             },
         )
     }
 
     companion object {
-        fun factory(repository: AgentActionRepository): ViewModelProvider.Factory {
+        fun factory(
+            repository: AgentActionRepository,
+            resources: Resources,
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return AgentCardAddViewModel(repository) as T
+                    return AgentCardAddViewModel(repository, resources) as T
                 }
             }
         }

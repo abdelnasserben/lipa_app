@@ -1,8 +1,10 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.AgentCashInDraft
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 class AgentCashInViewModel(
     private val repository: AgentActionRepository,
     private val idempotencyManager: IdempotencyManager,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AgentCashInUiState>(AgentCashInUiState.Form())
@@ -68,7 +71,7 @@ class AgentCashInViewModel(
                 _uiState.value = current.copy(
                     isLoading = false,
                     errors = current.errors.copy(
-                        amount = "Impossible de préparer cette opération pour le moment.",
+                        amount = resources.getString(R.string.financial_quote_unavailable),
                     ),
                 )
             }
@@ -94,6 +97,7 @@ class AgentCashInViewModel(
         val intent = createActionIntent(phoneNumber = current.model.quote.phoneNumber, amount = current.model.quote.amount)
 
         submitFinancialPost(
+            resources = resources,
             idempotencyManager = idempotencyManager,
             intent = intent,
             idempotencyKey = current.model.quote.idempotencyKey,
@@ -119,7 +123,7 @@ class AgentCashInViewModel(
                         AgentCashInUiState.Failure(
                             model = FinancialFailureModel(
                                 code = result.code,
-                                userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                                userMessage = FinancialErrorMapper.userMessageFor(resources, result.code),
                                 technicalMessage = result.message,
                                 idempotencyKey = result.idempotencyKey,
                             ),
@@ -167,8 +171,13 @@ class AgentCashInViewModel(
 
     private fun validate(draft: AgentCashInDraft): AgentCashInFormErrors {
         return AgentCashInFormErrors(
-            phoneNumber = FinancialInputRules.validateComorosPhone(draft.phoneNumber, "le numéro du client"),
+            phoneNumber = FinancialInputRules.validateComorosPhone(
+                raw = draft.phoneNumber,
+                resources = resources,
+                fieldLabelResId = R.string.cash_in_phone_label,
+            ),
             amount = KmfAmountFormatters.validateAmount(
+                resources = resources,
                 rawInput = draft.amountInput,
                 min = FinancialFlowRules.CASH_IN_MIN_AMOUNT,
                 max = FinancialFlowRules.CASH_IN_MAX_AMOUNT,
@@ -180,6 +189,7 @@ class AgentCashInViewModel(
         fun factory(
             repository: AgentActionRepository,
             idempotencyManager: IdempotencyManager,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -187,6 +197,7 @@ class AgentCashInViewModel(
                     return AgentCashInViewModel(
                         repository = repository,
                         idempotencyManager = idempotencyManager,
+                        resources = resources,
                     ) as T
                 }
             }

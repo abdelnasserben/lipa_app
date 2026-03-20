@@ -33,6 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -56,7 +58,6 @@ import com.kori.app.core.designsystem.component.StatusBadge
 import com.kori.app.core.designsystem.component.TransactionRowCard
 import com.kori.app.core.designsystem.component.TypeChip
 import com.kori.app.core.model.UserRole
-import com.kori.app.core.ui.dashboardTitleResId
 import com.kori.app.core.model.balance.ActorBalanceResponse
 import com.kori.app.core.model.common.BalanceKind
 import com.kori.app.core.model.dashboard.ActivityItem
@@ -65,6 +66,7 @@ import com.kori.app.core.model.dashboard.CardItem
 import com.kori.app.core.model.dashboard.Kpis7dResponse
 import com.kori.app.core.model.dashboard.TerminalsSummaryResponse
 import com.kori.app.core.model.transaction.TransactionItemResponse
+import com.kori.app.core.ui.dashboardTitleResId
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
 
@@ -79,6 +81,8 @@ fun DashboardScreen(
     onOpenAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     when (uiState) {
         DashboardUiState.Loading -> DashboardLoading(
             role = role,
@@ -835,6 +839,7 @@ private fun TerminalSummarySection(
 private fun AgentPositionHighlight(
     balance: ActorBalanceResponse,
 ) {
+    val resources = LocalResources.current
     val cash = balance.balances
         .firstOrNull { it.kind == BalanceKind.CASH }
         ?.amount
@@ -897,7 +902,7 @@ private fun AgentPositionHighlight(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = formatKmf(total),
+                    text = formatKmf(resources, total),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
@@ -910,12 +915,12 @@ private fun AgentPositionHighlight(
             ) {
                 BalanceDetailCard(
                     label = stringResource(R.string.dashboard_agent_cash),
-                    amount = formatKmf(cash),
+                    amount = formatKmf(resources, cash),
                     modifier = Modifier.weight(1f),
                 )
                 BalanceDetailCard(
                     label = stringResource(R.string.common_commission),
-                    amount = formatKmf(commission),
+                    amount = formatKmf(resources, commission),
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -988,6 +993,8 @@ private fun TransactionsSection(
 private fun FeaturedTransactionCard(
     transaction: TransactionItemResponse,
 ) {
+    val resources = LocalResources.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(26.dp),
@@ -1017,7 +1024,7 @@ private fun FeaturedTransactionCard(
                     )
 
                     Text(
-                        text = formatKmf(transaction.amount),
+                        text = formatKmf(resources, transaction.amount),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                     )
@@ -1052,7 +1059,7 @@ private fun FeaturedTransactionCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    text = formatIsoToDisplay(transaction.createdAt),
+                    text = formatIsoToDisplay(resources, transaction.createdAt),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -1099,6 +1106,8 @@ private fun AgentActivityCard(
     activity: ActivityItem,
     first: Boolean,
 ) {
+    val resources = LocalResources.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(22.dp),
@@ -1137,7 +1146,7 @@ private fun AgentActivityCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text = formatIsoToDisplay(activity.occurredAt),
+                    text = formatIsoToDisplay(resources, activity.occurredAt),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kori.app.R
@@ -40,6 +41,8 @@ fun ClientTransferScreen(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     when (uiState) {
         is ClientTransferUiState.Form -> {
             ClientTransferFormContent(
@@ -88,6 +91,7 @@ private fun ClientTransferFormContent(
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -153,6 +157,7 @@ private fun ClientTransferConfirmationContent(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -171,11 +176,11 @@ private fun ClientTransferConfirmationContent(
                     label = stringResource(R.string.client_transfer_recipient),
                     value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.recipientPhoneNumber),
                 )
-                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(state.model.quote.amount))
-                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(state.model.quote.fee))
+                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(resources, state.model.quote.amount))
+                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(resources, state.model.quote.fee))
                 DetailRow(
                     label = stringResource(R.string.client_transfer_total),
-                    value = formatKmf(state.model.quote.totalDebited),
+                    value = formatKmf(resources, state.model.quote.totalDebited),
                     showDivider = false,
                 )
             }
@@ -227,6 +232,8 @@ private fun ClientTransferSuccessContent(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -245,10 +252,10 @@ private fun ClientTransferSuccessContent(
                 lines = listOf(
                     stringResource(R.string.common_reference) to state.model.receipt.transactionRef,
                     stringResource(R.string.client_transfer_recipient) to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.recipientPhoneNumber),
-                    stringResource(R.string.common_amount) to formatKmf(state.model.receipt.amount),
-                    stringResource(R.string.common_fees) to formatKmf(state.model.receipt.fee),
-                    stringResource(R.string.client_transfer_total) to formatKmf(state.model.receipt.totalDebited),
-                    stringResource(R.string.common_date) to formatIsoToDisplay(state.model.receipt.createdAt),
+                    stringResource(R.string.common_amount) to formatKmf(resources, state.model.receipt.amount),
+                    stringResource(R.string.common_fees) to formatKmf(resources, state.model.receipt.fee),
+                    stringResource(R.string.client_transfer_total) to formatKmf(resources, state.model.receipt.totalDebited),
+                    stringResource(R.string.common_date) to formatIsoToDisplay(resources, state.model.receipt.createdAt),
                 ),
             )
         }

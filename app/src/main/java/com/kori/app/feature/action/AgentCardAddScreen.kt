@@ -13,6 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -36,6 +37,8 @@ fun AgentCardAddScreen(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     when (uiState) {
         is AgentCardAddUiState.Form -> LazyColumn(
             modifier = modifier,
@@ -97,8 +100,8 @@ fun AgentCardAddScreen(
                         stringResource(R.string.card_add_transaction) to uiState.receipt.transactionId,
                         stringResource(R.string.card_add_client) to uiState.receipt.clientId,
                         stringResource(R.string.card_add_card) to uiState.receipt.cardUid,
-                        stringResource(R.string.card_add_price) to formatKmf(uiState.receipt.cardPrice),
-                        stringResource(R.string.common_commission) to formatKmf(uiState.receipt.agentCommission),
+                        stringResource(R.string.card_add_price) to formatKmf(resources, uiState.receipt.cardPrice),
+                        stringResource(R.string.common_commission) to formatKmf(resources, uiState.receipt.agentCommission),
                     ),
                 )
             }

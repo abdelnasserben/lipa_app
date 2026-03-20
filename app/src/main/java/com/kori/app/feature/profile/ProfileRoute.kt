@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.core.model.UserRole
 import com.kori.app.data.local.LocalStorage
@@ -18,11 +19,13 @@ fun ProfileRoute(
     onSelectRole: (UserRole) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
     val viewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModel.factory(
             role = role,
             repository = repository,
             localStorage = localStorage,
+            resources = resources,
         ),
     )
 

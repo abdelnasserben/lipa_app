@@ -1,42 +1,45 @@
 package com.kori.app.navigation
 
+import androidx.annotation.StringRes
+import com.kori.app.R
+
 sealed class KoriDestination(
     val route: String,
-    val label: String,
+    @StringRes val labelResId: Int,
 ) {
     data object RolePicker : KoriDestination(
         route = "role_picker",
-        label = "Accueil",
+        labelResId = R.string.nav_home,
     )
 
     data object AuthWelcome : KoriDestination(
         route = "auth_welcome",
-        label = "Connexion",
+        labelResId = R.string.destination_auth_welcome,
     )
 
     data object AuthCallback : KoriDestination(
         route = "auth_callback",
-        label = "Traitement",
+        labelResId = R.string.destination_auth_callback,
     )
 
     data object AuthSuccess : KoriDestination(
         route = "auth_success",
-        label = "Succès",
+        labelResId = R.string.destination_auth_success,
     )
 
     data object Dashboard : KoriDestination(
         route = "dashboard",
-        label = "Dashboard",
+        labelResId = R.string.destination_dashboard,
     )
 
     data object Transactions : KoriDestination(
         route = "transactions",
-        label = "Transactions",
+        labelResId = R.string.nav_transactions,
     )
 
     data object TransactionDetail : KoriDestination(
         route = "transaction_detail/{transactionRef}",
-        label = "Détail",
+        labelResId = R.string.nav_transaction_detail,
     ) {
         fun createRoute(transactionRef: String): String {
             return "transaction_detail/$transactionRef"
@@ -45,61 +48,61 @@ sealed class KoriDestination(
 
     data object ClientTransfer : KoriDestination(
         route = "client_transfer",
-        label = "Transfert client",
+        labelResId = R.string.destination_client_transfer,
     )
 
     data object MerchantTransfer : KoriDestination(
         route = "merchant_transfer",
-        label = "Transfert marchand",
+        labelResId = R.string.nav_merchant_transfer,
     )
 
     data object AgentCashIn : KoriDestination(
         route = "agent_cash_in",
-        label = "Cash-in",
+        labelResId = R.string.destination_agent_cash_in,
     )
 
     data object AgentMerchantWithdraw : KoriDestination(
         route = "agent_merchant_withdraw",
-        label = "Retrait marchand",
+        labelResId = R.string.nav_agent_withdraw,
     )
 
     data object AgentCardEnroll : KoriDestination(
         route = "agent_card_enroll",
-        label = "Enrôlement carte",
+        labelResId = R.string.destination_agent_card_enroll,
     )
 
     data object AgentCardAdd : KoriDestination(
         route = "agent_card_add",
-        label = "Ajout carte",
+        labelResId = R.string.destination_agent_card_add,
     )
 
     data object AgentCardStatusUpdate : KoriDestination(
         route = "agent_card_status_update",
-        label = "Statut carte",
+        labelResId = R.string.nav_agent_card_status,
     )
 
     data object AgentSearch : KoriDestination(
         route = "agent_search",
-        label = "Recherche",
+        labelResId = R.string.nav_agent_search,
     )
 
     data object Action : KoriDestination(
         route = "action",
-        label = "Action",
+        labelResId = R.string.destination_action,
     )
 
     data object Activity : KoriDestination(
         route = "activity",
-        label = "Activités",
+        labelResId = R.string.role_shared_history,
     )
 
     data object ClientCards : KoriDestination(
         route = "client_cards",
-        label = "Mes cartes",
+        labelResId = R.string.nav_client_cards,
     )
 
     data object Profile : KoriDestination(
         route = "profile",
-        label = "Profil",
+        labelResId = R.string.nav_profile,
     )
 }

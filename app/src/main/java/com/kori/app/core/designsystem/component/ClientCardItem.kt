@@ -22,9 +22,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
@@ -38,6 +41,8 @@ fun ClientCardListItem(
     index: Int,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -72,7 +77,7 @@ fun ClientCardListItem(
 
                     Column {
                         Text(
-                            text = "Carte $index",
+                            text = stringResource(R.string.client_cards_card_index, index),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -93,7 +98,7 @@ fun ClientCardListItem(
             }
 
             Text(
-                text = "Créée le ${formatIsoToDisplay(card.createdAt)}",
+                text = stringResource(R.string.client_cards_created_at_value, formatIsoToDisplay(resources, card.createdAt)),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

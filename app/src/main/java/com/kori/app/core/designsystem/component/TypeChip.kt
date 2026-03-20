@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.kori.app.core.designsystem.KoriPrimary
@@ -26,6 +27,8 @@ fun TypeChip(
     type: TransactionType,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(999.dp))
@@ -42,7 +45,7 @@ fun TypeChip(
         )
 
         Text(
-            text = type.displayLabel(),
+            text = type.displayLabel(resources),
             style = MaterialTheme.typography.labelMedium,
             color = KoriPrimary,
         )

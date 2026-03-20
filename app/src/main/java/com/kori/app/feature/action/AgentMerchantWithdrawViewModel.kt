@@ -1,8 +1,10 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.AgentMerchantWithdrawDraft
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 class AgentMerchantWithdrawViewModel(
     private val repository: AgentActionRepository,
     private val idempotencyManager: IdempotencyManager,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AgentMerchantWithdrawUiState>(AgentMerchantWithdrawUiState.Form())
@@ -68,7 +71,7 @@ class AgentMerchantWithdrawViewModel(
                 _uiState.value = current.copy(
                     isLoading = false,
                     errors = current.errors.copy(
-                        amount = "Impossible de préparer cette opération pour le moment.",
+                        amount = resources.getString(R.string.financial_quote_unavailable),
                     ),
                 )
             }
@@ -94,6 +97,7 @@ class AgentMerchantWithdrawViewModel(
         val intent = createActionIntent(merchantCode = current.model.quote.merchantCode, amount = current.model.quote.amount)
 
         submitFinancialPost(
+            resources = resources,
             idempotencyManager = idempotencyManager,
             intent = intent,
             idempotencyKey = current.model.quote.idempotencyKey,
@@ -119,7 +123,7 @@ class AgentMerchantWithdrawViewModel(
                         AgentMerchantWithdrawUiState.Failure(
                             model = FinancialFailureModel(
                                 code = result.code,
-                                userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                                userMessage = FinancialErrorMapper.userMessageFor(resources, result.code),
                                 technicalMessage = result.message,
                                 idempotencyKey = result.idempotencyKey,
                             ),
@@ -168,8 +172,13 @@ class AgentMerchantWithdrawViewModel(
 
     private fun validate(draft: AgentMerchantWithdrawDraft): AgentMerchantWithdrawFormErrors {
         return AgentMerchantWithdrawFormErrors(
-            merchantCode = FinancialInputRules.validateMerchantCode(draft.merchantCode),
+            merchantCode = FinancialInputRules.validateMerchantCode(
+                raw = draft.merchantCode,
+                resources = resources,
+                fieldLabelResId = R.string.withdraw_merchant_label,
+            ),
             amount = KmfAmountFormatters.validateAmount(
+                resources = resources,
                 rawInput = draft.amountInput,
                 min = FinancialFlowRules.MERCHANT_WITHDRAW_MIN_AMOUNT,
                 max = FinancialFlowRules.MERCHANT_WITHDRAW_MAX_AMOUNT,
@@ -181,6 +190,7 @@ class AgentMerchantWithdrawViewModel(
         fun factory(
             repository: AgentActionRepository,
             idempotencyManager: IdempotencyManager,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -188,6 +198,7 @@ class AgentMerchantWithdrawViewModel(
                     return AgentMerchantWithdrawViewModel(
                         repository = repository,
                         idempotencyManager = idempotencyManager,
+                        resources = resources,
                     ) as T
                 }
             }

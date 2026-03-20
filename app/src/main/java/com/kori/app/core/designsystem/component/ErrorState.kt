@@ -16,7 +16,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.designsystem.KoriAccent
 import com.kori.app.core.designsystem.KoriPrimary
 import com.kori.app.core.designsystem.KoriSurface
@@ -61,7 +63,7 @@ fun ErrorState(
                 ),
                 shape = RoundedCornerShape(999.dp),
             ) {
-                Text("Réessayer")
+                Text(stringResource(R.string.common_retry))
             }
         }
     }

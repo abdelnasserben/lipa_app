@@ -1,8 +1,10 @@
 package com.kori.app.feature.cards
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.data.repository.ClientCardRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +13,7 @@ import kotlinx.coroutines.launch
 
 class ClientCardsViewModel(
     private val repository: ClientCardRepository,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ClientCardsUiState>(ClientCardsUiState.Loading)
@@ -34,19 +37,22 @@ class ClientCardsViewModel(
                 }
             }.onFailure {
                 _uiState.value = ClientCardsUiState.Error(
-                    message = "Impossible de charger vos cartes pour le moment.",
+                    message = resources.getString(R.string.client_cards_error_message),
                 )
             }
         }
     }
 
     companion object {
-        fun factory(repository: ClientCardRepository): ViewModelProvider.Factory {
+        fun factory(
+            repository: ClientCardRepository,
+            resources: Resources,
+        ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     require(modelClass.isAssignableFrom(ClientCardsViewModel::class.java))
-                    return ClientCardsViewModel(repository) as T
+                    return ClientCardsViewModel(repository, resources) as T
                 }
             }
         }

@@ -1,15 +1,18 @@
 package com.kori.app.feature.transactions
 
+import androidx.annotation.StringRes
+import com.kori.app.R
+
 enum class TransactionSortOption(
-    val label: String,
+    @StringRes val labelResId: Int,
     val backendValue: String,
 ) {
     DATE_DESC(
-        label = "Plus récentes",
+        labelResId = R.string.transactions_sort_recent,
         backendValue = "-createdAt",
     ),
     DATE_ASC(
-        label = "Plus anciennes",
+        labelResId = R.string.transactions_sort_oldest,
         backendValue = "createdAt",
     ),
 }

@@ -1,8 +1,10 @@
 package com.kori.app.feature.dashboard
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.UserRole
 import com.kori.app.domain.DashboardPayload
 import com.kori.app.domain.GetDashboardUseCase
@@ -14,6 +16,7 @@ import kotlinx.coroutines.launch
 class DashboardViewModel(
     private val role: UserRole,
     private val getDashboardUseCase: GetDashboardUseCase,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<DashboardUiState>(DashboardUiState.Loading)
@@ -67,7 +70,7 @@ class DashboardViewModel(
                 },
                 onFailure = {
                     DashboardUiState.Error(
-                        message = "Impossible de charger le dashboard pour le moment.",
+                        message = resources.getString(R.string.dashboard_error_message),
                     )
                 },
             )
@@ -78,6 +81,7 @@ class DashboardViewModel(
         fun factory(
             role: UserRole,
             getDashboardUseCase: GetDashboardUseCase,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -85,6 +89,7 @@ class DashboardViewModel(
                     return DashboardViewModel(
                         role = role,
                         getDashboardUseCase = getDashboardUseCase,
+                        resources = resources,
                     ) as T
                 }
             }

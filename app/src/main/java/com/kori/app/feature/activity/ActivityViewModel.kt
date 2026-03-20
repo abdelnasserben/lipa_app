@@ -1,8 +1,10 @@
 package com.kori.app.feature.activity
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.activity.ActivityCategory
 import com.kori.app.core.model.activity.ActivityFeedItem
@@ -23,6 +25,7 @@ import java.util.Locale
 class ActivityViewModel(
     private val role: UserRole,
     private val repository: ActivityRepository,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ActivityUiState>(ActivityUiState.Loading)
@@ -72,7 +75,7 @@ class ActivityViewModel(
                 }
             }.onFailure {
                 _uiState.value = ActivityUiState.Error(
-                    message = "Impossible de charger l’activité pour le moment.",
+                    message = resources.getString(R.string.activity_error_message),
                 )
             }
         }
@@ -90,7 +93,8 @@ class ActivityViewModel(
 
     private fun buildSections(items: List<ActivityFeedItem>): List<ActivitySection> {
         val today = LocalDate.now()
-        val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH)
+        val locale = resources.configuration.locales[0] ?: Locale.getDefault()
+        val formatter = DateTimeFormatter.ofPattern("EEEE d MMMM", locale)
 
         return items
             .groupBy { item ->
@@ -103,13 +107,13 @@ class ActivityViewModel(
             .toSortedMap(compareByDescending<LocalDate?> { it })
             .map { (date, groupedItems) ->
                 val title = when (date) {
-                    null -> "Autres"
-                    today -> "Aujourd’hui"
-                    today.minusDays(1) -> "Hier"
+                    null -> resources.getString(R.string.activity_section_other)
+                    today -> resources.getString(R.string.activity_section_today)
+                    today.minusDays(1) -> resources.getString(R.string.activity_section_yesterday)
                     else -> formatter.format(date)
                         .replaceFirstChar { char ->
                             if (char.isLowerCase()) {
-                                char.titlecase(Locale.FRENCH)
+                                char.titlecase(locale)
                             } else {
                                 char.toString()
                             }
@@ -127,6 +131,7 @@ class ActivityViewModel(
         fun factory(
             role: UserRole,
             repository: ActivityRepository,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -134,6 +139,7 @@ class ActivityViewModel(
                     return ActivityViewModel(
                         role = role,
                         repository = repository,
+                        resources = resources,
                     ) as T
                 }
             }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.core.model.UserRole
 import com.kori.app.domain.GetDashboardUseCase
@@ -18,10 +19,12 @@ fun DashboardRoute(
     onOpenAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
     val viewModel: DashboardViewModel = viewModel(
         factory = DashboardViewModel.factory(
             role = role,
             getDashboardUseCase = getDashboardUseCase,
+            resources = resources,
         ),
     )
 

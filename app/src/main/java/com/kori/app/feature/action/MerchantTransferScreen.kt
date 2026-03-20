@@ -13,6 +13,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kori.app.R
@@ -39,6 +41,8 @@ fun MerchantTransferScreen(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     when (uiState) {
         is MerchantTransferUiState.Form -> MerchantTransferFormContent(uiState, onRecipientChanged, onAmountChanged, onContinue, modifier)
         is MerchantTransferUiState.Confirmation -> MerchantTransferConfirmationContent(uiState, onOpenConfirmDialog, onDismissConfirmDialog, onConfirm, onEdit, modifier)
@@ -55,6 +59,7 @@ private fun MerchantTransferFormContent(
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -108,6 +113,7 @@ private fun MerchantTransferConfirmationContent(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -117,9 +123,9 @@ private fun MerchantTransferConfirmationContent(
         item {
             SectionCard(title = stringResource(R.string.common_details)) {
                 DetailRow(label = stringResource(R.string.merchant_transfer_recipient), value = state.model.quote.recipientMerchantCode)
-                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(state.model.quote.amount))
-                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(state.model.quote.fee))
-                DetailRow(label = stringResource(R.string.merchant_transfer_total), value = formatKmf(state.model.quote.totalDebited), showDivider = false)
+                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(resources, state.model.quote.amount))
+                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(resources, state.model.quote.fee))
+                DetailRow(label = stringResource(R.string.merchant_transfer_total), value = formatKmf(resources, state.model.quote.totalDebited), showDivider = false)
             }
         }
         item {
@@ -157,6 +163,8 @@ private fun MerchantTransferSuccessContent(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -169,10 +177,10 @@ private fun MerchantTransferSuccessContent(
                 lines = listOf(
                     stringResource(R.string.common_reference) to state.model.receipt.transactionRef,
                     stringResource(R.string.merchant_transfer_recipient) to state.model.receipt.recipientMerchantCode,
-                    stringResource(R.string.common_amount) to formatKmf(state.model.receipt.amount),
-                    stringResource(R.string.common_fees) to formatKmf(state.model.receipt.fee),
-                    stringResource(R.string.merchant_transfer_total) to formatKmf(state.model.receipt.totalDebited),
-                    stringResource(R.string.common_date) to formatIsoToDisplay(state.model.receipt.createdAt),
+                    stringResource(R.string.common_amount) to formatKmf(resources, state.model.receipt.amount),
+                    stringResource(R.string.common_fees) to formatKmf(resources, state.model.receipt.fee),
+                    stringResource(R.string.merchant_transfer_total) to formatKmf(resources, state.model.receipt.totalDebited),
+                    stringResource(R.string.common_date) to formatIsoToDisplay(resources, state.model.receipt.createdAt),
                 ),
             )
         }

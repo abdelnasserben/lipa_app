@@ -1,8 +1,10 @@
 package com.kori.app.feature.transactions
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.transaction.TransactionItemResponse
 import com.kori.app.core.model.transaction.TransactionStatus
@@ -18,6 +20,7 @@ class TransactionDetailViewModel(
     private val role: UserRole,
     private val transactionRef: String,
     private val repository: TransactionRepository,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<TransactionDetailUiState>(TransactionDetailUiState.Loading)
@@ -36,7 +39,7 @@ class TransactionDetailViewModel(
             }.onSuccess { transaction ->
                 if (transaction == null) {
                     _uiState.value = TransactionDetailUiState.Error(
-                        message = "Cette transaction est introuvable.",
+                        message = resources.getString(R.string.transaction_detail_not_found),
                     )
                 } else {
                     _uiState.value = TransactionDetailUiState.Content(
@@ -46,7 +49,7 @@ class TransactionDetailViewModel(
                 }
             }.onFailure {
                 _uiState.value = TransactionDetailUiState.Error(
-                    message = "Impossible de charger le détail de la transaction.",
+                    message = resources.getString(R.string.transaction_detail_error_message),
                 )
             }
         }
@@ -75,16 +78,16 @@ class TransactionDetailViewModel(
         val finalPending = transaction.status == TransactionStatus.PENDING
 
         val lastTitle = when {
-            finalCompleted -> transaction.status.timelineLabel()
-            finalFailed -> transaction.status.timelineLabel()
-            finalReversed -> transaction.status.timelineLabel()
-            finalPending -> transaction.status.timelineLabel()
-            else -> transaction.status.timelineLabel()
+            finalCompleted -> transaction.status.timelineLabel(resources)
+            finalFailed -> transaction.status.timelineLabel(resources)
+            finalReversed -> transaction.status.timelineLabel(resources)
+            finalPending -> transaction.status.timelineLabel(resources)
+            else -> transaction.status.timelineLabel(resources)
         }
 
         return listOf(
             TransactionTimelineStep(
-                title = "Demande initiée",
+                title = resources.getString(R.string.transaction_timeline_started),
                 isCompleted = true,
             ),
             TransactionTimelineStep(
@@ -99,6 +102,7 @@ class TransactionDetailViewModel(
             role: UserRole,
             transactionRef: String,
             repository: TransactionRepository,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -107,6 +111,7 @@ class TransactionDetailViewModel(
                         role = role,
                         transactionRef = transactionRef,
                         repository = repository,
+                        resources = resources,
                     ) as T
                 }
             }

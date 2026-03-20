@@ -13,6 +13,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kori.app.R
@@ -40,6 +42,8 @@ fun AgentCashInScreen(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     when (uiState) {
         is AgentCashInUiState.Form -> AgentCashInFormContent(uiState, onPhoneChanged, onAmountChanged, onContinue, modifier)
         is AgentCashInUiState.Confirmation -> AgentCashInConfirmationContent(uiState, onOpenConfirmDialog, onDismissConfirmDialog, onConfirm, onEdit, modifier)
@@ -56,6 +60,7 @@ private fun AgentCashInFormContent(
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -103,6 +108,7 @@ private fun AgentCashInConfirmationContent(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -112,8 +118,8 @@ private fun AgentCashInConfirmationContent(
         item {
             SectionCard(title = stringResource(R.string.common_details)) {
                 DetailRow(label = stringResource(R.string.cash_in_client), value = FinancialInputRules.formatComorosPhoneForDisplay(state.model.quote.phoneNumber))
-                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(state.model.quote.amount))
-                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(state.model.quote.fee), showDivider = false)
+                DetailRow(label = stringResource(R.string.common_amount), value = formatKmf(resources, state.model.quote.amount))
+                DetailRow(label = stringResource(R.string.common_fees), value = formatKmf(resources, state.model.quote.fee), showDivider = false)
             }
         }
         item {
@@ -145,6 +151,8 @@ private fun AgentCashInSuccessContent(
     onRestart: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalResources.current
+
     LazyColumn(
         modifier = modifier,
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 92.dp, bottom = 20.dp),
@@ -157,9 +165,9 @@ private fun AgentCashInSuccessContent(
                 lines = listOf(
                     stringResource(R.string.common_reference) to state.model.receipt.transactionRef,
                     stringResource(R.string.cash_in_client) to FinancialInputRules.formatComorosPhoneForDisplay(state.model.receipt.clientPhoneNumber),
-                    stringResource(R.string.common_amount) to formatKmf(state.model.receipt.amount),
-                    stringResource(R.string.common_fees) to formatKmf(state.model.receipt.fee),
-                    stringResource(R.string.common_date) to formatIsoToDisplay(state.model.receipt.createdAt),
+                    stringResource(R.string.common_amount) to formatKmf(resources, state.model.receipt.amount),
+                    stringResource(R.string.common_fees) to formatKmf(resources, state.model.receipt.fee),
+                    stringResource(R.string.common_date) to formatIsoToDisplay(resources, state.model.receipt.createdAt),
                 ),
             )
         }

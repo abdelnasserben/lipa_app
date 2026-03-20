@@ -1,8 +1,10 @@
 package com.kori.app.feature.transactions
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.transaction.TransactionStatus
 import com.kori.app.core.model.transaction.TransactionType
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
 class TransactionsViewModel(
     private val role: UserRole,
     private val repository: TransactionRepository,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<TransactionsUiState>(TransactionsUiState.Loading)
@@ -96,7 +99,7 @@ class TransactionsViewModel(
                 }
             }.onFailure {
                 _uiState.value = TransactionsUiState.Error(
-                    message = "Impossible de charger les transactions pour le moment.",
+                    message = resources.getString(R.string.transactions_error_message),
                 )
             }
         }
@@ -140,6 +143,7 @@ class TransactionsViewModel(
         fun factory(
             role: UserRole,
             repository: TransactionRepository,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -147,6 +151,7 @@ class TransactionsViewModel(
                     return TransactionsViewModel(
                         role = role,
                         repository = repository,
+                        resources = resources,
                     ) as T
                 }
             }

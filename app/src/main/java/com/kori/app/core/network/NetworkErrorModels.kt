@@ -1,5 +1,7 @@
 package com.kori.app.core.network
 
+import android.content.res.Resources
+import com.kori.app.R
 import java.io.IOException
 import java.net.SocketTimeoutException
 
@@ -35,11 +37,14 @@ object NetworkErrorMapper {
         }
     }
 
-    fun toPresentation(error: NetworkError): NetworkErrorPresentation {
+    fun toPresentation(
+        resources: Resources,
+        error: NetworkError,
+    ): NetworkErrorPresentation {
         return when (error) {
             is NetworkError.Http -> NetworkErrorPresentation(
                 technicalMessage = "HTTP_${error.code}: ${error.payload.orEmpty()}",
-                uxMessage = "Le service est momentanément indisponible.",
+                uxMessage = resources.getString(R.string.network_error_service_unavailable),
             )
 
             is NetworkError.BackendBusiness -> NetworkErrorPresentation(
@@ -49,22 +54,22 @@ object NetworkErrorMapper {
 
             is NetworkError.Parsing -> NetworkErrorPresentation(
                 technicalMessage = "PARSING: ${error.causeMessage.orEmpty()}",
-                uxMessage = "Une réponse inattendue a été reçue.",
+                uxMessage = resources.getString(R.string.network_error_unexpected_response),
             )
 
             is NetworkError.Connectivity -> NetworkErrorPresentation(
                 technicalMessage = "CONNECTIVITY: ${error.causeMessage.orEmpty()}",
-                uxMessage = "Vérifie ta connexion internet puis réessaie.",
+                uxMessage = resources.getString(R.string.network_error_connectivity),
             )
 
             is NetworkError.Timeout -> NetworkErrorPresentation(
                 technicalMessage = "TIMEOUT: ${error.causeMessage.orEmpty()}",
-                uxMessage = "La requête a expiré, réessaie dans un instant.",
+                uxMessage = resources.getString(R.string.network_error_timeout),
             )
 
             is NetworkError.Unknown -> NetworkErrorPresentation(
                 technicalMessage = "UNKNOWN: ${error.causeMessage.orEmpty()}",
-                uxMessage = "Une erreur inattendue est survenue.",
+                uxMessage = resources.getString(R.string.network_error_unknown),
             )
         }
     }

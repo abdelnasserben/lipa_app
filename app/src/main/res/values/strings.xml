@@ -275,7 +275,7 @@
     <string name="transactions_empty_filtered_message">Ajustez la période, le montant ou le type d’opération.</string>
     <string name="transactions_empty_message">Vos opérations récentes apparaîtront ici dès qu’elles seront disponibles.</string>
     <string name="transactions_load_more">Charger plus</string>
-    <string name="transactions_title">Opérations</string>
+    <string name="transactions_title">Transactions</string>
     <string name="transactions_subtitle_client">Suivez vos paiements, transferts et mouvements récents.</string>
     <string name="transactions_subtitle_merchant">Retrouvez vos encaissements et opérations marchandes les plus récentes.</string>
     <string name="transactions_subtitle_agent">Consultez rapidement vos opérations terrain et dépôts récents.</string>
@@ -407,5 +407,111 @@
     <string name="transaction_detail_total_charged">Total débité</string>
 
     <string name="card_status_reason_counter">%1$d/255</string>
+
+
+    <string name="destination_auth_welcome">Connexion</string>
+    <string name="destination_auth_callback">Traitement</string>
+    <string name="destination_auth_success">Succès</string>
+    <string name="destination_dashboard">Tableau de bord</string>
+    <string name="destination_client_transfer">Transfert client</string>
+    <string name="destination_agent_cash_in">Dépôt client</string>
+    <string name="destination_agent_card_enroll">Associer une carte</string>
+    <string name="destination_agent_card_add">Ajouter une carte</string>
+    <string name="destination_action">Action</string>
+
+    <string name="transaction_type_card_payment">Paiement carte</string>
+    <string name="transaction_type_cash_in">Dépôt</string>
+    <string name="transaction_type_client_transfer">Transfert client</string>
+    <string name="transaction_type_merchant_transfer">Transfert marchand</string>
+    <string name="transaction_type_merchant_withdraw">Retrait marchand</string>
+    <string name="transaction_type_reversal">Remboursement</string>
+    <string name="transaction_type_agent_bank_deposit">Dépôt banque</string>
+    <string name="transaction_status_pending">En cours</string>
+    <string name="transaction_status_completed">Succès</string>
+    <string name="transaction_status_failed">Échec</string>
+    <string name="transaction_status_reversed">Remboursée</string>
+    <string name="transaction_timeline_started">Demande reçue</string>
+    <string name="transaction_timeline_pending">Traitement en cours</string>
+    <string name="transaction_timeline_completed">Opération confirmée</string>
+    <string name="transaction_timeline_failed">Opération refusée</string>
+    <string name="transaction_timeline_reversed">Opération annulée</string>
+
+    <string name="activity_type_payment">Paiement</string>
+    <string name="activity_type_transfer">Transfert</string>
+    <string name="activity_type_card">Carte</string>
+    <string name="activity_type_collection">Encaissement</string>
+    <string name="activity_type_terminal">Terminal</string>
+    <string name="activity_type_cash_in">Dépôt</string>
+    <string name="activity_type_merchant_withdraw">Retrait marchand</string>
+    <string name="activity_type_field_operation">Terrain</string>
+    <string name="activity_status_pending">En cours</string>
+    <string name="activity_status_completed">Succès</string>
+    <string name="activity_status_failed">Échec</string>
+    <string name="activity_category_payment">Paiement</string>
+    <string name="activity_category_transfer">Transfert</string>
+    <string name="activity_category_card">Carte</string>
+    <string name="activity_category_terminal">Terminal</string>
+    <string name="activity_category_field">Terrain</string>
+    <string name="activity_section_today">Aujourd’hui</string>
+    <string name="activity_section_yesterday">Hier</string>
+    <string name="activity_section_other">Autres</string>
+
+    <string name="amount_kmf">%1$s KMF</string>
+    <string name="validation_required_field">Saisissez %1$s.</string>
+    <string name="validation_field_merchant_code">le code marchand</string>
+    <string name="validation_phone_incomplete">Numéro incomplet.</string>
+    <string name="validation_phone_start">Le numéro doit commencer par 3 ou 4 après +269.</string>
+    <string name="validation_merchant_code_format">Format attendu : M-123456.</string>
+    <string name="validation_amount_required">Saisissez un montant.</string>
+    <string name="validation_amount_invalid">Montant invalide.</string>
+    <string name="validation_amount_min">Montant minimum : %1$s.</string>
+    <string name="validation_amount_max">Montant maximum : %1$s.</string>
+    <string name="validation_card_reference_required">Saisissez la référence de la carte.</string>
+    <string name="validation_pin_required">Saisissez le code PIN.</string>
+    <string name="validation_pin_length">Le code PIN doit contenir 4 chiffres.</string>
+    <string name="validation_customer_name_required">Saisissez le nom du client.</string>
+    <string name="validation_card_status_required">Choisissez une action.</string>
+    <string name="validation_reason_too_long">Le motif est trop long.</string>
+
+    <string name="financial_error_insufficient_funds">Solde insuffisant.</string>
+    <string name="financial_error_daily_limit">Plafond atteint pour le moment.</string>
+    <string name="financial_error_unauthorized">Action non autorisée.</string>
+    <string name="financial_error_invalid_status">Opération indisponible.</string>
+    <string name="error_network_retry">Erreur réseau. Réessayez.</string>
+    <string name="financial_quote_unavailable">Opération indisponible pour le moment.</string>
+    <string name="merchant_transfer_quote_unavailable">Transfert indisponible pour le moment.</string>
+    <string name="transactions_error_message">Les opérations sont indisponibles pour le moment.</string>
+    <string name="transaction_detail_not_found">Cette opération est introuvable.</string>
+    <string name="transaction_detail_error_message">Le détail est indisponible pour le moment.</string>
+    <string name="agent_search_error_message">La recherche est indisponible pour le moment.</string>
+    <string name="client_cards_error_message">Vos cartes sont indisponibles pour le moment.</string>
+    <string name="dashboard_error_message">Le tableau de bord est indisponible pour le moment.</string>
+    <string name="profile_error_message">Le profil est indisponible pour le moment.</string>
+    <string name="activity_error_message">L’activité est indisponible pour le moment.</string>
+
+    <string name="transactions_sort_recent">Plus récentes</string>
+    <string name="transactions_sort_oldest">Plus anciennes</string>
+    <string name="kpi_transactions">Transactions</string>
+    <string name="kpi_volume">Volume</string>
+    <string name="kpi_failures">Échecs</string>
+    <string name="common_title_with_count">%1$s • %2$d</string>
+    <string name="client_cards_card_index">Carte %1$d</string>
+    <string name="client_cards_created_at_value">Créée le %1$s</string>
+    <string name="profile_language_french">Français</string>
+    <string name="profile_language_english">English</string>
+    <string name="profile_theme_light_only">Clair uniquement</string>
+
+
+    <string name="network_error_service_unavailable">Le service est indisponible pour le moment.</string>
+    <string name="network_error_unexpected_response">Réponse inattendue.</string>
+    <string name="network_error_connectivity">Vérifiez votre connexion et réessayez.</string>
+    <string name="network_error_timeout">Le délai est dépassé. Réessayez.</string>
+    <string name="network_error_unknown">Une erreur est survenue.</string>
+    <string name="timeline_step_completed">Étape validée</string>
+    <string name="timeline_step_pending">En attente</string>
+    <string name="debug_panel_title">Debug</string>
+    <string name="debug_panel_subtitle">Données techniques</string>
+    <string name="financial_form_amount_placeholder">0 KMF</string>
+    <string name="financial_form_amount_helper">Montant en francs comoriens</string>
 
 </resources>

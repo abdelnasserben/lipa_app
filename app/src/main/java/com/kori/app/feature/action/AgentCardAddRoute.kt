@@ -3,6 +3,7 @@ package com.kori.app.feature.action
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kori.app.data.repository.AgentActionRepository
 
@@ -10,8 +11,9 @@ import com.kori.app.data.repository.AgentActionRepository
 fun AgentCardAddRoute(
     repository: AgentActionRepository,
 ) {
+    val resources = LocalContext.current.resources
     val viewModel: AgentCardAddViewModel = viewModel(
-        factory = AgentCardAddViewModel.factory(repository),
+        factory = AgentCardAddViewModel.factory(repository, resources),
     )
     val uiState by viewModel.uiState.collectAsState()
 

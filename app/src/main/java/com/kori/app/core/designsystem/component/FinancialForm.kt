@@ -13,9 +13,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 import com.kori.app.core.ui.KmfAmountFormatters
+import com.kori.app.core.ui.formatKmf
 
 data class FinancialFormState(
     val amountInput: String = "",
@@ -31,13 +35,17 @@ fun FinancialForm(
     state: FinancialFormState,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    amountLabel: String = "Montant",
-    amountPlaceholder: String = "0 KMF",
-    helperText: String? = "Montant en francs comoriens",
+    amountLabel: String? = null,
+    amountPlaceholder: String? = null,
+    helperText: String? = null,
     extraFields: @Composable (() -> Unit)? = null,
     onAmountChange: (String) -> Unit,
     onSubmit: () -> Unit,
 ) {
+    val resolvedAmountLabel = amountLabel ?: stringResource(R.string.common_amount)
+    val resolvedAmountPlaceholder = amountPlaceholder ?: stringResource(R.string.financial_form_amount_placeholder)
+    val resolvedHelperText = helperText ?: stringResource(R.string.financial_form_amount_helper)
+
     SectionCard(
         title = title,
         subtitle = subtitle,
@@ -52,12 +60,14 @@ fun FinancialForm(
                 onValueChange = { onAmountChange(KmfAmountFormatters.normalizeInput(it)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                label = { Text(amountLabel) },
-                placeholder = { Text(amountPlaceholder) },
+                label = { Text(resolvedAmountLabel) },
+                placeholder = { Text(resolvedAmountPlaceholder) },
                 isError = state.amountError != null,
                 supportingText = {
-                    val amountHint = KmfAmountFormatters.formatInputForDisplay(state.amountInput)
-                    Text(state.amountError ?: amountHint.ifBlank { helperText.orEmpty() })
+                    val resources = LocalContext.current.resources
+                    val parsedAmount = KmfAmountFormatters.parseToLong(state.amountInput)
+                    val amountHint = if (parsedAmount != null) formatKmf(resources, parsedAmount) else ""
+                    Text(state.amountError ?: amountHint.ifBlank { resolvedHelperText })
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,

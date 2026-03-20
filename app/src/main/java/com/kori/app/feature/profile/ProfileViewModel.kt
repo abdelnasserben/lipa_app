@@ -1,8 +1,10 @@
 package com.kori.app.feature.profile
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.UserRole
 import com.kori.app.data.local.LocalStorage
 import com.kori.app.data.repository.ProfileRepository
@@ -16,6 +18,7 @@ class ProfileViewModel(
     private val role: UserRole,
     private val repository: ProfileRepository,
     private val localStorage: LocalStorage,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProfileUiState>(ProfileUiState.Loading)
@@ -68,7 +71,7 @@ class ProfileViewModel(
                 )
             }.onFailure {
                 _uiState.value = ProfileUiState.Error(
-                    message = "Impossible de charger le profil pour le moment.",
+                    message = resources.getString(R.string.profile_error_message),
                     settings = settingsState,
                 )
             }
@@ -101,6 +104,7 @@ class ProfileViewModel(
             role: UserRole,
             repository: ProfileRepository,
             localStorage: LocalStorage,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -109,6 +113,7 @@ class ProfileViewModel(
                         role = role,
                         repository = repository,
                         localStorage = localStorage,
+                        resources = resources,
                     ) as T
                 }
             }

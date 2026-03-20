@@ -1,7 +1,9 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.FinancialErrorCode
 import com.kori.app.domain.idempotency.IdempotencyManager
@@ -15,17 +17,21 @@ data class FinancialErrorDetails(
 )
 
 object FinancialErrorMapper {
-    fun userMessageFor(code: FinancialErrorCode): String {
+    fun userMessageFor(
+        resources: Resources,
+        code: FinancialErrorCode,
+    ): String {
         return when (code) {
-            FinancialErrorCode.INSUFFICIENT_FUNDS -> "Solde insuffisant pour terminer cette opération."
-            FinancialErrorCode.DAILY_LIMIT_EXCEEDED -> "Votre plafond autorisé est atteint pour le moment."
-            FinancialErrorCode.UNAUTHORIZED -> "Votre session ne permet pas cette action actuellement."
-            FinancialErrorCode.INVALID_STATUS -> "L'opération est momentanément indisponible."
+            FinancialErrorCode.INSUFFICIENT_FUNDS -> resources.getString(R.string.financial_error_insufficient_funds)
+            FinancialErrorCode.DAILY_LIMIT_EXCEEDED -> resources.getString(R.string.financial_error_daily_limit)
+            FinancialErrorCode.UNAUTHORIZED -> resources.getString(R.string.financial_error_unauthorized)
+            FinancialErrorCode.INVALID_STATUS -> resources.getString(R.string.financial_error_invalid_status)
         }
     }
 }
 
 inline fun <TResult> ViewModel.submitFinancialPost(
+    resources: Resources,
     idempotencyManager: IdempotencyManager,
     intent: ActionIntent,
     idempotencyKey: String,
@@ -49,7 +55,7 @@ inline fun <TResult> ViewModel.submitFinancialPost(
             onTechnicalFailure(
                 FinancialErrorDetails(
                     code = FinancialErrorCode.INVALID_STATUS,
-                    userMessage = "Une erreur réseau est survenue. Réessayez dans un instant.",
+                    userMessage = resources.getString(R.string.error_network_retry),
                     technicalMessage = throwable.message ?: "Unknown technical failure while submitting financial POST.",
                     idempotencyKey = idempotencyKey,
                 ),

@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -296,6 +297,9 @@ private fun FiltersSection(
     onApplyFilters: (TransactionsFilterState) -> Unit,
     onClearFilters: () -> Unit,
 ) {
+    val resources = LocalResources.current
+    val allLabel = stringResource(R.string.common_all)
+
     var selectedType by rememberSaveable(filters.selectedType) {
         mutableStateOf(filters.selectedType)
     }
@@ -449,16 +453,16 @@ private fun FiltersSection(
         )
 
         val typeOptions = listOf(
-            FilterOption(value = stringResource(R.string.common_all), label = stringResource(R.string.common_all)),
+            FilterOption(value = allLabel, label = allLabel),
         ) + TransactionType.entries.map { type ->
-            FilterOption(value = type.name, label = type.displayLabel())
+            FilterOption(value = type.name, label = type.displayLabel(resources))
         }
 
         FilterChipRow(
             items = typeOptions,
-            selectedItem = selectedType ?: stringResource(R.string.common_all),
+            selectedItem = selectedType ?: allLabel,
             onSelected = { selected ->
-                selectedType = selected.takeUnless { it == "Tous" }
+                selectedType = selected.takeUnless { it == allLabel }
                 onApplyFilters(
                     TransactionsFilterState(
                         selectedType = selectedType,
@@ -481,14 +485,14 @@ private fun FiltersSection(
         val statusOptions = listOf(
             FilterOption(value = stringResource(R.string.common_all), label = stringResource(R.string.common_all)),
         ) + TransactionStatus.entries.map { status ->
-            FilterOption(value = status.name, label = status.displayLabel())
+            FilterOption(value = status.name, label = status.displayLabel(resources))
         }
 
         FilterChipRow(
             items = statusOptions,
-            selectedItem = selectedStatus ?: stringResource(R.string.common_all),
+            selectedItem = selectedStatus ?: allLabel,
             onSelected = { selected ->
-                selectedStatus = selected.takeUnless { it == "Tous" }
+                selectedStatus = selected.takeUnless { it == allLabel }
                 onApplyFilters(
                     TransactionsFilterState(
                         selectedType = selectedType,
@@ -596,7 +600,7 @@ private fun FiltersSection(
                             ),
                         )
                     },
-                    label = { Text(sort.label) },
+                    label = { Text(stringResource(sort.labelResId)) },
                     colors = FilterChipDefaults.filterChipColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
@@ -787,9 +791,10 @@ private fun countActiveFilters(
 
 @Composable
 private fun activeFiltersSummary(filters: TransactionsFilterState): String {
+    val resources = LocalContext.current.resources
     val parts = buildList {
-        filters.selectedType?.let { add(TransactionType.valueOf(it).displayLabel()) }
-        filters.selectedStatus?.let { add(TransactionStatus.valueOf(it).displayLabel()) }
+        filters.selectedType?.let { add(TransactionType.valueOf(it).displayLabel(resources)) }
+        filters.selectedStatus?.let { add(TransactionStatus.valueOf(it).displayLabel(resources)) }
 
         if (filters.from.isNotBlank() || filters.to.isNotBlank()) {
             add(stringResource(R.string.common_period))
@@ -800,7 +805,7 @@ private fun activeFiltersSummary(filters: TransactionsFilterState): String {
         }
 
         if (filters.sort != TransactionSortOption.DATE_DESC) {
-            add(filters.sort.label)
+            add(stringResource(filters.sort.labelResId))
         }
     }
 

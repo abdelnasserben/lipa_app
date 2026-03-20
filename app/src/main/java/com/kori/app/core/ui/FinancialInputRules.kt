@@ -1,5 +1,9 @@
 package com.kori.app.core.ui
 
+import android.content.res.Resources
+import androidx.annotation.StringRes
+import com.kori.app.R
+
 object FinancialInputRules {
     private const val COMOROS_COUNTRY_CODE = "269"
     private const val COMOROS_PREFIX = "+$COMOROS_COUNTRY_CODE"
@@ -27,12 +31,19 @@ object FinancialInputRules {
         return "$COMOROS_PREFIX$local"
     }
 
-    fun validateComorosPhone(raw: String, fieldLabel: String): String? {
+    fun validateComorosPhone(
+        raw: String,
+        resources: Resources,
+        @StringRes fieldLabelResId: Int,
+    ): String? {
         val local = extractLocalComorosDigits(raw)
         return when {
-            local.isEmpty() -> "Saisissez $fieldLabel."
-            local.length < LOCAL_PHONE_LENGTH -> "Le numéro paraît incomplet."
-            local.firstOrNull() !in setOf('3', '4') -> "Le numéro doit commencer par 3 ou 4 après +269."
+            local.isEmpty() -> resources.getString(
+                R.string.validation_required_field,
+                resources.getString(fieldLabelResId),
+            )
+            local.length < LOCAL_PHONE_LENGTH -> resources.getString(R.string.validation_phone_incomplete)
+            local.firstOrNull() !in setOf('3', '4') -> resources.getString(R.string.validation_phone_start)
             else -> null
         }
     }
@@ -42,12 +53,19 @@ object FinancialInputRules {
         return "$MERCHANT_PREFIX$digits"
     }
 
-    fun validateMerchantCode(raw: String, fieldLabel: String = "le code marchand"): String? {
+    fun validateMerchantCode(
+        raw: String,
+        resources: Resources,
+        @StringRes fieldLabelResId: Int = R.string.validation_field_merchant_code,
+    ): String? {
         val normalized = normalizeMerchantCodeInput(raw)
         val digits = normalized.filter(Char::isDigit)
         return when {
-            digits.isEmpty() -> "Saisissez $fieldLabel."
-            digits.length < MERCHANT_DIGIT_LENGTH -> "Le format attendu est M-XXXXXX (6 chiffres)."
+            digits.isEmpty() -> resources.getString(
+                R.string.validation_required_field,
+                resources.getString(fieldLabelResId),
+            )
+            digits.length < MERCHANT_DIGIT_LENGTH -> resources.getString(R.string.validation_merchant_code_format)
             else -> null
         }
     }

@@ -1,8 +1,10 @@
 package com.kori.app.feature.action
 
+import android.content.res.Resources
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.kori.app.R
 import com.kori.app.core.model.action.ActionIntent
 import com.kori.app.core.model.action.ActionIntentType
 import com.kori.app.core.model.action.MerchantTransferDraft
@@ -19,6 +21,7 @@ import kotlinx.coroutines.launch
 class MerchantTransferViewModel(
     private val repository: MerchantTransferRepository,
     private val idempotencyManager: IdempotencyManager,
+    private val resources: Resources,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MerchantTransferUiState>(MerchantTransferUiState.Form())
@@ -70,7 +73,7 @@ class MerchantTransferViewModel(
                 _uiState.value = current.copy(
                     isLoading = false,
                     errors = current.errors.copy(
-                        amount = "Impossible de préparer ce transfert pour le moment.",
+                        amount = resources.getString(R.string.merchant_transfer_quote_unavailable),
                     ),
                 )
             }
@@ -101,6 +104,7 @@ class MerchantTransferViewModel(
         )
 
         submitFinancialPost(
+            resources = resources,
             idempotencyManager = idempotencyManager,
             intent = intent,
             idempotencyKey = current.model.quote.idempotencyKey,
@@ -126,7 +130,7 @@ class MerchantTransferViewModel(
                         MerchantTransferUiState.Failure(
                             model = FinancialFailureModel(
                                 code = result.code,
-                                userMessage = FinancialErrorMapper.userMessageFor(result.code),
+                                userMessage = FinancialErrorMapper.userMessageFor(resources, result.code),
                                 technicalMessage = result.message,
                                 idempotencyKey = result.idempotencyKey,
                             ),
@@ -197,9 +201,11 @@ class MerchantTransferViewModel(
         return MerchantTransferFormErrors(
             recipientMerchantCode = FinancialInputRules.validateMerchantCode(
                 draft.recipientMerchantCode,
-                "le code marchand bénéficiaire",
+                resources = resources,
+                fieldLabelResId = R.string.merchant_transfer_recipient_label,
             ),
             amount = KmfAmountFormatters.validateAmount(
+                resources = resources,
                 rawInput = draft.amountInput,
                 min = FinancialFlowRules.MERCHANT_TRANSFER_MIN_AMOUNT,
                 max = FinancialFlowRules.MERCHANT_TRANSFER_MAX_AMOUNT,
@@ -211,6 +217,7 @@ class MerchantTransferViewModel(
         fun factory(
             repository: MerchantTransferRepository,
             idempotencyManager: IdempotencyManager,
+            resources: Resources,
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {
                 @Suppress("UNCHECKED_CAST")
@@ -218,6 +225,7 @@ class MerchantTransferViewModel(
                     return MerchantTransferViewModel(
                         repository = repository,
                         idempotencyManager = idempotencyManager,
+                        resources = resources,
                     ) as T
                 }
             }

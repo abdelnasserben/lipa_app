@@ -31,8 +31,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kori.app.R
 
 @Composable
 fun CollapsibleFiltersCard(
@@ -88,7 +90,7 @@ fun CollapsibleFiltersCard(
 
                 if (activeCount > 0 && onClearFilters != null) {
                     TextButton(onClick = onClearFilters) {
-                        Text("Réinitialiser")
+                        Text(stringResource(R.string.common_reset))
                     }
                 }
 
@@ -128,7 +130,12 @@ fun CollapsibleFiltersCard(
     }
 }
 
+@Composable
 private fun buildFiltersTitle(
     title: String,
     activeCount: Int,
-): String = if (activeCount > 0) "$title • $activeCount" else title
+): String = if (activeCount > 0) {
+    stringResource(R.string.common_title_with_count, title, activeCount)
+} else {
+    title
+}

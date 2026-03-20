@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,6 +31,8 @@ fun BalanceCard(
     balance: ActorBalanceResponse,
     modifier: Modifier = Modifier,
 ) {
+    val resources = LocalContext.current.resources
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(28.dp),
@@ -62,7 +65,7 @@ fun BalanceCard(
             balance.balances.forEach { item ->
                 BalanceLine(
                     label = item.kind.name,
-                    amount = formatKmf(item.amount),
+                    amount = formatKmf(resources, item.amount),
                     emphasize = item.kind == BalanceKind.MAIN || item.kind == BalanceKind.CASH,
                 )
             }
