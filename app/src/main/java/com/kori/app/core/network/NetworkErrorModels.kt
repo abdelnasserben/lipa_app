@@ -2,6 +2,7 @@ package com.kori.app.core.network
 
 import android.content.res.Resources
 import com.kori.app.R
+import com.kori.app.data.remote.BackendApiBusinessException
 import java.io.IOException
 import java.net.SocketTimeoutException
 
@@ -24,10 +25,17 @@ class BackendBusinessException(
     override val message: String,
 ) : RuntimeException(message)
 
+class NetworkHttpException(
+    val code: Int,
+    val payload: String?,
+) : IOException("HTTP_$code: ${payload.orEmpty()}")
+
 object NetworkErrorMapper {
     fun fromThrowable(throwable: Throwable): NetworkError {
         return when (throwable) {
             is BackendBusinessException -> NetworkError.BackendBusiness(throwable.backendCode, throwable.message)
+            is BackendApiBusinessException -> NetworkError.BackendBusiness(throwable.backendCode, throwable.message)
+            is NetworkHttpException -> NetworkError.Http(throwable.code, throwable.payload)
             is SocketTimeoutException -> NetworkError.Timeout(throwable.message)
             is IOException -> NetworkError.Connectivity(throwable.message)
             is kotlinx.serialization.SerializationException,

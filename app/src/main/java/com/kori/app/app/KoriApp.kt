@@ -16,7 +16,7 @@ fun KoriApp() {
     val appContainer = remember(context) {
         KoriAppContainerFactory.create(
             context = context,
-            mode = RepositoryBindingMode.MOCK,
+            mode = RepositoryBindingMode.REAL,
         )
     }
 

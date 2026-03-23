@@ -9,7 +9,6 @@ import com.kori.app.core.model.UserRole
 import com.kori.app.core.model.transaction.TransactionItemResponse
 import com.kori.app.core.model.transaction.TransactionStatus
 import com.kori.app.core.ui.timelineLabel
-import com.kori.app.data.repository.TransactionQuery
 import com.kori.app.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,18 +34,12 @@ class TransactionDetailViewModel(
             _uiState.value = TransactionDetailUiState.Loading
 
             runCatching {
-                findTransaction(transactionRef)
+                loadTransactionDetail(transactionRef)
             }.onSuccess { transaction ->
-                if (transaction == null) {
-                    _uiState.value = TransactionDetailUiState.Error(
-                        message = resources.getString(R.string.transaction_detail_not_found),
-                    )
-                } else {
-                    _uiState.value = TransactionDetailUiState.Content(
-                        transaction = transaction,
-                        timeline = buildTimeline(transaction),
-                    )
-                }
+                _uiState.value = TransactionDetailUiState.Content(
+                    transaction = transaction,
+                    timeline = buildTimeline(transaction),
+                )
             }.onFailure {
                 _uiState.value = TransactionDetailUiState.Error(
                     message = resources.getString(R.string.transaction_detail_error_message),
@@ -55,18 +48,12 @@ class TransactionDetailViewModel(
         }
     }
 
-    private suspend fun findTransaction(
-        ref: String,
-    ): TransactionItemResponse? {
-        val query = TransactionQuery(limit = 50, sort = "-createdAt")
-
-        val items = when (role) {
-            UserRole.CLIENT -> repository.getClientTransactions(query).items
-            UserRole.MERCHANT -> repository.getMerchantTransactions(query).items
-            UserRole.AGENT -> repository.getAgentTransactions(query).items
+    private suspend fun loadTransactionDetail(ref: String): TransactionItemResponse {
+        return when (role) {
+            UserRole.CLIENT -> repository.getClientTransactionDetail(ref)
+            UserRole.MERCHANT -> repository.getMerchantTransactionDetail(ref)
+            UserRole.AGENT -> repository.getAgentTransactionDetail(ref)
         }
-
-        return items.firstOrNull { it.transactionRef == ref }
     }
 
     private fun buildTimeline(

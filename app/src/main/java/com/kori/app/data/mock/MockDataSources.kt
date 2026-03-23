@@ -36,6 +36,15 @@ class MockTransactionDataSource(
 
     override suspend fun getAgentTransactions(query: TransactionQuery): CursorPagedResponse<TransactionItemResponse> =
         repository.getAgentTransactions(query)
+
+    override suspend fun getClientTransactionDetail(transactionRef: String): TransactionItemResponse =
+        repository.getClientTransactionDetail(transactionRef)
+
+    override suspend fun getMerchantTransactionDetail(transactionRef: String): TransactionItemResponse =
+        repository.getMerchantTransactionDetail(transactionRef)
+
+    override suspend fun getAgentTransactionDetail(transactionRef: String): TransactionItemResponse =
+        repository.getAgentTransactionDetail(transactionRef)
 }
 
 class MockClientTransferDataSource(

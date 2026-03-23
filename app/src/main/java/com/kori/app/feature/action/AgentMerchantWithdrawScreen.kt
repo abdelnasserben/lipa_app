@@ -13,7 +13,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.kori.app.R
@@ -26,7 +26,6 @@ import com.kori.app.core.designsystem.component.SectionCard
 import com.kori.app.core.designsystem.component.SuccessReceiptSheet
 import com.kori.app.core.ui.formatIsoToDisplay
 import com.kori.app.core.ui.formatKmf
-import androidx.compose.ui.platform.LocalResources
 
 @Composable
 fun AgentMerchantWithdrawScreen(

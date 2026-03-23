@@ -17,4 +17,13 @@ class TransactionRepositoryImpl(
 
     override suspend fun getAgentTransactions(query: TransactionQuery): CursorPagedResponse<TransactionItemResponse> =
         dataSource.getAgentTransactions(query)
+
+    override suspend fun getClientTransactionDetail(transactionRef: String): TransactionItemResponse =
+        dataSource.getClientTransactionDetail(transactionRef)
+
+    override suspend fun getMerchantTransactionDetail(transactionRef: String): TransactionItemResponse =
+        dataSource.getMerchantTransactionDetail(transactionRef)
+
+    override suspend fun getAgentTransactionDetail(transactionRef: String): TransactionItemResponse =
+        dataSource.getAgentTransactionDetail(transactionRef)
 }

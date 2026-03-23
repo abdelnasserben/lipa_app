@@ -33,7 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -81,7 +80,6 @@ fun DashboardScreen(
     onOpenAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val resources = LocalContext.current.resources
 
     when (uiState) {
         DashboardUiState.Loading -> DashboardLoading(
@@ -252,7 +250,6 @@ private fun DashboardError(
                 UserRole.CLIENT -> stringResource(R.string.dashboard_error_client)
                 UserRole.MERCHANT -> stringResource(R.string.dashboard_error_merchant)
                 UserRole.AGENT -> stringResource(R.string.dashboard_error_agent)
-                else -> stringResource(R.string.dashboard_error_default)
             },
             message = message,
             onRetry = onRetry,

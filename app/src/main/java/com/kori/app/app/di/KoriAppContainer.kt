@@ -21,6 +21,13 @@ import com.kori.app.data.mock.MockTransactionDataSource
 import com.kori.app.data.mock.MockTransactionRepository
 import com.kori.app.data.oidc.OidcAuthDataSource
 import com.kori.app.data.oidc.OidcConfig
+import com.kori.app.data.remote.ApiHttpClient
+import com.kori.app.data.remote.NetworkBackedAgentActionDataSource
+import com.kori.app.data.remote.NetworkBackedClientTransferDataSource
+import com.kori.app.data.remote.NetworkBackedMerchantTransferDataSource
+import com.kori.app.data.remote.RealDashboardDataSource
+import com.kori.app.data.remote.RealProfileDataSource
+import com.kori.app.data.remote.RealTransactionDataSource
 import com.kori.app.data.repository.ActivityRepository
 import com.kori.app.data.repository.AgentActionRepository
 import com.kori.app.data.repository.AgentSearchRepository
@@ -34,11 +41,11 @@ import com.kori.app.data.repository.SessionRepository
 import com.kori.app.data.repository.TransactionRepository
 import com.kori.app.data.repository.impl.AgentActionRepositoryImpl
 import com.kori.app.data.repository.impl.AuthServiceImpl
-import com.kori.app.data.repository.impl.SessionRepositoryImpl
 import com.kori.app.data.repository.impl.ClientTransferRepositoryImpl
 import com.kori.app.data.repository.impl.DashboardRepositoryImpl
 import com.kori.app.data.repository.impl.MerchantTransferRepositoryImpl
 import com.kori.app.data.repository.impl.ProfileRepositoryImpl
+import com.kori.app.data.repository.impl.SessionRepositoryImpl
 import com.kori.app.data.repository.impl.TransactionRepositoryImpl
 import com.kori.app.domain.idempotency.IdempotencyManager
 
@@ -59,19 +66,43 @@ interface KoriAppContainer {
 }
 
 object KoriAppContainerFactory {
-    fun create(context: Context, mode: RepositoryBindingMode = RepositoryBindingMode.MOCK): KoriAppContainer =
+    fun create(context: Context, mode: RepositoryBindingMode = RepositoryBindingMode.REAL): KoriAppContainer =
         when (mode) {
             RepositoryBindingMode.MOCK -> MockKoriAppContainer(context)
+            RepositoryBindingMode.REAL -> RealKoriAppContainer(context)
         }
 }
 
 enum class RepositoryBindingMode {
     MOCK,
+    REAL,
 }
 
-private class MockKoriAppContainer(context: Context) : KoriAppContainer {
+private abstract class BaseKoriAppContainer(context: Context) : KoriAppContainer {
     override val localStorage: LocalStorage = SharedPrefsLocalStorage(context)
 
+    override val authService: AuthService = AuthServiceImpl(
+        OidcAuthDataSource(
+            context = context,
+            localStorage = localStorage,
+            oidcConfig = OidcConfig.fromBuildConfig(),
+        ),
+    )
+
+    override val sessionRepository: SessionRepository = SessionRepositoryImpl(
+        localStorage = localStorage,
+        authService = authService,
+    )
+
+    override val clientCardRepository: ClientCardRepository = MockClientCardRepository()
+    override val activityRepository: ActivityRepository = MockActivityRepository()
+    override val agentSearchRepository: AgentSearchRepository = MockAgentSearchRepository()
+
+    protected val pendingActionStore = InMemoryPendingActionStore()
+    override val idempotencyManager: IdempotencyManager = IdempotencyManager(pendingActionStore)
+}
+
+private class MockKoriAppContainer(context: Context) : BaseKoriAppContainer(context) {
     private val mockDashboardRepository = MockDashboardRepository()
     private val mockTransactionRepository = MockTransactionRepository()
     private val mockProfileRepository = MockProfileRepository()
@@ -83,29 +114,32 @@ private class MockKoriAppContainer(context: Context) : KoriAppContainer {
         DashboardRepositoryImpl(MockDashboardDataSource(mockDashboardRepository))
     override val transactionRepository: TransactionRepository =
         TransactionRepositoryImpl(MockTransactionDataSource(mockTransactionRepository))
-    override val clientCardRepository: ClientCardRepository = MockClientCardRepository()
-    override val authService: AuthService = AuthServiceImpl(
-        OidcAuthDataSource(
-            context = context,
-            localStorage = localStorage,
-            oidcConfig = OidcConfig.fromBuildConfig(),
-        ),
-    )
-    override val sessionRepository: SessionRepository = SessionRepositoryImpl(
-        localStorage = localStorage,
-        authService = authService,
-    )
-    override val activityRepository: ActivityRepository = MockActivityRepository()
     override val clientTransferRepository: ClientTransferRepository =
         ClientTransferRepositoryImpl(MockClientTransferDataSource(mockClientTransferRepository))
     override val merchantTransferRepository: MerchantTransferRepository =
         MerchantTransferRepositoryImpl(MockMerchantTransferDataSource(mockMerchantTransferRepository))
     override val agentActionRepository: AgentActionRepository =
         AgentActionRepositoryImpl(MockAgentActionDataSource(mockAgentActionRepository))
-    override val agentSearchRepository: AgentSearchRepository = MockAgentSearchRepository()
     override val profileRepository: ProfileRepository =
         ProfileRepositoryImpl(MockProfileDataSource(mockProfileRepository))
+}
 
-    private val pendingActionStore = InMemoryPendingActionStore()
-    override val idempotencyManager: IdempotencyManager = IdempotencyManager(pendingActionStore)
+private class RealKoriAppContainer(context: Context) : BaseKoriAppContainer(context) {
+    private val apiHttpClient = ApiHttpClient(authService = authService)
+
+    private val fallbackAgentActionRepository = MockAgentActionRepository()
+    private val fallbackAgentActionDataSource = MockAgentActionDataSource(fallbackAgentActionRepository)
+
+    override val dashboardRepository: DashboardRepository =
+        DashboardRepositoryImpl(RealDashboardDataSource(apiHttpClient))
+    override val transactionRepository: TransactionRepository =
+        TransactionRepositoryImpl(RealTransactionDataSource(apiHttpClient))
+    override val clientTransferRepository: ClientTransferRepository =
+        ClientTransferRepositoryImpl(NetworkBackedClientTransferDataSource(apiHttpClient))
+    override val merchantTransferRepository: MerchantTransferRepository =
+        MerchantTransferRepositoryImpl(NetworkBackedMerchantTransferDataSource(apiHttpClient))
+    override val agentActionRepository: AgentActionRepository =
+        AgentActionRepositoryImpl(NetworkBackedAgentActionDataSource(apiHttpClient, fallbackAgentActionDataSource))
+    override val profileRepository: ProfileRepository =
+        ProfileRepositoryImpl(RealProfileDataSource(apiHttpClient))
 }

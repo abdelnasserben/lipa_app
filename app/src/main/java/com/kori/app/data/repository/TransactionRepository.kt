@@ -21,4 +21,7 @@ interface TransactionRepository {
     suspend fun getClientTransactions(query: TransactionQuery): CursorPagedResponse<TransactionItemResponse>
     suspend fun getMerchantTransactions(query: TransactionQuery): CursorPagedResponse<TransactionItemResponse>
     suspend fun getAgentTransactions(query: TransactionQuery): CursorPagedResponse<TransactionItemResponse>
+    suspend fun getClientTransactionDetail(transactionRef: String): TransactionItemResponse
+    suspend fun getMerchantTransactionDetail(transactionRef: String): TransactionItemResponse
+    suspend fun getAgentTransactionDetail(transactionRef: String): TransactionItemResponse
 }

@@ -53,6 +53,21 @@ class MockTransactionRepository : TransactionRepository {
         )
     }
 
+    override suspend fun getClientTransactionDetail(transactionRef: String): TransactionItemResponse {
+        delay(150)
+        return MockDataFactory.clientTransactions().first { it.transactionRef == transactionRef }
+    }
+
+    override suspend fun getMerchantTransactionDetail(transactionRef: String): TransactionItemResponse {
+        delay(150)
+        return MockDataFactory.merchantTransactions().first { it.transactionRef == transactionRef }
+    }
+
+    override suspend fun getAgentTransactionDetail(transactionRef: String): TransactionItemResponse {
+        delay(150)
+        return MockDataFactory.agentTransactions().first { it.transactionRef == transactionRef }
+    }
+
     private fun applyQuery(
         source: List<TransactionItemResponse>,
         query: TransactionQuery,
